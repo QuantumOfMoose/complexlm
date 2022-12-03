@@ -1,0 +1,10 @@
+# This file contains filenames and patterns for which git will not track changes.
+
+# Ignore compiled libraries and binaries.
+*.so
+*.o
+.Rproj.user
+*.ignore
+*.Rproj
+*.Rhistory
+*.RData

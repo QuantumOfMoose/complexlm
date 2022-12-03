@@ -1,0 +1,8 @@
+##				Dear Emacs, make me  -*- Makefile -*-
+# set by configure
+LAPACK_CFLAGS = -llapack
+LAPACK_LIBS   = /usr/lib/x86_64-linux-gnu
+
+## we use the BLAS and now also the LAPACK library:
+PKG_LIBS= $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+PKG_CFLAGS = $(LAPACK_CFLAGS)
