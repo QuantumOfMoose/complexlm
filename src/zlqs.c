@@ -1,5 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
+ *  
  *  Copyright (C) 1998-2016	B. D. Ripley
  *  Copyright (C) 1999          R Development Core Team
  *
@@ -72,7 +73,7 @@ static void to_Rcmplx_array(double complex *carray, int n, Rcomplex *Rarray)
    }
 }
 
-/* A function to creat ea matcing array of double complex from a Rcomplex array of length n. It does not create the array or allocate memory, it just copies the values. */
+/* A function to create a matching array of double complex from a Rcomplex array of length n. It does not create the array or allocate memory, it just copies the values. */
 static void to_dblcmplx_array (Rcomplex *Rarray, int n, double complex *carray)
 {
     int i;

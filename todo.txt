@@ -1,0 +1,11 @@
+###### TO DO ######
+
+Confidence intervals: make a function for calculating them from complex lm and rlm objects. Like the confint function from the stats package.
+
+generalized linear model
+
+weighted median for complex data
+
+huber estimator for complex data
+
+s-estimator for complex data

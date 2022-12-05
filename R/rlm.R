@@ -1,4 +1,5 @@
-# file MASS/R/rlm.R
+# file complexlm/R/rlm.R
+# copyright (C) 2020-2022 W. L. Ryan
 # copyright (C) 1994-2020 W. N. Venables and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -41,7 +42,7 @@ rlm.formula <-
     if(method == "model.frame") return(mf)
     mt <- attr(mf, "terms")
     y <- model.response(mf)
-    offset <- model.offset(mf)
+    offset <- model.offset(mf) ## Note: offset is not the same thing as an intercept. offset is a known coefficient of the fit, for example the relationship between the response and one of the predictor variables.
     if(!is.null(offset)) y <- y - offset
     x <- model.matrix(mt, mf, contrasts)
     xvars <- as.character(attr(mt, "variables"))[-1L]

@@ -1,4 +1,4 @@
-# file lqs/R/lqs.R
+# file complexlm/R/lqs.R
 # copyright (C) 1998-2020 B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,11 @@
 
 lqs <- function(x, ...) UseMethod("lqs")
 
+
+####
+### I am uncertain how rigorous / effective this is, as quantiles are not defined for complex random variables.
+### It appears to work though.
+####
 lqs.formula <-
   function(formula, data, ...,
            method = c("lts" ,"lqs", "lms", "S", "model.frame"),
@@ -53,6 +58,14 @@ lqs.default <-
   function(x, y, intercept = TRUE, method = c("lts", "lqs", "lms", "S"),
            quantile, control = lqs.control(...), k0 = 1.548, seed, ...)
   {
+    thiscall <- match.call()
+    if(is.numeric(x)) # If the given data is numeric, call the lqs.default function from MASS.
+    {
+      thiscall[[1]] <- MASS::lqs.default
+      eval(thiscall, parent.frame())
+    }
+    else
+    {
     lqs.control <- function(psamp = NA, nsamp = "best", adjust = TRUE)
       list(psamp = psamp, nsamp = nsamp, adjust = adjust)
     
@@ -126,14 +139,7 @@ lqs.default <-
       }
       assign(".Random.seed", seed, envir=.GlobalEnv)
     }
-    z <- if(is.numeric(x)) .C(lqs_fitlots,
-             as.double(x), as.double(y), as.integer(n), as.integer(p),
-             as.integer(quantile), as.integer(lts), as.integer(adj),
-             as.integer(samp), as.integer(ps), as.integer(nsamp),
-             crit=double(1), sing=integer(1L), bestone=integer(ps),
-             coefficients=double(p), as.double(k0), as.double(beta)
-            )[c("crit", "sing", "coefficients", "bestone")]
-         else .C(zlqs_fitlots, 
+    z <- .C(zlqs_fitlots, 
                  as.complex(x), as.complex(y), as.integer(n), as.integer(p),
                  as.integer(quantile), as.integer(lts), as.integer(adj),
                  as.integer(samp), as.integer(ps), as.integer(nsamp),
@@ -178,6 +184,7 @@ lqs.default <-
     class(z) <- "lqs"
     z
   }
+}
 
 print.lqs <- function (x, digits = max(3, getOption("digits") - 3), ...)
 {
@@ -206,11 +213,12 @@ predict.lqs <- function (object, newdata, na.action = na.pass, ...)
 }
 
 #### cov.rob as previously written is filled with calls to functions that demand numeric (real) valued inputs.
-###   Here we make a new cov.rob that checks if x is real. If so, it calls the original cov.rob, now called cov.rrob.
+###   Here we make a new cov.rob that checks if x is real. If so, it calls the original cov.rob from MASS.
 ###   If x is complex, call cov.zrob, which has been modified for complex numbers.
 cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
                     method = c("mve", "mcd", "classical"), nsamp = "best", seed)
 {
+  thiscall <- match.call()
   method <- match.arg(method)
   x <- as.matrix(x)
   if(any(is.na(x)) || any(is.infinite(x)))
@@ -218,91 +226,17 @@ cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
   n <- nrow(x); p <- ncol(x)
   if(n < p+1)
     stop(gettextf("at least %d cases are needed", p+1), domain = NA)
-  if (is.numeric(x)) cov.rrob(x = x, cor = FALSE, quantile.used = quantile.used,
-                              method = method, nsamp = nsamp, seed = seed)
-  else if (is.complex(x)) cov.zrob(x = x, cor = FALSE, quantile.used = quantile.used,
-                                   method = method, nsamp = nsamp, seed = seed)
+  if (is.numeric(x)) 
+  {
+    thiscall[[1]] <- MASS::cov.rob
+    eval(thiscall, parent.frame())
+  }
+  else if (is.complex(x)) 
+  {
+    thiscall[[1]] <- cov.zrob
+    eval(thiscall, parent.frame())
+  }
   else print("Input x must be numeric or complex.")
-}
-
-cov.rrob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
-                    method = c("mve", "mcd", "classical"), nsamp = "best", seed)
-{
-  method <- match.arg(method)
-  x <- as.matrix(x)
-  if(any(is.na(x)) || any(is.infinite(x)))
-    stop("missing or infinite values are not allowed")
-  n <- nrow(x); p <- ncol(x)
-  if(n < p+1)
-    stop(gettextf("at least %d cases are needed", p+1), domain = NA)
-  if(method == "classical") {
-    ans <- list(center = colMeans(x), cov = var(x))
-  } else {
-    if(quantile.used < p+1)
-      stop(gettextf("'quantile' must be at least %d", p+1), domain = NA)
-    if(quantile.used > n-1)
-      stop(gettextf("'quantile' must be at most %d", n-1), domain = NA)
-    ## re-scale to roughly common scale
-    divisor <- apply(x, 2, IQR)
-    if(any(divisor == 0)) stop("at least one column has IQR 0")
-    x <- x /rep(divisor, rep(n,p))
-    qn <- quantile.used
-    ps <- p + 1
-    nexact <- choose(n, ps)
-    if(is.character(nsamp) && nsamp == "best")
-      nsamp <- if(nexact < 5000) "exact" else "sample"
-    if(is.numeric(nsamp) && nsamp > nexact) {
-      warning(sprintf(ngettext(nexact,
-                               "only %d set, so all sets will be tried",
-                               "only %d sets, so all sets will be tried"),
-                      nexact), domain = NA)
-      nsamp <- "exact"
-    }
-    samp <- nsamp != "exact"
-    if(samp) {
-      if(nsamp == "sample") nsamp <- min(500*ps, 3000)
-    } else nsamp <- nexact
-    if (nsamp > 2147483647) {
-      if(samp)
-        stop(sprintf("Too many samples (%.3g)", nsamp))
-      else
-        stop(sprintf('Too many combinations (%.3g) for nsamp = "exact"', nsamp))
-    }
-    if(samp && !missing(seed)) {
-      if(exists(".Random.seed", envir=.GlobalEnv, inherits=FALSE))  {
-        seed.keep <- get(".Random.seed", envir=.GlobalEnv, inherits=FALSE)
-        on.exit(assign(".Random.seed", seed.keep, envir=.GlobalEnv))
-      }
-      assign(".Random.seed", seed, envir=.GlobalEnv)
-    }
-    z <-  .C(mve_fitlots,
-             as.double(x), as.integer(n), as.integer(p),
-             as.integer(qn), as.integer(method=="mcd"),
-             as.integer(samp), as.integer(ps), as.integer(nsamp),
-             crit=double(1), sing=integer(1L), bestone=integer(n))
-    z$sing <- paste(z$sing, "singular samples of size", ps,
-                    "out of", nsamp)
-    crit <- z$crit + 2*sum(log(divisor)) +
-      if(method=="mcd") - p * log(qn - 1) else 0
-    best <- seq(n)[z$bestone != 0]
-    if(!length(best)) stop("'x' is probably collinear")
-    means <- colMeans(x[best, , drop = FALSE])
-    rcov <- var(x[best, , drop = FALSE]) * (1 + 15/(n - p))^2
-    dist <- mahalanobis(x, means, rcov)
-    cut <- qchisq(0.975, p) * quantile(dist, qn/n)/qchisq(qn/n, p)
-    cov <- divisor * var(x[dist < cut, , drop = FALSE]) *
-      rep(divisor, rep(p, p))
-    attr(cov, "names") <- NULL
-    ans <- list(center =
-                  colMeans(x[dist < cut, , drop = FALSE]) * divisor,
-                cov = cov, msg = z$sing, crit = crit, best = best)
-  }
-  if(cor) {
-    sd <- sqrt(diag(ans$cov))
-    ans <- c(ans, list(cor = (ans$cov/sd)/rep(sd, rep(p, p))))
-  }
-  ans$n.obs <- n
-  ans
 }
 
 ### A function to calculate the unbiased sample variance of a vector of complex numbers. 
@@ -311,6 +245,14 @@ zvar <- function(x)
 {
   sampmean <- mean(x, trim = 0)
   return((1 / (length(x) - 1)) * sum((x - sampmean) * Conj(x - sampmean)))
+}
+
+### A function for calculating the unbiased sample pseudo-variance of a vector of complex numbers.
+### Can return a complex number.
+pseuzvar <- function(x)
+{
+  sampmean <- mean(x, trim = 0)
+  return((1 / (length(x) - 1)) * sum((x - sampmean) * (x - sampmean)))
 }
 
 cov.zrob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
