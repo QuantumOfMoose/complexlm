@@ -13,7 +13,31 @@ Complexdqlrs <- function (x, y, tol, chk) {
   return(ans)
 }
 
-zlm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-07, 
+####
+### Wrapper for lm.fit() If data is numeric, use lm.fit() from stats. If it is complex, use zlm.wfit().
+####
+lm.fit(x, y, offset = NULL, method = "qr", tol = 1e-7,
+       singular.ok = TRUE, ...)
+{
+  cll <- match.call()
+  if (is.complex(x)) cll[[1]] <- zlm.wfit
+  else cll[[1]] <- stats::lm.fit
+  eval(cll, parent.frame())
+}
+
+####
+### Wrapper for lm.wfit(). If data is numeric, use lm.wfit() from stats. If it is complex, use zlm.wfit().
+####
+lm.wfit(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
+        singular.ok = TRUE, ...)
+{
+  cll <- match.call()
+  if (is.complex(x)) cll[[1]] <- zlm.wfit
+  else cll[[1]] <- stats::lm.wfit
+  eval(cll, parent.frame())
+}
+
+zlm.wfit <- function (x, y, w = rep(1L, length(x)), offset = NULL, method = "qr", tol = 1e-07, 
           singular.ok = TRUE, ...) 
 {
   if (is.null(n <- nrow(x))) 
@@ -121,5 +145,121 @@ zlm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-07,
   qr <- z[c("qr", "qraux", "pivot", "tol", "rank")]
   c(z[c("coefficients", "residuals", "fitted.values", "effects", 
         "weights", "rank")], list(assign = x.asgn, qr = structure(qr, 
-                                                                  class = "qr"), df.residual = n - z$rank))
+        class = "qr"), df.residual = n - z$rank))
+}
+
+####
+### A wrapper for summary.lm(). If the residuals are numeric, call summary.lm() from stats.
+summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
+{
+  cll <- match.call()
+  if (is.numeric(object$residuals)) 
+  {
+    cll[[1]] <- stats::summary.lm
+    eval(cll, parent.frame())
+  }
+  else
+  {
+    z <- object
+    p <- z$rank
+    rdf <- z$df.residual
+    if (p == 0) {
+      r <- z$residuals
+      n <- length(r)
+      w <- z$weights
+      if (is.null(w)) {
+        rss <- sum(as.numeric(Conj(r)*r))
+        prss <- sum(r^2) # 'pseudo' sum of squared residuals.
+      } else {
+        rss <- sum(w * as.numeric(Conj(r)*r))
+        prss <- sum(r^2) # 'pseudo' sum of squared residuals.
+        r <- sqrt(w) * r
+      }
+      resvar <- rss/rdf # Variance of residuals.
+      respvar <- prss / rdf # Pseudo-variance of residuals.
+      ans <- z[c("call", "terms", if(!is.null(z$weights)) "weights")]
+      class(ans) <- "summary.lm"
+      ans$aliased <- is.na(coef(object))  # used in print method
+      ans$residuals <- r
+      ans$df <- c(0L, n, length(ans$aliased))
+      ans$coefficients <- matrix(NA_real_, 0L, 5L, dimnames =
+                                   list(NULL, c("Estimate", "Std. Error", "Pseudo Std. Error", "t value", "Pr(>|t|)")))
+      ans$sigma <- sqrt(resvar)
+      ans$psigma <- sqrt(respvar) # Pseudo standard deviation of residuals.
+      ans$r.squared <- ans$adj.r.squared <- 0
+      ans$cov.unscaled <- matrix(NA_real_, 0L, 0L)
+      if (correlation) ans$correlation <- ans$cov.unscaled
+      return(ans)
+    }
+    if (is.null(z$terms))
+      stop("invalid 'lm' object:  no 'terms' component")
+    if(!inherits(object, "lm"))
+      warning("calling summary.lm(<fake-lm-object>) ...")
+    Qr <- qr.lm(object) # Internal function that just returns the thing in z$qr. Unless it's not there, in which case it gives an error.
+    n <- NROW(Qr$qr)
+    if(is.na(z$df.residual) || n - p != z$df.residual)
+      warning("residual degrees of freedom in object suggest this is not an \"lm\" fit")
+    ## do not want missing values substituted here
+    r <- z$residuals
+    f <- z$fitted.values
+    w <- z$weights
+    if (is.null(w)) {
+      mss <- if (attr(z$terms, "intercept"))
+        sum(as.numeric(Conj(f - mean(f))*(f - mean(f)))) else sum(as.numeric(Conj(f)*f)) # Sum of conjugate squared deviations from the mean of the fitted values.
+      pmss <- if (attr(z$terms, "intercept"))
+        sum((f - mean(f))^2) else sum(f^2) # Sum of squared deviations from the mean of the fitted values. A complex number.
+      rss <- sum(as.numeric(Conj(r)*r))
+      prss <- sum(r^2)
+    } else {
+      mss <- if (attr(z$terms, "intercept")) {
+        m <- sum(w * f /sum(w))
+        sum(w * as.numeric(Conj(f - m)*(f - m)))
+      } else sum(w * as.numeric(Conj(f)*f))
+      pmss <- if (attr(z$terms, "intercept")) {
+        m <- sum(w * f /sum(w))
+        sum(w * (f - m)^2)
+      } else sum(w * f^2)
+      rss <- sum(w * as.numeric(Conj(r)*r))
+      prss <- sum(w * r^2)
+      r <- sqrt(w) * r
+    }
+    resvar <- rss/rdf # Variance of the residuals.
+    respvar <- prss/rdf # Pseudo variance of the residuals.
+    ## see thread at https://stat.ethz.ch/pipermail/r-help/2014-March/367585.html
+    if (is.finite(resvar) &&
+        resvar < (as.numeric(Conj(mean(f))*mean(f)) + var(c(f))) * 1e-30)  # a few times .Machine$double.eps^2
+      warning("essentially perfect fit: summary may be unreliable")
+    p1 <- 1L:p
+    R <- chol2inv(Qr$qr[p1, p1, drop = FALSE])
+    se <- sqrt(diag(R) * resvar)
+    pse <- sqrt(diag(R) * respvar)
+    est <- z$coefficients[Qr$pivot[p1]]
+    tval <- est/se
+    ans <- z[c("call", "terms", if(!is.null(z$weights)) "weights")]
+    ans$residuals <- r
+    ans$coefficients <-
+      cbind(Estimate = est, "Std. Error" = se, "Pseudo Std. Error" = pse, "t value" = tval,
+            "Pr(>|t|)" = 2*pt(abs(tval), rdf, lower.tail = FALSE))
+    ans$aliased <- is.na(z$coefficients)  # used in print method
+    ans$sigma <- sqrt(resvar)
+    ans$psigma <- sqrt(respvar)
+    ans$df <- c(p, rdf, NCOL(Qr$qr))
+    if (p != attr(z$terms, "intercept")) {
+      df.int <- if (attr(z$terms, "intercept")) 1L else 0L
+      ans$r.squared <- mss/(mss + rss)
+      ans$adj.r.squared <- 1 - (1 - ans$r.squared) * ((n - df.int)/rdf)
+      ans$fstatistic <- c(value = (mss/(p - df.int))/resvar,
+                          numdf = p - df.int, dendf = rdf)
+    } else ans$r.squared <- ans$adj.r.squared <- 0
+    ans$cov.unscaled <- R
+    dimnames(ans$cov.unscaled) <- dimnames(ans$coefficients)[c(1,1)]
+    if (correlation) {
+      ans$correlation <- (R * resvar)/outer(se, se)
+      dimnames(ans$correlation) <- dimnames(ans$cov.unscaled)
+      ans$symbolic.cor <- symbolic.cor
+    }
+    if(!is.null(z$na.action)) ans$na.action <- z$na.action
+    class(ans) <- "summary.lm"
+    ans
+  }
 }

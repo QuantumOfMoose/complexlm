@@ -256,82 +256,111 @@ print.rlm <- function(x, ...)
 summary.rlm <- function(object, method = c("XtX", "XtWX"),
                         correlation = FALSE, ...)
 {
-    method <- match.arg(method)
-    s <- object$s
-    coef <- object$coefficients
-    ptotal <- length(coef)
-    wresid <- object$wresid
-    res <- object$residuals
-    n <- length(wresid)
-    if(any(na <- is.na(coef))) coef <- coef[!na]
-    cnames <- names(coef)
-    p <- length(coef)
-    rinv <- diag(p)
-    dimnames(rinv) <- list(cnames, cnames)
-    wts <- if(length(object$weights)) object$weights else rep(1, n)
-    if(length(object$call$wt.method) && object$call$wt.method == "case") {
-        rdf <- sum(wts) - p
+    cll <- match.call()
+    if (is.numeric(object$residuals))
+    {
+      cll[[1]] <- MASS::summary.rlm
+      eval(cll, parent.frame())
+    }
+    else
+    {
+      method <- match.arg(method)
+      s <- object$s
+      coef <- object$coefficients
+      ptotal <- length(coef)
+      wresid <- object$wresid
+      res <- object$residuals
+      n <- length(wresid)
+      if(any(na <- is.na(coef))) coef <- coef[!na]
+      cnames <- names(coef)
+      p <- length(coef)
+      rinv <- diag(p)
+      dimnames(rinv) <- list(cnames, cnames)
+      wts <- if(length(object$weights)) object$weights else rep(1, n)
+      if(length(object$call$wt.method) && object$call$wt.method == "case") {
+        rdf <- sum(wts) - p ## 'residual degrees of freedom'
         w <- object$psi(wresid/s)
         S <- sum(wts * (wresid*w)*Conj(wresid*w))/rdf # The estimated variance is analogous to the area of a circle around the estimated parameters, so it is a real number.
         pS <- sum(wts * (wresid*w)*(wresid*w))/rdf # The estimated pseudo-variance is a complex number that describes the anisotropy of the distribution or set.
-                                                   # Distributions that are less circularly symmetric and more bilaterally symmetric have higher pseudovariance.
-                                                   # The direction of the pseudovariance indicates the orientation of the anisotropy; bilateral symmetry axis angle from 
-                                                   # the +real axis = pseudovariance angle divided by two. In other words, pseudovariance is the covariance between real and imaginary.
-        psiprime <- object$psi(wresid/s, deriv=1)
+        # Distributions that are less circularly symmetric and more bilaterally symmetric have higher pseudovariance.
+        # The direction of the pseudovariance indicates the orientation of the anisotropy; bilateral symmetry axis angle from 
+        # the +real axis = pseudovariance angle divided by two. In other words, pseudovariance is the covariance between real and imaginary.
+        psiprime <- object$psi(wresid/s, deriv=1) # This region of code occupies the position that finding the sum of squared deviations from the mean of the fitted values does in summary.lm().
         m1 <- sum(wts*psiprime) # What are these for? psiprime will depend on length (size) of residual, and direction. It depends on what psi function was chosen. Huber will have psiprime = 1 Exp[i (phi - pi)] for small residuals and 0 for large ones.
-        m2 <- sum(wts*Conj(psiprime)*psiprime)
+        m2 <- sum(wts*as.numeric(Conj(psiprime)*psiprime))
+        pm2 <- sum(wts*psiprime*psiprime) # 'pseudo m2' a complex quantity.
         nn <- sum(wts) # "sample size" is sum of the weights, makes sense for case weights I suppose.
         mn <- m1/nn # 'mn' is "mean" -> This is the mean psiprime, the average derivative of the influence function for the fit in question.
-        kappa <- 1 + p*(m2 - Conj(m1)*m1/nn)/(nn-1)/(nn*Conj(mn)*mn) #Check this. It resembles the uncertainty of a quantum operator, sigma_x = sqrt(<x^2> - <x>^2).
-        stddev <- sqrt(S)*(kappa/mn)
-    } else {
+        kappa <- 1 + p*(m2 - as.numeric(Conj(m1)*m1)/nn)/(nn-1)/(nn*as.numeric(Conj(mn)*mn)) #Check this. It resembles the uncertainty of a quantum operator, sigma_x = sqrt(<x^2> - <x>^2). # It almost looks like it's missing a parentheses...
+        stddev <- sqrt(S)*(kappa/abs(mn))
+        pkappa <- 1 + p*(pm2 - m1^2/nn)/(nn-1)/(nn*mn^2) # 'pseudo kappa', a complex thing
+        pstddev <- sqrt(pS)*(pkappa/mn) # The 'pseudo standard deviation', analogous with the pseudo-variance. Might be useful, might be meaningless.
+      } else {
         res <- res * sqrt(wts)
-        rdf <- n - p
+        rdf <- n - p ## 'residual degrees of freedom'
         w <- object$psi(wresid/s)
-        S <- sum((wresid*w)*Conj(wresid*w))/rdf # The estimated variance is analogous to the area of a circle around the estimated parameters, so it is a real number.
-        pS <- sum(wts * (wresid*w)*(wresid*w))/rdf # See above definition of pS.
+        S <- sum(as.numeric(wresid*w*Conj(wresid*w)))/rdf # The estimated variance is analogous to the area of a circle around the estimated parameters, so it is a real number.
+        pS <- sum((wresid*w)*(wresid*w))/rdf # See above definition of pS.
         psiprime <- object$psi(wresid/s, deriv=1) # The derivative of the influence function.
         mn <- mean(psiprime)
-        kappa <- 1 + p*var(psiprime)/(n*mn^2) # This has something to do with propagation of uncertainty, I think.
-        stddev <- sqrt(S)*(kappa/mn) ## Would it be usefull to do something similar with pseudo-variance? Probably.
-    }
-    X <- if(length(object$weights)) object$x * sqrt(object$weights) else object$x
-    if(method == "XtWX")  { # (X transposed) [weight matrix] (X)
+        pvarpsi <- sum(psiprime^2)/(n-1)
+        kappa <- 1 + p*var(psiprime)/(n*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think.
+        #print(var(psiprime))
+        pkappa <- 1 + p*pvarpsi/(n*mn^2)
+        stddev <- sqrt(S)*(kappa/abs(mn)) ## Would it be usefull to do something similar with pseudo-variance? Probably.
+        pstddev <- sqrt(pS)*(pkappa/mn) # The 'pseudo standard deviation', analogous with the pseudo-variance. Might be useful, might be meaningless.
+      }
+      X <- if(length(object$weights)) object$x * sqrt(object$weights) else object$x # The model (design?) matrix, or the model matrix times the sqrt of the weights.
+      if(method == "XtWX")  { # (X transposed) [weight matrix] (X)
         mn <- sum(wts*w)/sum(wts)
         X <- X * sqrt(w/mn)
-    }
-    R <- qr(X)$qr
-    R <- R[1L:p, 1L:p, drop = FALSE]
-    R[lower.tri(R)] <- 0
-    rinv <- solve(R, rinv)
-    dimnames(rinv) <- list(cnames, cnames)
-    rowlen <- (rinv^2 %*% rep(1, p))^0.5
-    names(rowlen) <- cnames
-    if(correlation) {
+      }
+      R <- qr(X)$qr
+      R <- R[1L:p, 1L:p, drop = FALSE] # Trim the bottom of R, making it a square p by p matrix.
+      R[lower.tri(R)] <- 0 # Remove the lower triangular matrix, the Q from the QR decomposition.
+      rinv <- solve(R, rinv) # This is efficient, we only need the diagonal matrix diag(p) to get rinv, so just set rinv <- diag(p) ahead of time. Now rinv is a different p by p matrix.
+      dimnames(rinv) <- list(cnames, cnames)
+      rowlen <- (as.numeric(Conj(rinv)*rinv) %*% rep(1, p))^0.5 # Produces a real vector of length p.
+      prowlen <- (rinv^2 %*% rep(1, p))^0.5 # Produces a complex vector of length p
+      names(rowlen) <- cnames # cnames are the names of the coefficients.
+      if(correlation) {
         correl <- rinv * array(1/rowlen, c(p, p))
         correl <- correl %*% Conj(t(correl))
-    } else correl <- NULL
-    coef <- array(coef, c(p, 3L))
-    dimnames(coef) <- list(cnames, c("Value", "Std. Error", "t value"))
-    coef[, 2] <- rowlen %o% stddev
-    coef[, 3] <- coef[, 1]/coef[, 2]
-    object <- object[c("call", "na.action")]
-    object$residuals <- res
-    object$coefficients <- coef
-    object$sigma <- s
-    object$stddev <- stddev
-    object$df <- c(p, rdf, ptotal)
-    object$r.squared <- NA
-    object$cov.unscaled <- rinv %*% Conj(t(rinv))
-    object$correlation <- correl
-    object$terms <- NA
-    class(object) <- "summary.rlm"
-    object
+      } else correl <- NULL
+      coef <- array(coef, c(p, 4L)) # Make an array with 4 columns and p rows. put the coefficients into the first column.
+      dimnames(coef) <- list(cnames, c("Value", "Std. Error", "Pseudo Std. Error", "t value"))
+      print(rinv)
+      coef[, 2] <- rowlen %o% stddev # Fill the 2nd column of the coef array. These should be real numbers. Isn't stddev a single number? What is the point of the outer product, then?
+      coef[, 3] <- rowlen %o% pstddev # The 'pseudo - standard error', these things need better names...
+      coef[, 4] <- coef[, 1]/coef[, 2]
+      object <- object[c("call", "na.action")]
+      object$residuals <- res
+      object$coefficients <- coef
+      object$sigma <- s
+      object$stddev <- stddev
+      object$pstdev <- pstddev
+      object$df <- c(p, rdf, ptotal)
+      object$r.squared <- NA
+      object$cov.unscaled <- rinv %*% Conj(t(rinv))
+      object$pcov.unscaled <- rinv %*% t(rinv) # pseudo covariance
+      object$correlation <- correl
+      object$terms <- NA
+      class(object) <- "summary.rlm"
+      object
+    }
 }
 
-print.summary.rlm <-
-function(x, digits = max(3, .Options$digits - 3), ...)
+print.summary.rlm <- function(x, digits = max(3, .Options$digits - 3), ...)
 {
+  cll <- match.call()
+  if (is.numeric(object$residuals))
+  {
+    cll[[1]] <- MASS::print.summary.rlm
+    eval(cll, parent.frame())
+  }
+  else
+  {
+    cll <- match.call()
     cat("\nCall: ")
     dput(x$call, control=NULL)
     resid <- x$residuals
@@ -371,6 +400,7 @@ function(x, digits = max(3, .Options$digits - 3), ...)
         }
     }
     invisible(x)
+  }
 }
 
 ### NOTE: These psi functions are actually weight functions, weight(u) = abs( influence(u) / u).
@@ -382,76 +412,85 @@ function(x, digits = max(3, .Options$digits - 3), ...)
 psi.huber <- function(u, k = 1.345, deriv=0)
 {
     if(!deriv) return(pmin(1, k / abs(u)))
-    Ifelse(abs(u) <= k, complex(modulus = 1, argument = Arg(u) - pi), 0)
+    ifelse(abs(u) <= k, complex(modulus = 1, argument = Arg(u) - pi), 0)
 }
 
 psi.hampel <- function(u, a = 2, b = 4, c = 8, deriv=0)
 {
     U <- pmin(abs(u) + 1e-50, c)
     if(!deriv) return(ifelse(U <= a, U, ifelse(U <= b, a, a*(c-U)/(c-b) ))/U)
-    ifelse(abs(u) <= c, ifelse(U <= a, complex(modulus = 1, argument = Arg(u) - pi), ifelse(U <= b, 0, complex(modulus = a/(c-b), argument =  Arg(u))), 0))
+    ifelse(abs(u) <= c, ifelse(U <= a, complex(modulus = 1, argument = Arg(u) - pi), ifelse(U <= b, 0, complex(modulus = a/(c-b), argument =  Arg(u)))), 0)
 }
 
 psi.bisquare <- function(u, c = 4.685, deriv=0)
 {
+  cll <- match.call()
+  if (is.numeric(u))
+  {
+    cll[[1]] <- MASS::psi.bisquare
+    eval(cll, parent.frame())
+  }
+  else
+  {
     if(!deriv) return((1  - pmin(1, abs(u/c))^2)^2)
     t <- (u/c)
-    ifelse(abs(t) < 1, Complex(imaginary = -1) * (-1 + Conj(t)*t)*(-1 + 5*Conj(t)*t) * complex(modulus = 1, argument = Arg(t))^2, 0)
+    ifelse(abs(t) < 1, complex(imaginary = -1) * (-1 + Conj(t)*t)*(-1 + 5*Conj(t)*t) * complex(modulus = 1, argument = Arg(t))^2, 0)
+  }
 }
 
-se.contrast.rlm <-
-    function(object, contrast.obj,
-             coef = contr.helmert(ncol(contrast))[, 1L],
-             data = NULL, ...)
-{
-    contrast.weight.aov <- function(object, contrast)
-    {
-        asgn <- object$assign[object$qr$pivot[1L:object$rank]]
-        uasgn <- unique(asgn)
-        nterms <- length(uasgn)
-        nmeffect <- c("(Intercept)",
-                      attr(object$terms, "term.labels"))[1L + uasgn]
-        effects <- as.matrix(qr.qty(object$qr, contrast))
-        res <- matrix(0, nrow = nterms, ncol = ncol(effects),
-                      dimnames = list(nmeffect, colnames(contrast)))
-        for(i in seq(nterms)) {
-            select <- (asgn == uasgn[i])
-            res[i,] <- colSums(effects[seq_along(asgn)[select], , drop = FALSE]^2)
-        }
-        res
-    }
-    if(is.null(data)) contrast.obj <- eval(contrast.obj)
-    else contrast.obj <- eval(substitute(contrast.obj), data, parent.frame())
-    if(!is.matrix(contrast.obj)) { # so a list
-        if(!missing(coef)) {
-            if(sum(coef) != 0)
-                stop("'coef' must define a contrast, i.e., sum to 0")
-            if(length(coef) != length(contrast.obj))
-                stop("'coef' must have same length as 'contrast.obj'")
-        }
-        contrast <-
-            sapply(contrast.obj, function(x)
-               {
-                   if(!is.logical(x))
-                       stop(gettextf("each element of '%s' must be logical",
-                                     substitute(contrasts.list)),
-                            domain = NA)
-                   x/sum(x)
-               })
-        if(!length(contrast) || all(is.na(contrast)))
-            stop("the contrast defined is empty (has no TRUE elements)")
-        contrast <- contrast %*% coef
-    } else {
-        contrast <- contrast.obj
-        if(any(abs(colSums(contrast)) > 1e-8))
-            stop("columns of 'contrast.obj' must define a contrast (sum to zero)")
-        if(!length(colnames(contrast)))
-            colnames(contrast) <- paste("Contrast", seq(ncol(contrast)))
-    }
-    weights <- contrast.weight.aov(object, contrast)
-    summary(object)$stddev *
-        if(!is.matrix(contrast.obj)) sqrt(sum(weights)) else sqrt(colSums(weights))
-}
+# se.contrast.rlm <- # I don't understand this code. Hopefully it works fine with complex numbers as is.
+#     function(object, contrast.obj,
+#              coef = contr.helmert(ncol(contrast))[, 1L],
+#              data = NULL, ...)
+# {
+#     contrast.weight.aov <- function(object, contrast)
+#     {
+#         asgn <- object$assign[object$qr$pivot[1L:object$rank]]
+#         uasgn <- unique(asgn)
+#         nterms <- length(uasgn)
+#         nmeffect <- c("(Intercept)",
+#                       attr(object$terms, "term.labels"))[1L + uasgn]
+#         effects <- as.matrix(qr.qty(object$qr, contrast))
+#         res <- matrix(0, nrow = nterms, ncol = ncol(effects),
+#                       dimnames = list(nmeffect, colnames(contrast)))
+#         for(i in seq(nterms)) {
+#             select <- (asgn == uasgn[i])
+#             res[i,] <- colSums(effects[seq_along(asgn)[select], , drop = FALSE]^2)
+#         }
+#         res
+#     }
+#     if(is.null(data)) contrast.obj <- eval(contrast.obj)
+#     else contrast.obj <- eval(substitute(contrast.obj), data, parent.frame())
+#     if(!is.matrix(contrast.obj)) { # so a list
+#         if(!missing(coef)) {
+#             if(sum(coef) != 0)
+#                 stop("'coef' must define a contrast, i.e., sum to 0")
+#             if(length(coef) != length(contrast.obj))
+#                 stop("'coef' must have same length as 'contrast.obj'")
+#         }
+#         contrast <-
+#             sapply(contrast.obj, function(x)
+#                {
+#                    if(!is.logical(x))
+#                        stop(gettextf("each element of '%s' must be logical",
+#                                      substitute(contrasts.list)),
+#                             domain = NA)
+#                    x/sum(x)
+#                })
+#         if(!length(contrast) || all(is.na(contrast)))
+#             stop("the contrast defined is empty (has no TRUE elements)")
+#         contrast <- contrast %*% coef
+#     } else {
+#         contrast <- contrast.obj
+#         if(any(abs(colSums(contrast)) > 1e-8))
+#             stop("columns of 'contrast.obj' must define a contrast (sum to zero)")
+#         if(!length(colnames(contrast)))
+#             colnames(contrast) <- paste("Contrast", seq(ncol(contrast)))
+#     }
+#     weights <- contrast.weight.aov(object, contrast)
+#     summary(object)$stddev *
+#         if(!is.matrix(contrast.obj)) sqrt(sum(weights)) else sqrt(colSums(weights))
+# }
 
 predict.rlm <- function (object, newdata = NULL, scale = NULL, ...)
 {
@@ -459,7 +498,7 @@ predict.rlm <- function (object, newdata = NULL, scale = NULL, ...)
     ## the QR decomp which has been done on down-weighted values.
     ## Only works if explicit weights are given during the call that produced object..?
     object$qr <- qr(sqrt(object$weights) * object$x)
-    NextMethod(object, scale = object$s, ...)
+    NextMethod(object, scale = object$s, ...) # So this just calls predict.lm on the object.
 }
 
 vcov.rlm <- function (object, ...)

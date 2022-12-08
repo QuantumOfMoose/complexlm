@@ -91,6 +91,6 @@ var <- function(x, y = NULL, na.rm = FALSE, use)
   else 
   {
     if (length(x) == 1) return(NA)
-    else return(vvar <- Sum(Conj(mean(x) - x )*(mean(x) - x )) / (length(x) - 1))
+    else return(vvar <- sum(as.numeric(Conj(mean(x) - x )*(mean(x) - x ))) / (length(x) - 1)) # Re() needed to convert type to numeric.j
   }
 }

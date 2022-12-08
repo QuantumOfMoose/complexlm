@@ -11,3 +11,11 @@ huber estimator for complex data
 s-estimator for complex data
 
 DONE. incorporate the directional nature of the derivatives of the influence functions, mainly relavent for redescending estimators (Hampel and bisquare).
+
+come up with better names for the "pseudo-" variances, covariances, and standard errors. Maybe "complex-" ? Or "relation-" ?
+
+Remove uneeded code from MASS.c, rename.
+
+pseudo MAD?
+
+add missing functions for complex linear model.
