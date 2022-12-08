@@ -80,6 +80,14 @@ rlm.default <-
            method = c("M", "MM"), wt.method = c("inv.var", "case"),
            maxit = 20, acc = 1e-4, test.vec = "resid", lqs.control=NULL, interc=FALSE)
 {
+    thiscall <- match.call()
+    if (is.numeric(x)) 
+    {
+      thiscall[[1]] <- MASS::rlm.default
+      eval(thiscall, parent.frame())
+    }
+    else if (is.complex(x))
+    {
     if (!is.matrix(x) && interc) {
       xx <- as.matrix(data.frame(rep(1, length(x)), x))
       attr(xx, "dimnames") <- list(as.character(1:length(x)), c("(intercept)", deparse(substitute(x))))
@@ -138,7 +146,7 @@ rlm.default <-
             formals(psi)[pm] <- unlist(arguments[pm])
         }
         if(is.character(init)) {
-            temp <- if(init == "ls") if(is.complex(x) | is.complex(y)) zlm.wfit(x, y, w, method="qr") else lm.wfit(x, y, w, method="qr")
+            temp <- if(init == "ls") zlm.wfit(x, y, w, method="qr")
             else if(init == "lts") {
                 if(is.null(lqs.control)) lqs.control <- list(nsamp=200L)
                 do.call("lqs", c(list(x, y, intercept = FALSE), lqs.control))
@@ -176,15 +184,10 @@ rlm.default <-
     ## At this point the residuals are weighted for inv.var and
     ## unweighted for case weights.  Only Huber handles case weights
     ## correctly.
-    if(is.complex(resid)) {
-      ##library(depth) # Contains function med(), which finds multivariate median. Don't need to import it here since I put it in depends in description file. Then again, maybe I do...
-      residdf <- data.frame(Re(resid), Im(resid)) 
-      }
+    residdf <- data.frame(Re(resid), Im(resid)) 
     if(scale.est != "MM")
         scale <- if(is.null(wt)) {
-          #if(is.complex(resid)) mad(resid, center = complex(real = med(residdf, method = spatial)$median[1], imaginary = med(residdf, method = spatial)$median[2]), 0)
-          #else mad(resid, 0)
-          mad(abs(resid), 0)/0.6745
+          median(abs(resid), 0)/0.6745
           } else wmed(abs(resid), wt)/0.6745
     for(iiter in 1L:maxit) {
         if(!is.null(test.vec)) testpv <- get(test.vec)
@@ -201,7 +204,7 @@ rlm.default <-
         }
         w <- psi(resid/scale)
         if(!is.null(wt)) w <- w * weights
-        if(is.complex(x)) temp <- zlm.wfit(x, y, w, method="qr") else temp <- lm.wfit(x, y, w, method="qr")
+        temp <- zlm.wfit(x, y, w, method="qr")
         coef <- temp$coefficients
         resid <- temp$residuals
         if(!is.null(test.vec)) convi <- irls.delta(testpv, get(test.vec))
@@ -226,6 +229,8 @@ rlm.default <-
                 conv = conv, converged = done, x = xx, call = cl)
     class(fit) <- c("rlm", "lm")
     fit
+    }
+    else print("ERROR: data must be numeric or complex.")
 }
 
 print.rlm <- function(x, ...)
@@ -268,25 +273,30 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
         rdf <- sum(wts) - p
         w <- object$psi(wresid/s)
         S <- sum(wts * (wresid*w)*Conj(wresid*w))/rdf # The estimated variance is analogous to the area of a circle around the estimated parameters, so it is a real number.
+        pS <- sum(wts * (wresid*w)*(wresid*w))/rdf # The estimated pseudo-variance is a complex number that describes the anisotropy of the distribution or set.
+                                                   # Distributions that are less circularly symmetric and more bilaterally symmetric have higher pseudovariance.
+                                                   # The direction of the pseudovariance indicates the orientation of the anisotropy; bilateral symmetry axis angle from 
+                                                   # the +real axis = pseudovariance angle divided by two. In other words, pseudovariance is the covariance between real and imaginary.
         psiprime <- object$psi(wresid/s, deriv=1)
-        m1 <- sum(wts*psiprime)
-        m2 <- sum(wts*psiprime^2)
-        nn <- sum(wts)
-        mn <- m1/nn
-        kappa <- 1 + p*(m2 - m1^2/nn)/(nn-1)/(nn*mn^2)
+        m1 <- sum(wts*psiprime) # What are these for? psiprime will depend on length (size) of residual, and direction. It depends on what psi function was chosen. Huber will have psiprime = 1 Exp[i (phi - pi)] for small residuals and 0 for large ones.
+        m2 <- sum(wts*Conj(psiprime)*psiprime)
+        nn <- sum(wts) # "sample size" is sum of the weights, makes sense for case weights I suppose.
+        mn <- m1/nn # 'mn' is "mean" -> This is the mean psiprime, the average derivative of the influence function for the fit in question.
+        kappa <- 1 + p*(m2 - Conj(m1)*m1/nn)/(nn-1)/(nn*Conj(mn)*mn) #Check this. It resembles the uncertainty of a quantum operator, sigma_x = sqrt(<x^2> - <x>^2).
         stddev <- sqrt(S)*(kappa/mn)
     } else {
         res <- res * sqrt(wts)
         rdf <- n - p
         w <- object$psi(wresid/s)
         S <- sum((wresid*w)*Conj(wresid*w))/rdf # The estimated variance is analogous to the area of a circle around the estimated parameters, so it is a real number.
-        psiprime <- object$psi(wresid/s, deriv=1)
+        pS <- sum(wts * (wresid*w)*(wresid*w))/rdf # See above definition of pS.
+        psiprime <- object$psi(wresid/s, deriv=1) # The derivative of the influence function.
         mn <- mean(psiprime)
-        kappa <- 1 + p*var(psiprime)/(n*mn^2)
-        stddev <- sqrt(S)*(kappa/mn)
+        kappa <- 1 + p*var(psiprime)/(n*mn^2) # This has something to do with propagation of uncertainty, I think.
+        stddev <- sqrt(S)*(kappa/mn) ## Would it be usefull to do something similar with pseudo-variance? Probably.
     }
     X <- if(length(object$weights)) object$x * sqrt(object$weights) else object$x
-    if(method == "XtWX")  {
+    if(method == "XtWX")  { # (X transposed) [weight matrix] (X)
         mn <- sum(wts*w)/sum(wts)
         X <- X * sqrt(w/mn)
     }
@@ -363,40 +373,30 @@ function(x, digits = max(3, .Options$digits - 3), ...)
     invisible(x)
 }
 
+### NOTE: These psi functions are actually weight functions, weight(u) = abs( influence(u) / u).
+### Traditionally the influence functions are given the symbol psi.
+### The derivative returned by these functions, when given deriv=1, is the (absolute value of the) derivative of the influence function,
+### not the weight function.
+### NOTE: The derivative of the complex influence function will be a complex number, and the direction does have meaning.
+### Derivative output modified to incorporate the complex nature of the influence function.
 psi.huber <- function(u, k = 1.345, deriv=0)
 {
     if(!deriv) return(pmin(1, k / abs(u)))
-    abs(u) <= k
+    Ifelse(abs(u) <= k, complex(modulus = 1, argument = Arg(u) - pi), 0)
 }
 
 psi.hampel <- function(u, a = 2, b = 4, c = 8, deriv=0)
 {
     U <- pmin(abs(u) + 1e-50, c)
     if(!deriv) return(ifelse(U <= a, U, ifelse(U <= b, a, a*(c-U)/(c-b) ))/U)
-    ifelse(abs(u) <= c, ifelse(U <= a, 1, ifelse(U <= b, 0, -a/(c-b))), 0)
+    ifelse(abs(u) <= c, ifelse(U <= a, complex(modulus = 1, argument = Arg(u) - pi), ifelse(U <= b, 0, complex(modulus = a/(c-b), argument =  Arg(u))), 0))
 }
 
 psi.bisquare <- function(u, c = 4.685, deriv=0)
 {
     if(!deriv) return((1  - pmin(1, abs(u/c))^2)^2)
-    t <- Conj(u/c)*(u/c)
-    ifelse(t < 1, (1 - t)*(1 - 5*t), 0)
-}
-
-wmed <- function(x, w) ## This actually just finds the weighted absolute median. Used in rlm.default, it is passed the residuals as x, since these residuals are (kind of) equal to measurement - median it behaves like the WMAD in that context. Name changed to reflect this.
-{
-  if (is.numeric(x) { # Works fine for complex regression because we take the absolute value of the residual in finding median absolute deviation.
-    o <- sort.list(x); x <- x[o]; w <- w[o] # Removed abs() from around x, so that the function is more general.
-    p <- cumsum(w)/sum(w)
-    n <- sum(p < 0.5) # Count how many of elements of p are greater than .5
-    if (p[n + 1L] > 0.5) x[n + 1L] else (x[n + 1L] + x[n + 2L])/2 # For a normal distribution, the standard deviation ~equals MAD/0.6745 #Removed the /0.6745, thus making this just a weighted median function.
-  }
-  else { # Could be nice to have a weighted median function for complex variables, but not strictly necessary.
-    Zxmatrix <- as.matriix(data.frame(re = Re(x), im = Im(x))
-    geomed <- geo_median(Zxmatrix)) # From the pracma-package
-    #distances <- apply(X = Zxmatrix, MARGIN = 1, FUN = function(z) sum((z - geomed$p)^2)^0.5)
-    
-  }
+    t <- (u/c)
+    ifelse(abs(t) < 1, Complex(imaginary = -1) * (-1 + Conj(t)*t)*(-1 + 5*Conj(t)*t) * complex(modulus = 1, argument = Arg(t))^2, 0)
 }
 
 se.contrast.rlm <-

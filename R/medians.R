@@ -77,3 +77,20 @@ wmed <- function(x, w)
     
   }
 }
+
+#####
+#### A wrapper for var from the stats package that will accept (and use) complex numbers.
+#### var is used in summary.rlm to find variance of a set of complex numbers (psiprime).
+#### Perhaps add cor and var functionality in the future.
+#####
+var <- function(x, y = NULL, na.rm = FALSE, use)
+{
+  cll <- match.call()
+  cll[[1]] <- stats::var
+  if (is.numeric(x)) eval(cll, parent.frame())
+  else 
+  {
+    if (length(x) == 1) return(NA)
+    else return(vvar <- Sum(Conj(mean(x) - x )*(mean(x) - x )) / (length(x) - 1))
+  }
+}

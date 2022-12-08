@@ -240,7 +240,6 @@ cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
 }
 
 ### A function to calculate the unbiased sample variance of a vector of complex numbers. 
-### A function calculating the pseudo-variance is also possible, but I'm not sure if it's needed.
 zvar <- function(x)
 {
   sampmean <- mean(x, trim = 0)
@@ -249,6 +248,7 @@ zvar <- function(x)
 
 ### A function for calculating the unbiased sample pseudo-variance of a vector of complex numbers.
 ### Can return a complex number.
+### Not used in anything else at the moment.
 pseuzvar <- function(x)
 {
   sampmean <- mean(x, trim = 0)
@@ -342,7 +342,7 @@ lmsreg <- function(...)
 {
   oc <- sys.call()
   oc$method <- "lms"
-  oc[[1L]] <- quote(MASS::lqs)
+  oc[[1L]] <- quote(complexlm::lqs)
   eval.parent(oc)
 }
 
@@ -350,7 +350,7 @@ ltsreg <- function(...)
 {
   oc <- sys.call()
   oc$method <- "lts"
-  oc[[1L]] <- quote(MASS::lqs)
+  oc[[1L]] <- quote(complexlm::lqs)
   eval.parent(oc)
 }
 
@@ -358,7 +358,7 @@ cov.mve <- function(...)
 {
   oc <- sys.call()
   oc$method <- "mve"
-  oc[[1L]] <- quote(MASS::cov.rob)
+  oc[[1L]] <- quote(complexlm::cov.rob)
   eval.parent(oc)
 }
 
@@ -366,6 +366,6 @@ cov.mcd <- function(...)
 {
   oc <- sys.call()
   oc$method <- "mcd"
-  oc[[1L]] <- quote(MASS::cov.rob)
+  oc[[1L]] <- quote(complexlm::cov.rob)
   eval.parent(oc)
 }
