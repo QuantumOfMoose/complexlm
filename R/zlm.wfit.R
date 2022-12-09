@@ -1,3 +1,22 @@
+
+####
+### A function that somewhat replicates model.matrix(), but accepts complex valued data. It will probably be slower and less effecient, but mostly functional.
+### It cannot handle algebraic expressions in formula.
+### terms is the output of terms(formula)
+####
+zmodel.matrix <- function(trms, data)
+{
+  respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
+  prednames <- attr(trms, "term.labels")
+  modelframe <- data[prednames]
+  if (attr(trms, "intercept") == 1) modelmatrix <- as.matrix(data.frame("(intercept)" = rep(1,length(modelframe[,1])), modelframe))
+  else  modelmatrix <- as.matrix(modelframe)
+  if (attr(trms, "intercept") == 1) attr(modelmatrix, "assign") <- 0:length(prednames)
+  else attr(modelmatrix, "assign") <- 1:length(prednames)
+  attr(modelmatrix, "dimnames") <- list(as.character(1:length(modelframe[,1])), c("(intercept)", prednames)) # Fix the dimnames to match those on standard model matrices.
+  return(modelmatrix)
+}
+
 #### This function will be used instead of .Call(C_Cdqlrs, x * wts, y * wts, tol, FALSE) if x and/or y are complex.
 Complexdqlrs <- function (x, y, tol, chk) {
   thisqr <- qr(x, tol = tol)
@@ -13,10 +32,100 @@ Complexdqlrs <- function (x, y, tol, chk) {
   return(ans)
 }
 
+
+####
+### An adaptation of lm that is compatible with complex variables. If the response is not complex, it calls the standard stats::lm
+### Note: It is not capable of dealing with contrasts in the complex case. May not understand offsets either. It also can't handle algebraic expressions in formula.
+### model.frame needs to be changed to allow complex variables in order to enable these features.
+####
+lm <- function (formula, data, subset, weights, na.action,
+                method = "qr", model = TRUE, x = FALSE, y = FALSE,
+                qr = TRUE, singular.ok = TRUE, contrasts = NULL,
+                offset, ...)
+{
+  trms <- terms(formula)
+  respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
+  cl <- match.call()
+  if (is.complex(data[,respname]) == FALSE)
+  {
+    cl[[1]] <- stats::lm
+    eval(cl, parent.frame())
+  }
+  else
+  {
+    ret.x <- x
+    ret.y <- y
+    
+    mf <- match.call(expand.dots = FALSE)
+    m <- match(c("formula", "data", "subset", "weights", "na.action", "offset"),
+               names(mf), 0L)
+    mf <- mf[c(1L, m)]
+    mf$drop.unused.levels <- TRUE
+    ## need stats:: for non-standard evaluation
+    mf[[1L]] <- quote(stats::model.frame) # It works with complex numbers :)
+    mf <- eval(mf, parent.frame())
+    if (method == "model.frame")
+      return(mf)
+    else if (method != "qr")
+      warning(gettextf("method = '%s' is not supported. Using 'qr'", method),
+              domain = NA)
+    mt <- attr(mf, "terms") # allow model.frame to update it
+    y <- model.response(mf) # Huh, this does work with complex numbers.
+    ## avoid any problems with 1D or nx1 arrays by as.vector.
+    w <- as.vector(model.weights(mf))
+    if(!is.null(w) && !is.numeric(w))
+      stop("'weights' must be a numeric vector")
+    offset <- model.offset(mf) # Uncertain if this works with complex variables.
+    mlm <- is.matrix(y)
+    ny <- if(mlm) nrow(y) else length(y)
+    if(!is.null(offset)) {
+      if(!mlm) offset <- as.vector(offset)
+      if(NROW(offset) != ny)
+        stop(gettextf("number of offsets is %d, should equal %d (number of observations)",
+                      NROW(offset), ny), domain = NA)
+    }
+    
+    if (is.empty.model(mt)) {
+      x <- NULL
+      z <- list(coefficients = if(mlm) matrix(NA_real_, 0, ncol(y))
+                else numeric(),
+                residuals = y,
+                fitted.values = 0 * y, weights = w, rank = 0L,
+                df.residual = if(!is.null(w)) sum(w != 0) else ny)
+      if(!is.null(offset)) {
+        z$fitted.values <- offset
+        z$residuals <- y - offset
+      }
+    }
+    else {
+      if (is.null(contrasts) == FALSE) warning("Contrasts are not supported for complex fits.")
+      x <- zmodel.matrix(mt, mf)
+      z <- if(is.null(w)) lm.fit(x, y, offset = offset,
+                                 singular.ok=singular.ok, ...)
+      else lm.wfit(x, y, w, offset = offset, singular.ok=singular.ok, ...)
+    }
+    class(z) <- c(if(mlm) "mlm", "lm")
+    z$na.action <- attr(mf, "na.action")
+    z$offset <- offset
+    z$contrasts <- attr(x, "contrasts")
+    z$xlevels <- .getXlevels(mt, mf)
+    z$call <- cl
+    z$terms <- mt
+    if (model)
+      z$model <- mf
+    if (ret.x)
+      z$x <- x
+    if (ret.y)
+      z$y <- y
+    if (!qr) z$qr <- NULL
+    z
+  }
+}
+
 ####
 ### Wrapper for lm.fit() If data is numeric, use lm.fit() from stats. If it is complex, use zlm.wfit().
 ####
-lm.fit(x, y, offset = NULL, method = "qr", tol = 1e-7,
+lm.fit <- function(x, y, offset = NULL, method = "qr", tol = 1e-7,
        singular.ok = TRUE, ...)
 {
   cll <- match.call()
@@ -28,7 +137,7 @@ lm.fit(x, y, offset = NULL, method = "qr", tol = 1e-7,
 ####
 ### Wrapper for lm.wfit(). If data is numeric, use lm.wfit() from stats. If it is complex, use zlm.wfit().
 ####
-lm.wfit(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
+lm.wfit <- function(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
         singular.ok = TRUE, ...)
 {
   cll <- match.call()
@@ -37,7 +146,7 @@ lm.wfit(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
   eval(cll, parent.frame())
 }
 
-zlm.wfit <- function (x, y, w = rep(1L, length(x)), offset = NULL, method = "qr", tol = 1e-07, 
+zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))), offset = NULL, method = "qr", tol = 1e-07, 
           singular.ok = TRUE, ...) 
 {
   if (is.null(n <- nrow(x))) 

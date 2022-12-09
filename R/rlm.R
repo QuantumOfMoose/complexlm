@@ -33,44 +33,56 @@ rlm.formula <-
              wt.method = c("inv.var", "case"),
              model = TRUE, x.ret = TRUE, y.ret = FALSE, contrasts = NULL)
 {
-    mf <- match.call(expand.dots = FALSE)
-    mf$method <- mf$wt.method <- mf$model <- mf$x.ret <- mf$y.ret <- mf$contrasts <- mf$... <- NULL
-    mf[[1L]] <- quote(stats::model.frame)
-    mf <- eval.parent(mf)
-    method <- match.arg(method)
-    wt.method <- match.arg(wt.method)
-    if(method == "model.frame") return(mf)
-    mt <- attr(mf, "terms")
-    y <- model.response(mf)
-    offset <- model.offset(mf) ## Note: offset is not the same thing as an intercept. offset is a known coefficient of the fit, for example the relationship between the response and one of the predictor variables.
-    if(!is.null(offset)) y <- y - offset
-    x <- model.matrix(mt, mf, contrasts)
-    xvars <- as.character(attr(mt, "variables"))[-1L]
-    if ((yvar <- attr(mt, "response")) > 0L)
+    trms <- terms(formula)
+    respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
+    cl <- match.call()
+    if (is.complex(data[,respname]) == FALSE)
+    {
+      cl[[1]] <- MASS::rlm
+      eval(cl, parent.frame())
+    }
+    else
+    {
+      mf <- match.call(expand.dots = FALSE)
+      mf$method <- mf$wt.method <- mf$model <- mf$x.ret <- mf$y.ret <- mf$contrasts <- mf$... <- NULL
+      mf[[1L]] <- quote(stats::model.frame) # Works with complex numbers.
+      mf <- eval.parent(mf)
+      method <- match.arg(method)
+      wt.method <- match.arg(wt.method)
+      if(method == "model.frame") return(mf)
+      mt <- attr(mf, "terms")
+      y <- model.response(mf) # Also works with complex numbers.
+      offset <- model.offset(mf) ## Note: offset is not the same thing as an intercept. offset is a known coefficient of the fit, for example the relationship between the response and one of the predictor variables.
+      if(!is.null(offset)) y <- y - offset
+      if(!is.null(contrasts)) warning("Contrasts are not supported for complex fits at the moment.")
+      x <- zmodel.matrix(mt, mf)
+      xvars <- as.character(attr(mt, "variables"))[-1L]
+      if ((yvar <- attr(mt, "response")) > 0L)
         xvars <- xvars[-yvar]
-    xlev <- if (length(xvars) > 0L) {
+      xlev <- if (length(xvars) > 0L) {
         xlev <- lapply(mf[xvars], levels)
         xlev[!sapply(xlev, is.null)]
+      }
+      weights <- model.weights(mf)
+      if(!length(weights)) weights <- rep(1, nrow(x))
+      fit <- rlm.default(x, y, weights, method = method,
+                         wt.method = wt.method, ...)
+      fit$terms <- mt
+      ## fix up call to refer to the generic, but leave arg name as `formula'
+      cl <- match.call()
+      cl[[1L]] <- as.name("rlm")
+      fit$call <- cl
+      fit$contrasts <- attr(x, "contrasts")
+      fit$xlevels <- .getXlevels(mt, mf)
+      fit$na.action <- attr(mf, "na.action")
+      if(model) fit$model <- mf
+      if(!x.ret) fit$x <- NULL
+      if(y.ret) fit$y <- y
+      ## change in 7.3-52 suggested by Andr\'e Gillibert
+      fit$offset <- offset
+      if (!is.null(offset)) fit$fitted.values <- fit$fitted.values + offset
+      fit
     }
-    weights <- model.weights(mf)
-    if(!length(weights)) weights <- rep(1, nrow(x))
-    fit <- rlm.default(x, y, weights, method = method,
-                       wt.method = wt.method, ...)
-    fit$terms <- mt
-    ## fix up call to refer to the generic, but leave arg name as `formula'
-    cl <- match.call()
-    cl[[1L]] <- as.name("rlm")
-    fit$call <- cl
-    fit$contrasts <- attr(x, "contrasts")
-    fit$xlevels <- .getXlevels(mt, mf)
-    fit$na.action <- attr(mf, "na.action")
-    if(model) fit$model <- mf
-    if(!x.ret) fit$x <- NULL
-    if(y.ret) fit$y <- y
-    ## change in 7.3-52 suggested by Andr\'e Gillibert
-    fit$offset <- offset
-    if (!is.null(offset)) fit$fitted.values <- fit$fitted.values + offset
-    fit
 }
 
 rlm.default <-
@@ -79,7 +91,7 @@ rlm.default <-
            scale.est = c("MAD", "Huber", "proposal 2"), k2 = 1.345,
            method = c("M", "MM"), wt.method = c("inv.var", "case"),
            maxit = 20, acc = 1e-4, test.vec = "resid", lqs.control=NULL, interc=FALSE)
-{
+    {
     thiscall <- match.call()
     if (is.numeric(x)) 
     {

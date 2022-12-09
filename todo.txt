@@ -18,4 +18,6 @@ Remove uneeded code from MASS.c, rename.
 
 pseudo MAD?
 
-add missing functions for complex linear model.
+DONE? add missing functions for complex linear model.
+
+modify model.c from stats to allow complex variables in model matrices.
