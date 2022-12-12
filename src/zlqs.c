@@ -459,7 +459,7 @@ static int do_one(Rcomplex *Rx, int *which, int n, int nnew, int p,
 
     sum = 0.0;
     for(k = 0; k < p; k++)
-	sum += log(fabs(cxr[k + nnew*k]));
+	sum += log(cabs(cxr[k + nnew*k]));
     *det = sum;
 
     /* now solve R^T b = (x[i, ] - means) and find squared length of b */

@@ -1,5 +1,6 @@
-% file MASS/man/rlm.Rd
+% file complex/man/rlm.Rd
 % copyright (C) 1998-2020 B. D. Ripley
+% copyright (C) 2021-2022 William Ryan
 %
 \name{rlm}
 \alias{rlm}
@@ -36,7 +37,7 @@ psi.bisquare(u, c = 4.685, deriv = 0)
 }
 \arguments{
   \item{formula}{
-    a formula of the form \code{y ~ x1 + x2 + \dots}. Not currently usable with complex valued data.
+    a formula of the form \code{y ~ x1 + x2 + \dots}. Compatible with complex variables, but lacks some of the features of \code{\link{formula}}, like algebraic expressions.
   }
   \item{data}{
     an optional data frame, list or environment from which variables
@@ -64,7 +65,8 @@ psi.bisquare(u, c = 4.685, deriv = 0)
     currently either M-estimation or MM-estimation or (for the
     \code{formula} method only) find the model frame.  MM-estimation
     is M-estimation with Tukey's biweight initialized by a specific
-    S-estimator.  See the \sQuote{Details} section.
+    S-estimator.  See the \sQuote{Details} section. MM-estimation is not 
+    currently compatible with complex va
   }
   \item{wt.method}{
     are the weights case weights (giving the relative importance of case,

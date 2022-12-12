@@ -20,6 +20,17 @@
 ### The former is used when given numeric data, the later for complex input.
 ### Returns a numeric or complex.
 ####
+#' median
+#'
+#' @param x 
+#' @param na.rm 
+#' @param tol 
+#' @param maxiter 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 median <- function(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
 {
   matchcall <- match.call()
@@ -39,6 +50,19 @@ median <- function(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
 ### For complex x it uses the geometric median, geo_median(), from pracma as the center,
 ### then returns the median absolute difference between center and each element of x.
 ####
+#' mad
+#'
+#' @param x 
+#' @param center 
+#' @param constant 
+#' @param na.rm 
+#' @param low 
+#' @param high 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 mad <- function(x, center = median(x), constant = 1.4826, na.rm = FALSE, low = FALSE, high = FALSE)
 {
   cll <- match.call()
@@ -62,6 +86,15 @@ mad <- function(x, center = median(x), constant = 1.4826, na.rm = FALSE, low = F
 ### to measurement - median it behaves like the WMAD in that context. Name changed to reflect this.
 ### TO DO: Come up with some kind of complex weighted median.
 ####
+#' wmed, Weighted Median
+#'
+#' @param x 
+#' @param w 
+#'
+#' @return 
+#' @export
+#'
+#' @examples
 wmed <- function(x, w) 
 {
   if (is.numeric(x)) { # Works fine for complex regression because we take the absolute value of the residual in finding median absolute deviation.
@@ -71,7 +104,7 @@ wmed <- function(x, w)
     if (p[n + 1L] > 0.5) x[n + 1L] else (x[n + 1L] + x[n + 2L])/2 # For a normal distribution, the standard deviation ~equals MAD/0.6745 #Removed the /0.6745, thus making this just a weighted median function.
   }
   else { # Could be nice to have a weighted median function for complex variables, but not strictly necessary.
-    Zxmatrix <- as.matriix(data.frame(re = Re(x), im = Im(x)))
+    Zxmatrix <- as.matrix(data.frame(re = Re(x), im = Im(x)))
     geomed <- geo_median(Zxmatrix) # From the pracma-package
     #distances <- apply(X = Zxmatrix, MARGIN = 1, FUN = function(z) sum((z - geomed$p)^2)^0.5)
     
@@ -83,6 +116,17 @@ wmed <- function(x, w)
 #### var is used in summary.rlm to find variance of a set of complex numbers (psiprime).
 #### Perhaps add cor and var functionality in the future.
 #####
+#' Title
+#'
+#' @param x 
+#' @param y 
+#' @param na.rm 
+#' @param use 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 var <- function(x, y = NULL, na.rm = FALSE, use)
 {
   cll <- match.call()
@@ -91,6 +135,6 @@ var <- function(x, y = NULL, na.rm = FALSE, use)
   else 
   {
     if (length(x) == 1) return(NA)
-    else return(vvar <- sum(as.numeric(Conj(mean(x) - x )*(mean(x) - x ))) / (length(x) - 1)) # Re() needed to convert type to numeric.j
+    else return(vvar <- sum(as.numeric(Conj(mean(x) - x )*(mean(x) - x ))) / (length(x) - 1)) # as.numeric() needed to convert type to numeric.j
   }
 }

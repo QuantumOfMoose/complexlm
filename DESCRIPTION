@@ -1,11 +1,9 @@
 Package: complexlm
-Priority: recommended
-Version: 1.0
-Date: 2021-08-09
-Revision: $Rev: 3542 $
-Depends: R (>= 3.3.0), grDevices, stats, utils, MASS, pracma
-Imports: methods
-Suggests: lattice, nlme, nnet, survival
+Version: 0.2
+Date: 2022-12-09
+Depends: R (>= 3.3.0), stats
+Imports: methods, grDevices, stats, utils, MASS, pracma, stats
+Enhances: MASS
 Authors@R: c(person("Brian", "Ripley", role = c("aut", "cph"),
                     email = "ripley@stats.ox.ac.uk"),
 	     person("Bill", "Venables", role = "ctb"),
@@ -15,9 +13,9 @@ Authors@R: c(person("Brian", "Ripley", role = c("aut", "cph"),
 	     person("Albrecht", "Gebhardt", role = "trl",
                      comment = "partial port ca 1998"),
 	     person("David", "Firth", role = "ctb"),
-	     person("William", "Ryan", role = c("aut", "crt", "cph"),
-	                   email = "wryan1@binghamton.edu", comment = "Adapted MASS rlm for complex variables, and spun that work off into this package.")
-	     person("Bruce", "White", role = "ths")
+	     person("William", "Ryan", role = c("aut", "cre", "cph"), email = "wryan1@binghamton.edu", 
+	                   comment = "Adapted MASS rlm for complex variables then spun that off into this package"),
+	     person("Bruce", "White", role = "ths"))
 Description: Tools for linear fitting with complex variables. Includes ordinary least-squares and robust methods. Originally adapted from the rlm functions of MASS.
 Title: Linear fitting for complex valued data
 LazyData: yes
@@ -26,7 +24,7 @@ License: GPL-2 | GPL-3
 URL: https://github.com/QuantumOfMoose/complexlm
 Contact: <wryan1@binghamton.edu>
 NeedsCompilation: yes
-Packaged: 2021-05-03 08:31:21 UTC; ripley
+Packaged: 2022-12-09 08:31:21 UTC; ryan
 Author: Brian Ripley [aut, cph],
   Bill Venables [ctb],
   Douglas M. Bates [ctb],
@@ -36,5 +34,5 @@ Author: Brian Ripley [aut, cph],
   William Ryan [aut, crt, cph],
   Bruce White [ths]
 Maintainer: William Ryan <wryan1@binghamton.edu>
-Repository: CRAN
+Repository: github
 Date/Publication: 2021-05-03 09:03:50 UTC

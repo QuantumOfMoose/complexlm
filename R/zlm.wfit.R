@@ -4,6 +4,15 @@
 ### It cannot handle algebraic expressions in formula.
 ### terms is the output of terms(formula)
 ####
+#' zmodel.matrix
+#'
+#' @param trms 
+#' @param data 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 zmodel.matrix <- function(trms, data)
 {
   respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])

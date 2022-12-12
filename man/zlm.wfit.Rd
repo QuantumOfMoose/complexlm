@@ -1,10 +1,10 @@
-% File MASS/man/zlm.wfit.Rd
+% File complexlm/man/zlm.wfit.Rd
 % Original Copyright 1995-2014 R Core Team
 % Modifications Copyright 2021 William Ryan
 % Distributed under GPL 2 or later
 
 \name{zlm.wfit}
-\title{Perform a weighted linear fit on complex valued data}
+\title{Perform a weighted or unweighted least-squares linear fit on complex valued data}
 \usage{
 zlm.wfit(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
         singular.ok = TRUE, \dots)
@@ -18,7 +18,9 @@ zlm.wfit(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
     \code{n} rows.}
   \item{w}{vector of weights (length \code{n}) to be used in the fitting
     process for the \code{wfit} functions.  Weighted least squares is
-    used with weights \code{w}, i.e., \code{sum(|w * e^2|)} is minimized.}
+    used with weights \code{w}, i.e., \code{sum(|w * e^2|)} is minimized.
+    By default the weights are set to a vector of 1s with length equal to the 
+    number of observations in x. In which case this is equivalent to an unweighted fit.}
   \item{offset}{(numeric of length \code{n}).  This can be used to
     specify an \emph{a priori} known component to be included in the
     linear predictor during fitting.}
@@ -49,9 +51,6 @@ zlm.wfit(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
 
   Fits without any columns or non-zero weights do not have the
   \code{effects} and \code{qr} components.
-}
-\Note{
-  \code{\link{lm}} does not work with complex valued data. To find a unweighted fit on complex data, use zlm.wfit with uniform weights.
 }
 \examples{
 %% TODO: Add some examples.

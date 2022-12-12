@@ -239,11 +239,12 @@ cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
   else print("Input x must be numeric or complex.")
 }
 
-### A function to calculate the unbiased sample variance of a vector of complex numbers. 
+### A function to calculate the unbiased sample variance of a vector of complex numbers.
+### This duplicates the functionality of the masked var function. Consider removing.
 zvar <- function(x)
 {
   sampmean <- mean(x, trim = 0)
-  return((1 / (length(x) - 1)) * sum((x - sampmean) * Conj(x - sampmean)))
+  return((1 / (length(x) - 1)) * sum(as.numeric((x - sampmean) * Conj(x - sampmean))))
 }
 
 ### A function for calculating the unbiased sample pseudo-variance of a vector of complex numbers.
