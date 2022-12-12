@@ -31,7 +31,7 @@ importFrom(graphics, abline, axis, box, frame, hist, lines, matplot, mtext,
 importFrom(stats, add1, anova, biplot, coef, confint, drop1,
 	   extractAIC, family, fitted, logLik, model.frame, nobs,
 	   predict, profile, residuals, se.contrast, simulate, terms,
-	   update, vcov, pt, qr.lm,
+	   update, vcov, pt,
            ## added in 7.3-42
            .checkMFClasses, .getXlevels, IQR, add.scope, aov, approx,
            as.formula, binomial, cmdscale, contr.helmert, dbeta, dcauchy,

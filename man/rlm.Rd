@@ -1,4 +1,4 @@
-% file complex/man/rlm.Rd
+% file complexlm/man/rlm.Rd
 % copyright (C) 1998-2020 B. D. Ripley
 % copyright (C) 2021-2022 William Ryan
 %

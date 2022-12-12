@@ -6,7 +6,9 @@
 #### Test script based on Wuber's answer on stackexchange https://stats.stackexchange.com/questions/66088/analysis-with-complex-data-anything-different#
 ####
 
-library(MASS)
+
+library(complexlm)
+#library(MASS)
 library(ggplot2)
 # Synthesize data.
 # (1) the independent variable `w`.

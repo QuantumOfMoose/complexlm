@@ -14,7 +14,7 @@ DONE. incorporate the directional nature of the derivatives of the influence fun
 
 come up with better names for the "pseudo-" variances, covariances, and standard errors. Maybe "complex-" ? Or "relation-" ?
 
-Remove uneeded code from MASS.c, rename.
+Done Remove uneeded code from MASS.c, rename.
 
 pseudo MAD?
 
