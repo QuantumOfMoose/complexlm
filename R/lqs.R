@@ -61,7 +61,7 @@ lqs.default <-
     thiscall <- match.call()
     if(is.numeric(x)) # If the given data is numeric, call the lqs.default function from MASS.
     {
-      thiscall[[1]] <- MASS::lqs
+      thiscall[[1]] <- MASS:::lqs.default
       eval(thiscall, parent.frame())
     }
     else
