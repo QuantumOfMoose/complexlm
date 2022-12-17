@@ -215,6 +215,19 @@ predict.lqs <- function (object, newdata, na.action = na.pass, ...)
 #### cov.rob as previously written is filled with calls to functions that demand numeric (real) valued inputs.
 ###   Here we make a new cov.rob that checks if x is real. If so, it calls the original cov.rob from MASS.
 ###   If x is complex, call cov.zrob, which has been modified for complex numbers.
+#' Title
+#'
+#' @param x 
+#' @param cor 
+#' @param quantile.used 
+#' @param method 
+#' @param nsamp 
+#' @param seed 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
                     method = c("mve", "mcd", "classical"), nsamp = "best", seed)
 {

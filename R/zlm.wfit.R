@@ -4,7 +4,10 @@
 ### It cannot handle algebraic expressions in formula.
 ### terms is the output of terms(formula)
 ####
-#' zmodel.matrix
+#' Generate a Model Matrix (Design Matrix) Using Complex Variables
+#' 
+#' A function that somewhat replicates model.matrix(), but accepts complex valued data. It will probably be slower and less effecient, but mostly functional.
+#' It cannot handle algebraic expressions in formula.
 #'
 #' @param trms 
 #' @param data 
@@ -268,6 +271,45 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 
 ####
 ### A wrapper for summary.lm(). If the residuals are numeric, call summary.lm() from stats.
+#' Summarize Complex Linear Model Fits.
+#' 
+#' This extends summary.lm() to handle linear fits of complex variables.
+#' If the residuals of the fit object are numeric, `stats::summary.lm()` is called.
+#'
+#' @param object An object of class 'lm'. Presumably returned by [lm]. May contain complex variables.
+#' @param correlation Logical. If TRUE, the correlation matrix of the estimated parameters is returned and printed.
+#' @param symbolic.cor Logical. If TRUE, print the correlations in a symbolic form (see [stats::symnum]) rather than as numbers. (This may not work.)
+#' @param ... Further argements passed to or from other methods.
+#' 
+#' @details 
+#' See [stats::summary.lm] for more information.
+#' In addition to the output information returned by `stats::summary.lm`, this complex variable compatable version also returns
+#' "pseudo standard error" or "relational standard error" which is the square root of the "pseudo-variance".
+#' This is a complex number that quantifies the covariance between the real and imaginary parts. Can also be thought of as the amount and direction of anisotropy in the 
+#' presumed (complex normal) probability distribution in the complex plane. The argument of this number gives the direction of the semi-major axis.
+#'
+#' @return
+#' Returns a list containing the following elements.
+#' \item{`residuals`}{Complex or numeric. The weighted residuals, that is the measured value minus the fitted value, scaled by the square root of the weights given in the call to lm.}
+#' \item{`correlation`}{A numeric matrix. The computed correlation coefficient matrix for the coefficients in the model.}
+#' \item{`pseudocorrelation`}{A complex matrix. The computed pseudo-correlation coefficient matrix for the coefficients in the model.}
+#' \item{`cov.unscaled`}{The unscaled covariance matrix; i.e, a numeric matrix such that multiplying it by an estimate of the error variance produces an estimated covariance matrix for the coefficients.}
+#' \item{`pcov.unscaled`}{The unscaled pseudo-covariance matrix; i.e, a complex matrix such that multiplying it by an estimate of the error pseudo-variance produces an estimated pseudo-covariance matrix for the coefficients.}
+#' \item{`sigma`}{Numeric. The square root of the estimated variance of the random error.}
+#' \item{`psigma`}{Complex. The square root of the estimated pseudo-variance of the random error. See details above.}
+#' \item{`df`}{The number of degrees of freedom for the model and for residuals. A 3 element vector (p, n-p, p*), the first being the number of non-aliased coefficients, the last being the total number of coefficients.}
+#' \item{`coefficients`}{A 5 column matrix that contains the model coefficients, their standard errors, their pseudo standard errors (see details above), their t statistics, and corresponding (two-sided) p-value. Aliased coefficients are omitted.}
+#' \item{`aliased`}{Named logical vector showing if the original coefficients are aliased.}
+#' \item{`terms`}{The terms object used in fitting this model.}
+#' \item{`fstatistic`}{(for models including non-intercept terms) a 3 element numeric vector with the value of the F-statistic with its numerator and denominator degrees of freedom.}
+#' \item{`r.squared`}{Numeric. The ‘fraction of variance explained by the model’.}
+#' \item{`adj.r.squared`}{the above R^2 statistic ‘adjusted’, penalizing for higher p.}
+#' \item{`symbolic.cor`}{(only if correlation is true.) The value of the argument symbolic.cor.}
+#' \item{`na.action`}{from `object`, if present there.}
+#' 
+#' @export
+#'
+#' @examples
 summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
 {
   cll <- match.call()
@@ -381,3 +423,33 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
     ans
   }
 }
+
+#' Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
+#'
+#' A version of [stats::vcov] that is compatible with complex linear models. In addition to variance-covariance matrix,
+#' the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
+#' 
+#' @param object a fitted model object, typically. Sometimes also a summary() object of such a fitted model.
+#' @param ... Additional parameters, not currently used for anything.
+#'
+#' @return A list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
+#' @export
+#'
+#' @examples
+vcov.lm <- function (object, ...)
+{
+  cll <- match.call()
+  if (is.numeric(object$residuals))
+  {
+    cll[[1]] <- stats:::vcov.lm
+    eval(cll, parent.frame())
+  }
+  else
+  {
+    so <- summary(object, corr = FALSE)
+    varcovar <- so$stddev^2 * so$cov.unscaled
+    pseudovarcovar <- so$pstddev^2 * so$pcov.unscaled
+    return(list(varcovar = varcovar, pseudovarcovar = pseudovarcovar))
+  }  
+}
+

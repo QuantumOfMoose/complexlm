@@ -21,3 +21,9 @@ pseudo MAD?
 DONE? add missing functions for complex linear model.
 
 modify model.c from stats to allow complex variables in model matrices.
+
+documentation
+
+add citations to documentation
+
+add examples to documentation.

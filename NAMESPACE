@@ -4,48 +4,35 @@ useDynLib(complexlm, .registration = TRUE)
 export(rlm, median, mad, wmed, var, zmodel.matrix, lm, zlm.wfit, pseuzvar)
 
 # formerly in package lqs
-export(cov.mcd, cov.mve, cov.rob, lmsreg, lqs, lqs.formula, ltsreg)
+export(cov.mcd, cov.mve, cov.rob, lmsreg, lqs, ltsreg)
 
 # formerly needed for Recall
 # export(denumerate.formula, renumerate.formula)
 
 # documented, registered but unexported methods
-# export(addterm.default, addterm.glm, addterm.lm,
-#        anova.loglm, anova.negbin,
-#        boxcox.default, boxcox.formula, boxcox.lm,
-#        confint.glm, confint.nls,
-#        dropterm.default, dropterm.glm, dropterm.lm,
-#        gamma.shape.glm,
-#        loglm1.data.frame, loglm1.default, loglm1.xtabs,
-#        logtrans.default, logtrans.formula, logtrans.lm,
-#        pairs.lda, pairs.profile, plot.lda, plot.mca,
-#        plot.profile, plot.ridgelm, predict.lda, predict.mca,
-#        predict.qda, print.abbrev, print.Anova,
-#        profile.glm, select.ridgelm,
-#        summary.loglm, summary.negbin, summary.rlm)
+# export(summary.rlm)
 
 importFrom(grDevices, dev.flush, dev.hold, nclass.FD, nclass.scott, palette)
-importFrom(graphics, abline, axis, box, frame, hist, lines, matplot, mtext,
+#importFrom(graphics, abline, axis, box, frame, hist, lines, matplot, mtext,
            pairs, par, plot, points, rect, segments, symbols, text)
 #import(stats) # triggers bug in wmtsa
-importFrom(stats, add1, anova, biplot, coef, confint, drop1,
-	   extractAIC, family, fitted, logLik, model.frame, nobs,
+importFrom(stats, model.frame,
 	   predict, profile, residuals, se.contrast, simulate, terms,
 	   update, vcov, pt,
            ## added in 7.3-42
            .checkMFClasses, .getXlevels, IQR, add.scope, aov, approx,
-           as.formula, binomial, cmdscale, contr.helmert, dbeta, dcauchy,
+           as.formula, cmdscale, contr.helmert, dbeta, dcauchy,
            dchisq, delete.response, density, deviance, dexp, df,
            dgamma, dgeom, dist, dlnorm, dlogis, dnbinom, dnorm, dpois,
-           drop.scope, dt, dweibull, factor.scope, formula, glm,
-           glm.control, glm.fit, is.empty.model, lm, lm.fit,
-           lm.influence, lm.wfit, loglin, lsfit, mad, mahalanobis,
+           drop.scope, dt, factor.scope, formula, glm,
+           is.empty.model, lm, lm.fit,
+           lm.influence, lm.wfit, lsfit, mad, mahalanobis,
            make.link, median, model.extract, model.matrix,
            model.offset, model.response, model.weights, na.pass,
            napredict, naprint, naresid, optim, optimize, pcauchy,
            pchisq, pf, plogis, pnorm, qchisq, qf, qnorm, qt, quantile,
            rcauchy, rexp, rgamma, rlogis, rnorm, rpois, runif, sd,
-           spline, summary.glm, uniroot, update.formula, var)
+           update.formula, var)
 importFrom(pracma, geo_median)
 
 S3method(print, rlm)
