@@ -39,6 +39,20 @@ zmodel.matrix <- function(trms, data)
 }
 
 #### This function will be used instead of .Call(C_Cdqlrs, x * wts, y * wts, tol, FALSE) if x and/or y are complex.
+#' An alternative to .Call(C_Cdqlrs, x * wts, y * wts, tol, FALSE)) that is compatible with complex variables
+#' 
+#' This serves as a wrapper for qr, replicating the behavior and output of the C++ function `C_Cdqlrs`. It is used in `zlm.wfit`,
+#' and is unlikely to be needed by end users.
+#'
+#' @param x a complex matrix (will also accept numeric, but in that case you might as well use `C_Cdqlrs`) whose QR decomposition is to be computed.
+#' @param y a complex vector or matrix of right-hand side quantities.
+#' @param tol the tolerance for detecting linear dependencies in the columns of x. Not used for complex `x`.
+#' @param chk not used. Included to better immitate `C_Cdqlrs`.
+#'
+#' @return A list that includes the qr decomposition, its coeffcionts, residuals, effects, rank, pivot information, qraux vector,
+#' tolerance, and whether or not it was pivoted. This is the same output as `C_Cdqlrs`.
+#'
+#' @examples
 Complexdqlrs <- function (x, y, tol, chk) {
   thisqr <- qr(x, tol = tol)
   coefficients <- qr.coef(thisqr, y)
@@ -59,6 +73,24 @@ Complexdqlrs <- function (x, y, tol, chk) {
 ### Note: It is not capable of dealing with contrasts in the complex case. May not understand offsets either. It also can't handle algebraic expressions in formula.
 ### model.frame needs to be changed to allow complex variables in order to enable these features.
 ####
+#' Linear Model Fitting for Complex or Numeric Variables
+#' 
+#' An adaptation of lm that is compatible with complex variables. If the response is not complex, it calls the standard `stats::lm`
+#' Note: It is not capable of dealing with contrasts in the complex case. May not understand offsets either. 
+#' It also can't handle algebraic expressions in formula.
+#' model.frame needs to be changed to allow complex variables in order to enable these features.
+#'
+#' @inherit stats::lm description details params return
+#'
+#' @export
+#'
+#' @examples
+#' set.seed(4242)
+#' n = 8
+#' slope = complex(real = 4.23, imaginary = 2.323)
+#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' testframe <- data.frame(x = x <- complex(real = rnorm(n), imaginary = rnorm(n)), y = slope * x + intercept)
+#' lm(y ~ x, data = testframe, weights = rep(1,n))
 lm <- function (formula, data, subset, weights, na.action,
                 method = "qr", model = TRUE, x = FALSE, y = FALSE,
                 qr = TRUE, singular.ok = TRUE, contrasts = NULL,
@@ -146,6 +178,27 @@ lm <- function (formula, data, subset, weights, na.action,
 ####
 ### Wrapper for lm.fit() If data is numeric, use lm.fit() from stats. If it is complex, use zlm.wfit().
 ####
+#' Complex Variable Compatible Wrappers for [stats::lm.fit()] and [stats::lm.wfit()]
+#' 
+#' This function is just an if statement.
+#' If the design matrix `x` is complex, [zlm.wfit()] is called.
+#' Otherwise [stats::lm.fit()] or [stats::lm.wfit()] is called.
+#' These functions are unlikely to be needed by end users, as they are called by [lm()].
+#' 
+#' @inherit stats::lm.wfit params return
+#'
+#' @export
+#' 
+#' @examples
+#' set.seed(4242)
+#' n = 6
+#' p = 2
+#' slope = complex(real = 4.23, imaginary = 2.323)
+#' slope2 = complex(real = 2.1, imaginary = -3.9)
+#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' designmat <- matrix(c(complex(real = rnorm(n * p), imaginary = rnorm(n * p)), rep(1, n)), n, p + 1)
+#' y = designmat %*% c(slope, slope2, intercept) + complex(real = rnorm(n), imaginary = rnorm(n))
+#' lm.fit(designmat, y)
 lm.fit <- function(x, y, offset = NULL, method = "qr", tol = 1e-7,
        singular.ok = TRUE, ...)
 {
@@ -158,6 +211,7 @@ lm.fit <- function(x, y, offset = NULL, method = "qr", tol = 1e-7,
 ####
 ### Wrapper for lm.wfit(). If data is numeric, use lm.wfit() from stats. If it is complex, use zlm.wfit().
 ####
+#' describeIn lm.fit wrapper for weighted linear fitting function.
 lm.wfit <- function(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
         singular.ok = TRUE, ...)
 {
@@ -167,6 +221,27 @@ lm.wfit <- function(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
   eval(cll, parent.frame())
 }
 
+#' Least-Squares Linear Fitting for Complex Variables
+#' 
+#' The function eventually called by [lm()], [lm.fit()], and/or [lm.wfit()] if fed complex data.
+#' Performs ordinary (least-squares) linear fitting on complex variable data.
+#' Like [stats::lm.wfit()], which it is based off of, it uses qr decomposition
+#' for the matrix algebra. Unlike `stats::lm.wfit()' it also handles un-weighted
+#' regression by setting the weights to 1 by default.
+#'
+#' @param x a complex design matrix, `n` rows by `p` columns.
+#' @param y a vector of observations/responses of length `n`, or a matrix with `n` rows.
+#' @param w a vector of weights to be used in the fitting process. The sum of `w * r^2` is minimized, with `r` being the residuals. By default, `w` is a vector of length `n` with every element equal to 1, making this an unweighted fit.
+#' @param offset optional. A complex vector of length n that will be subtracted from y prior to fitting.
+#' @param method optional. a string that can be used to choose any method you would like. As long as it is "qr".
+#' @param tol tolerance for the [qr] decomposition. Default is 1e-7.
+#' @param singular.ok logical. If false, a singular model is an error.
+#' @param ... currently disregarded.
+#'
+#' @inherit stats::lm.wfit return
+#' @export
+#'
+#' @inherit lm.wfit examples
 zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))), offset = NULL, method = "qr", tol = 1e-07, 
           singular.ok = TRUE, ...) 
 {
@@ -319,6 +394,13 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 #' @export
 #'
 #' @examples
+#' set.seed(4242)
+#' n = 8
+#' slope = complex(real = 4.23, imaginary = 2.323)
+#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' testframe <- data.frame(x = x <- complex(real = rnorm(n), imaginary = rnorm(n)), y = slope * x + intercept)
+#' fit <- lm(y ~ x, data = testframe, weights = rep(1,n))
+#' summary.lm(fit)
 summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
 {
   cll <- match.call()
@@ -445,6 +527,13 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
 #' @export
 #'
 #' @examples
+#' set.seed(4242)
+#' n = 8
+#' slope = complex(real = 4.23, imaginary = 2.323)
+#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' testframe <- data.frame(x = x <- complex(real = rnorm(n), imaginary = rnorm(n)), y = slope * x + intercept)
+#' fit <- lm(y ~ x, data = testframe, weights = rep(1,n))
+#' vcov.lm(fit)
 vcov.lm <- function (object, ...)
 {
   cll <- match.call()

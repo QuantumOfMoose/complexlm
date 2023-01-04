@@ -1,4 +1,5 @@
 # file complexlm/R/lqs.R
+# copyright (C) 2020-2023 W. L. Ryan
 # copyright (C) 1998-2020 B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -215,17 +216,14 @@ predict.lqs <- function (object, newdata, na.action = na.pass, ...)
 #### cov.rob as previously written is filled with calls to functions that demand numeric (real) valued inputs.
 ###   Here we make a new cov.rob that checks if x is real. If so, it calls the original cov.rob from MASS.
 ###   If x is complex, call cov.zrob, which has been modified for complex numbers.
-#' Title
-#'
-#' @param x 
-#' @param cor 
-#' @param quantile.used 
-#' @param method 
-#' @param nsamp 
-#' @param seed 
+#' Resistant Estimation of Multivariate Location and Scatter, for Numeric or Complex Variables
+#' 
+#' @inherit MASS::cov.rob description params details return
 #'
 #' @return
 #' @export
+#' 
+#' @note This function relies on 
 #'
 #' @examples
 cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
@@ -254,11 +252,12 @@ cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
 
 ### A function to calculate the unbiased sample variance of a vector of complex numbers.
 ### This duplicates the functionality of the masked var function. Consider removing.
-zvar <- function(x)
-{
-  sampmean <- mean(x, trim = 0)
-  return((1 / (length(x) - 1)) * sum(as.numeric((x - sampmean) * Conj(x - sampmean))))
-}
+### Depreciated.
+#zvar <- function(x)
+#{
+#  sampmean <- mean(x, trim = 0)
+#  return((1 / (length(x) - 1)) * sum(as.numeric((x - sampmean) * Conj(x - sampmean))))
+#}
 
 ### A function for calculating the unbiased sample pseudo-variance of a vector of complex numbers.
 ### Can return a complex number.
@@ -332,8 +331,8 @@ cov.zrob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
     best <- seq(n)[z$bestone != 0]
     if(!length(best)) stop("'x' is probably collinear")
     means <- colMeans(x[best, , drop = FALSE])
-    rcov <- zvar(x[best, , drop = FALSE]) * (1 + 15/(n - p))^2 #####3## The variance is defined for complex numbers, but var() can't calculate it. Write a function and replace var() with that.j
-    dist <- mahalanobis(x, means, rcov) # I think this will return a real number, but I'm not sure.
+    rcov <- zvar(x[best, , drop = FALSE]) * (1 + 15/(n - p))^2
+    dist <- mahalanobis(x, means, rcov) # This maybe should return a real number.
     cut <- qchisq(0.975, p) * quantile(dist, qn/n)/qchisq(qn/n, p)
     cov <- divisor * zvar(x[dist < cut, , drop = FALSE]) *
       rep(divisor, rep(p, p))
@@ -351,6 +350,8 @@ cov.zrob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
 }
 
 ## compatibility functions for R users.
+## Thought: Are these needed if I am writing the functions in R? Do I need
+## compatibility functions for S users instead?
 
 lmsreg <- function(...)
 {
