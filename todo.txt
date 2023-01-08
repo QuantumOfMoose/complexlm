@@ -28,3 +28,7 @@ documentation
 add citations to documentation
 
 add examples to documentation.
+
+make a complex version of Mahalanobis distance function.
+
+add complex compatible cov, cor, and cov2cor functions.

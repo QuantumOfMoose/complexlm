@@ -1,5 +1,5 @@
 # file complexlm/R/rlm.R
-# copyright (C) 2020-2022 W. L. Ryan
+# copyright (C) 2020-2023 W. L. Ryan
 # copyright (C) 1994-2020 W. N. Venables and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -25,24 +25,47 @@
 #  median(abs(x-center))
 #}
 
+#' Robust Fitting of Linear Models, Compatible with Complex Variables
+#' 
+#' Uses robust M-estimation to fit a linear model to numeric or complex data. Based on [MASS::rlm].
+#' 
+#' @inherit MASS::rlm details return references
+#' 
+#' @details M-estimation works by finding the model coefficients that minimize the sum of a function of the residuals. 
+#' This function, called the objective function rho(), is a kind of statistical distance (AKA divergence), and a semimetric.
+#' As a semimetric it is a function of the measured value `y` and the modeled value `Y` (residual `r = y - Y`) which maps from 
+#' the space of the data to the positive real numbers. Semimetrics can be defined for domains of any dimensionality, including the 
+#' two dimensional complex numbers, and thus so can M-estimation. 
+#' What's more, all the standard algebraic operations used in the itteratively (re)weighted least-squares M-estimator robust regression
+#' algorithm are defined over the set of complex numbers. While ordering is not defined for them, it is the output of rho(), a real number, that must be 
+#' in M-estimation.
+#' 
 rlm <- function(x, ...) UseMethod("rlm")
 
 #' @describeIn rlm S3 method for class 'formula'
 #'
-#' @param formula 
-#' @param data 
-#' @param weights 
-#' @param ... 
-#' @param subset 
-#' @param na.action 
-#' @param method 
-#' @param wt.method 
-#' @param model 
-#' @param x.ret 
-#' @param y.ret 
-#' @param contrasts 
+#' @param formula a [formula] object of the form y ~ x1 + x2. Note that algebraic expressions in formula cannot currently be used with complex data.
+#' @param data a data frame containing the variables upon which a robust fit is to be applied.
+#' @param weights numeric. A vector of weights to apply to the residuals.
+#' @param ... additional arguments to be applied to called functions (rlm.default and the psi function).
+#' @param subset an index vector specifying the cases (rows of data or x and y) to be used for fitting.
+#' @param na.action a function that specifies what to do if NAs are found in the fitting data. The default is to omit them via [na.omit]. Can also be changed by [options] (na.action =).
+#' @param method string. What method of robust estimation should be used. Options are "M", "MM", or "model.frame". The default is M-estimation. MM-estimation has a high breakdown point but is not compatible with complex variables or case weights. model.frame just constructs the model frame, and only works with the formula method.
+#' @param wt.method string, either "inv.var" or "case". Specifies whether the weights are case weights that give the relative importance of each observation (higher weight means more important) / case, or the inverse variances of the cases (higher weight means that observation is less variable / uncertain).
+#' @param model logical. Should the model frame be included in the returned object?
+#' @param x.ret logical. Should the model (design) matrix be included in the returned object?
+#' @param y.ret logical. Should the response be included in the returned object?
+#' @param contrasts optional contrast specifications: see [stats::lm]. Not compatible with complex data.
 #'
 #' @export
+#' 
+#' @example 
+#' set.seed(4242)
+#' n = 8
+#' slope = complex(real = 4.23, imaginary = 2.323)
+#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' testframe <- data.frame(x = x <- complex(real = rnorm(n), imaginary = rnorm(n)), y = slope * x + intercept)
+#' rlm(y ~ x, data = testframe, weights = rep(1,n))
 rlm.formula <-
     function(formula, data, weights, ..., subset, na.action,
              method = c("M", "MM", "model.frame"),
@@ -103,24 +126,29 @@ rlm.formula <-
 
 #' @describeIn rlm Default S3 method
 #'
-#' @param x 
-#' @param y 
-#' @param weights 
-#' @param ... 
-#' @param w 
-#' @param init 
-#' @param psi 
-#' @param scale.est 
-#' @param k2 
-#' @param method 
-#' @param wt.method 
-#' @param maxit 
-#' @param acc 
-#' @param test.vec 
-#' @param lqs.control 
-#' @param interc 
+#' @param x numeric or complex. A matrix, dataframe, or vector containing the explanatory / independent / predictor variables.
+#' @param y numeric or complex. A vector containing the dependent / response variables, the same length as x.
+#' @param ... additional arguments to be passed to rlm.default or to the psi function.
+#' @param w (optional) initial down-weighting for each case
+#' @param init (optional) initial values for the coefficients OR a method to find initial values OR the result of a fit with a coef component. Known methods are "ls" (the default) for an initial least-squares fit using weights w*weights, and "lts" for an unweighted least-trimmed squares fit with 200 samples.
+#' @param psi the psi function is specified by this argument. It must give (possibly by name) a function g(x, ..., deriv) that for deriv=0 returns psi(x)/x and for deriv=1 returns psi'(x). Tuning constants will be passed in via ...
+#' @param scale.est method of scale estimation: re-scaled MAD of the residuals (default) or Huber's proposal 2 (which can be selected by either "Huber" or "proposal 2"). Only MAD is implimented for complex variables.
+#' @param k2 tuning constant used for Huber proposal 2 scale estimation.
+#' @param maxit maximum number of IWLS iterations.
+#' @param acc the accuracy for the stopping criterion.
+#' @param test.vec the stopping criterion is based on changes in this vector.
+#' @param lqs.control An optional list of control values for [lqs].
+#' @param interc TRUE or FALSE, default is FALSE. Used with rlm.default when fitting complex valued data. If true, a y-intercept is calculated during fitting. Otherwise, the intercept is set to zero.
 #'
 #' @export
+#' @example 
+#' set.seed(4242)
+#' n = 8
+#' slope = complex(real = 4.23, imaginary = 2.323)
+#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' x <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' y <- slope * x + intercept
+#' rlm(x = x, y = y, weights = rep(1,n), interc = T)
 rlm.default <-
   function(x, y, weights, ..., w = rep(1, nrow(x)),
            init = "ls", psi = psi.huber,
@@ -303,8 +331,9 @@ rlm.default <-
 # }
 
 #' Summary Method for Robust Linear Models
+#' 
 #' Summary method for objects of class "rlm", capable of processing complex variable fits. 
-#' If the residuals in the passed object are numeric, this function just calls `MASS::summary.rlm`.
+#' If the residuals in the passed object are numeric, this function just calls [MASS::summary.rlm].
 #'
 #' @param object An object inheriting from the class rlm. That is, a fitted model that was generated by rlm. The fitted data can have been numeric or complex.
 #' @param method Character string indicating if the IWLS weights should be used when calculating matrix cross-products. "XtX" does not include weights, "XtWX" does.

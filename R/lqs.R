@@ -331,8 +331,8 @@ cov.zrob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
     best <- seq(n)[z$bestone != 0]
     if(!length(best)) stop("'x' is probably collinear")
     means <- colMeans(x[best, , drop = FALSE])
-    rcov <- zvar(x[best, , drop = FALSE]) * (1 + 15/(n - p))^2
-    dist <- mahalanobis(x, means, rcov) # This maybe should return a real number.
+    rcov <- var(x[best, , drop = FALSE]) * (1 + 15/(n - p))^2
+    dist <- mahalanobis(x, means, rcov) # This maybe should return a real number. Sneaky, this would not work if inverted = T in mahalanobis().
     cut <- qchisq(0.975, p) * quantile(dist, qn/n)/qchisq(qn/n, p)
     cov <- divisor * zvar(x[dist < cut, , drop = FALSE]) *
       rep(divisor, rep(p, p))
