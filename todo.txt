@@ -23,12 +23,14 @@ DONE? add missing functions for complex linear model.
 modify model.c from stats to allow complex variables in model matrices.
   Built work around in R. Call it DONE for now.
 
-documentation
+DONE documentation
 
 add citations to documentation
 
-add examples to documentation.
+DONE add examples to documentation.
 
-make a complex version of Mahalanobis distance function.
+DONE make a complex version of Mahalanobis distance function.
 
 add complex compatible cov, cor, and cov2cor functions.
+
+clean up example file.

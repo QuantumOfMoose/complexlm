@@ -1,6 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  
+ *  Copyright (C) 2021-2023 William L. Ryan
  *  Copyright (C) 1998-2016	B. D. Ripley
  *  Copyright (C) 1999          R Development Core Team
  *

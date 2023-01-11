@@ -131,7 +131,7 @@ so this function applies interquartile range to the real and imaginary component
 should be used with caution for complex variables.
 }
 \examples{
-n <- 8
-x <- complex(real = rnorm(n), imaginary = rnorm(n))
+n <- 16
+x <- matrix(complex(real = rnorm(n), imaginary = rnorm(n)), nrow = 4, ncol = 2)
 cov.rob(x)
 }

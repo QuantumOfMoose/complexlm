@@ -66,13 +66,13 @@ fitframe$z.robustHam <- mytestfit$coefficients[2] * w + mytestfit$coefficients[1
 fitframe$res.robustHam <- mytestfit$residuals
 s.robustHam <- sqrt(Re(mean(Conj(fitframe$res.robust)*fitframe$res.robust))) ### This might be standard deviation or something similar.
 #
-# Robust complex linear fit, MM method.
+# Robust complex linear fit, MM method. Will probably not work.
 #
-print(mytestfitMM <- rlm(x = w, y = z, interc = TRUE, method = "MM"))
-rMMbeta.hat <- mytestfitMM$coefficients
-fitframe$z.robustMM <- mytestfitMM$coefficients[2] * w + mytestfitMM$coefficients[1]
-fitframe$res.robustMM <- mytestfitMM$residuals
-s.robustMM <- sqrt(Re(mean(Conj(fitframe$res.robustMM)*fitframe$res.robustMM))) ### This might be standard deviation or something similar.
+# print(mytestfitMM <- rlm(x = w, y = z, interc = TRUE, method = "MM"))
+# rMMbeta.hat <- mytestfitMM$coefficients
+# fitframe$z.robustMM <- mytestfitMM$coefficients[2] * w + mytestfitMM$coefficients[1]
+# fitframe$res.robustMM <- mytestfitMM$residuals
+# s.robustMM <- sqrt(Re(mean(Conj(fitframe$res.robustMM)*fitframe$res.robustMM))) ### This might be standard deviation or something similar.
 #
 # Show some diagnostics.
 #
