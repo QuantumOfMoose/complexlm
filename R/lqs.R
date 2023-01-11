@@ -16,45 +16,76 @@
 #  http://www.r-project.org/Licenses/
 #
 
+#' Least Quantile Squared Regression, Sort of Complex Compatible
+#' 
+#' @inherit MASS::lqs description params return examples references seealso
+#' 
+#' @note This method of robust fitting relies on quantiles, which are not defined for complex numbers. While it will accept them and may return an acceptable fit, the accuracy, usefulness,
+#' and rigor of it are highly questionable. Please use [rlm] instead.
+#' There seems no reason other than historical to use the lms and lqs options. LMS estimation is of low efficiency (converging at rate `n^{-1/3})` whereas LTS has the same asymptotic efficiency as an M estimator with trimming at the quartiles (Marazzi, 1993, p.201). LQS and LTS have the same maximal breakdown value of `(floor((n-p)/2) + 1)/n attained if floor((n+p)/2) <= quantile <= floor((n+p+1)/2)`. The only drawback mentioned of LTS is greater computation, as a sort was thought to be required (Marazzi, 1993, p.201) but this is not true as a partial sort can be used (and is used in this implementation).
+#' Adjusting the intercept for each trial fit does need the residuals to be sorted, and may be significant extra computation if n is large and p small.
+#' Opinions differ over the choice of psamp. Rousseeuw and Hubert (1997) only consider p; Marazzi (1993) recommends `p+1` and suggests that more samples are better than adjustment for a given computational limit.
+#' The computations are exact for a model with just an intercept and adjustment, and for LQS for a model with an intercept plus one regressor and exhaustive search with adjustment. For all other cases the minimization is only known to be approximate.
+#' @export
 lqs <- function(x, ...) UseMethod("lqs")
-
 
 ####
 ### I am uncertain how rigorous / effective this is, as quantiles are not defined for complex random variables.
 ### It appears to work though.
 ####
+#' @describeIn lqs S3 methad for class 'formula'
+#'
+#' @inherit MASS::lqs.formula params
+#'
+#' @export
 lqs.formula <-
   function(formula, data, ...,
            method = c("lts" ,"lqs", "lms", "S", "model.frame"),
            subset, na.action,
            model = TRUE, x.ret = FALSE, y.ret = FALSE, contrasts = NULL)
   {
-    method <- match.arg(method)
-    mf <- match.call(expand.dots = FALSE)
-    mf$method <- mf$contrasts <- mf$model <- mf$x.ret <- mf$y.ret <- mf$... <- NULL
-    mf[[1L]] <- quote(stats::model.frame)
-    mf <- eval.parent(mf)
-    if (method == "model.frame") return(mf)
-    mt <- attr(mf, "terms")
-    y <- model.extract(mf, "response")
-    offset <- model.offset(mf)
-    if(!is.null(offset)) y <- y - offset
-    x <- model.matrix(mt, mf, contrasts)
-    contr <- attr(x, "contrasts")
-    xint <- match("(Intercept)", colnames(x), nomatch = 0L)
-    if(xint) x <- x[, -xint, drop = FALSE]
-    fit <- lqs.default(x, y, intercept = (xint > 0), method = method, ...)
-    fit$terms <- mt
-    fit$call <- match.call()
-    fit$contrasts <- contr
-    fit$xlevels <- .getXlevels(mt, mf)
-    fit$na.action <- attr(mf, "na.action")
-    if(model) fit$model <- mf
-    if(x.ret) fit$x <- x
-    if(y.ret) fit$y <- y
-    fit
+    trms <- terms(formula)
+    respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
+    cl <- match.call()
+    if (is.complex(data[,respname]) == FALSE)
+    {
+      cl[[1]] <- MASS::lqs
+      eval(cl, parent.frame())
+    }
+    else
+    {
+      method <- match.arg(method)
+      mf <- match.call(expand.dots = FALSE)
+      mf$method <- mf$contrasts <- mf$model <- mf$x.ret <- mf$y.ret <- mf$... <- NULL
+      mf[[1L]] <- quote(stats::model.frame)
+      mf <- eval.parent(mf)
+      if (method == "model.frame") return(mf)
+      mt <- attr(mf, "terms")
+      y <- model.extract(mf, "response")
+      offset <- model.offset(mf)
+      if(!is.null(offset)) y <- y - offset
+      x <- zmodel.matrix(mt, mf, contrasts)
+      contr <- attr(x, "contrasts")
+      xint <- match("(Intercept)", colnames(x), nomatch = 0L)
+      if(xint) x <- x[, -xint, drop = FALSE]
+      fit <- lqs.default(x, y, intercept = (xint > 0), method = method, ...)
+      fit$terms <- mt
+      fit$call <- match.call()
+      fit$contrasts <- contr
+      fit$xlevels <- .getXlevels(mt, mf)
+      fit$na.action <- attr(mf, "na.action")
+      if(model) fit$model <- mf
+      if(x.ret) fit$x <- x
+      if(y.ret) fit$y <- y
+      fit
+    }
   }
 
+#' @describeIn lqs Default S3 Method
+#'
+#' @inherit MASS::lqs.default params
+#'
+#' @export
 lqs.default <-
   function(x, y, intercept = TRUE, method = c("lts", "lqs", "lms", "S"),
            quantile, control = lqs.control(...), k0 = 1.548, seed, ...)
@@ -62,7 +93,7 @@ lqs.default <-
     thiscall <- match.call()
     if(is.numeric(x)) # If the given data is numeric, call the lqs.default function from MASS.
     {
-      thiscall[[1]] <- MASS:::lqs.default
+      thiscall[[1]] <- MASS::lqs.default
       eval(thiscall, parent.frame())
     }
     else
@@ -186,32 +217,33 @@ lqs.default <-
     z
   }
 }
+# Probably don't need this.
+# print.lqs <- function (x, digits = max(3, getOption("digits") - 3), ...)
+# {
+#   if(!is.null(cl <- x$call)) {
+#     cat("Call:\n")
+#     dput(cl, control=NULL)
+#     cat("\n")
+#   }
+#   cat("Coefficients:\n")
+#   print.default(format(coef(x), digits = digits), print.gap = 2,
+#                 quote = FALSE)
+#   cat("\nScale estimates", format(x$scale, digits = digits) ,"\n\n")
+#   invisible(x)
+# }
 
-print.lqs <- function (x, digits = max(3, getOption("digits") - 3), ...)
-{
-  if(!is.null(cl <- x$call)) {
-    cat("Call:\n")
-    dput(cl, control=NULL)
-    cat("\n")
-  }
-  cat("Coefficients:\n")
-  print.default(format(coef(x), digits = digits), print.gap = 2,
-                quote = FALSE)
-  cat("\nScale estimates", format(x$scale, digits = digits) ,"\n\n")
-  invisible(x)
-}
-
-predict.lqs <- function (object, newdata, na.action = na.pass, ...)
-{
-  if (missing(newdata)) return(fitted(object))
-  ## work hard to predict NA for rows with missing data
-  Terms <- delete.response(terms(object))
-  m <- model.frame(Terms, newdata, na.action = na.action,
-                   xlev = object$xlevels)
-  if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl, m)
-  X <- model.matrix(Terms, m, contrasts = object$contrasts)
-  drop(X %*% object$coefficients)
-}
+### I don't think a seperate predict.lqs is necessary for complex data....
+# predict.lqs <- function (object, newdata, na.action = na.pass, ...)
+# {
+#   if (missing(newdata)) return(fitted(object))
+#   ## work hard to predict NA for rows with missing data
+#   Terms <- delete.response(terms(object))
+#   m <- model.frame(Terms, newdata, na.action = na.action,
+#                    xlev = object$xlevels)
+#   if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl, m)
+#   X <- model.matrix(Terms, m, contrasts = object$contrasts)
+#   drop(X %*% object$coefficients)
+# }
 
 #### cov.rob as previously written is filled with calls to functions that demand numeric (real) valued inputs.
 ###   Here we make a new cov.rob that checks if x is real. If so, it calls the original cov.rob from MASS.
@@ -220,12 +252,16 @@ predict.lqs <- function (object, newdata, na.action = na.pass, ...)
 #' 
 #' @inherit MASS::cov.rob description params details return
 #'
-#' @return
 #' @export
 #' 
-#' @note This function relies on 
+#' @note This function relies on interquartile range, which orders the inputs as part of the calculation. The concept of ordering does not translate to the complex numbers,
+#' so this function applies interquartile range to the real and imaginary components separately. The results of this will not be rotationally invariant, so this function 
+#' should be used with caution for complex variables.
 #'
 #' @examples
+#' n <- 8
+#' x <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' cov.rob(x)
 cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
                     method = c("mve", "mcd", "classical"), nsamp = "best", seed)
 {
@@ -262,6 +298,20 @@ cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
 ### A function for calculating the unbiased sample pseudo-variance of a vector of complex numbers.
 ### Can return a complex number.
 ### Not used in anything else at the moment.
+#' Pseudo-Variance of Complex Variables
+#' 
+#' Calculates the pseudo-variance, also called the relational variance of a vector of complex numbers.
+#' This describes the degree of covariance between the real and imaginary components.
+#'
+#' @param x a vector of complex numbers.
+#'
+#' @return complex. The pseudo-variance of `x`. If `x` is numeric, this is just the variance.
+#' @export
+#'
+#' @examples
+#' n = 6
+#' z <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' pseuzvar(z)
 pseuzvar <- function(x)
 {
   sampmean <- mean(x, trim = 0)
@@ -279,7 +329,7 @@ cov.zrob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
   if(n < p+1)
     stop(gettextf("at least %d cases are needed", p+1), domain = NA)
   if(method == "classical") {
-    ans <- list(center = colMeans(x), var = zvar(x))
+    ans <- list(center = colMeans(x), var = var(x)) # This is the var() from this package that is compatible with complex numbers.
   } else {
     if(quantile.used < p+1)
       stop(gettextf("'quantile' must be at least %d", p+1), domain = NA)
@@ -334,7 +384,7 @@ cov.zrob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
     rcov <- var(x[best, , drop = FALSE]) * (1 + 15/(n - p))^2
     dist <- mahalanobis(x, means, rcov) # This maybe should return a real number. Sneaky, this would not work if inverted = T in mahalanobis().
     cut <- qchisq(0.975, p) * quantile(dist, qn/n)/qchisq(qn/n, p)
-    cov <- divisor * zvar(x[dist < cut, , drop = FALSE]) *
+    cov <- divisor * complexlm::var(x[dist < cut, , drop = FALSE]) *
       rep(divisor, rep(p, p))
     attr(cov, "names") <- NULL
     ans <- list(center =
@@ -353,6 +403,13 @@ cov.zrob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
 ## Thought: Are these needed if I am writing the functions in R? Do I need
 ## compatibility functions for S users instead?
 
+#' Comparability Wrapper for lqs
+#' 
+#' This is just a wrapper for [lqs]. See [lqs] for documentation.
+#' 
+#' @inherit MASS::ltsreg params
+#' 
+#' @export
 lmsreg <- function(...)
 {
   oc <- sys.call()
@@ -361,6 +418,13 @@ lmsreg <- function(...)
   eval.parent(oc)
 }
 
+#' Comparability Wrapper for lqs
+#' 
+#' @describeIn lmsreg comparability wrapper for `lqs`
+#' 
+#' @inherit MASS::ltsreg params
+#' 
+#' @export
 ltsreg <- function(...)
 {
   oc <- sys.call()
@@ -369,6 +433,10 @@ ltsreg <- function(...)
   eval.parent(oc)
 }
 
+#' Comparability Wrapper
+#' 
+#' @describeIn cov.rob comparability wrapper for `cov.rob`
+#' @export
 cov.mve <- function(...)
 {
   oc <- sys.call()
@@ -377,6 +445,9 @@ cov.mve <- function(...)
   eval.parent(oc)
 }
 
+#' Comparability Wrapper
+#' @describeIn cov.rob comparability wrapper for `cov.rob`
+#' @export
 cov.mcd <- function(...)
 {
   oc <- sys.call()

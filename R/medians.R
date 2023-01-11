@@ -47,7 +47,7 @@ median <- function(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
   else
   {
     Zxmatrix <- as.matrix(data.frame(re = Re(x), im = Im(x)))
-    gmed <- geo_median(Zxmatrix, tol, maxiter)
+    gmed <- pracma::geo_median(Zxmatrix, tol, maxiter)
     return(complex(real = gmed['p']$p[1], imaginary =  gmed['p']$p[2]))
   }
 }
@@ -69,8 +69,8 @@ median <- function(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
 #' @param center optional, numeric or complex. The center about which to calculate MAD. Defaults to median for numeric, and geo_median for complex.
 #' @param constant a constant by which to multiply the median absolute deviation from center. Default is 1.4826, which is one over the quantile of 3/4 for the normal distribution.
 #' @param na.rm logical. Should NAs be removed from x before calculating.
-#' @param low logical. If TRUE, compute the ‘lo-median’, i.e., for even sample size, do not average the two middle values, but take the smaller one. Not used if x is complex.
-#' @param high logical. If TRUE, compute the ‘hi-median’, i.e., take the larger of the two middle values for even sample size. Not used if x is complex.
+#' @param low logical. If TRUE, compute the "lo-median", i.e., for even sample size, do not aveage the two middle values, but take the smaller one. Not used if x is complex.
+#' @param high logical. If TRUE, compute the "hi-median", i.e., take the larger of the two middle values for even sample size. Not used if x is complex.
 #'
 #' @note The concept of Quantile requires ordering to be defined, which the complex numbers lack. 
 #' The usefulness of multiplying by constant is thus called into question. However, for no more rigourous
@@ -106,17 +106,16 @@ mad <- function(x, center = median(x), constant = 1.4826, na.rm = FALSE, low = F
 ### to measurement - median it behaves like the WMAD in that context. Name changed to reflect this.
 ### TO DO: Come up with some kind of complex weighted median.
 ####
-#' Weighted Median
+#' @title Weighted Median
 #' 
-#' This calculates the weighted median of a vector `x` using the weights in `w`.
-#' Weights are re-scaled based on their sum.
+#' This calculates the weighted median of a vector `x` using the weights in `w`. Weights are re-scaled based on their sum.
 #'
 #' @param x numeric, a vector containing the data from which to calculate the weighted median.
 #' @param w numeric, a vector of weights to give the data in x.
 #'
-#' Sorts `x` and `w` by size of the elements of `x`. Then re-scales the elements of `w` to be between 0 and 1.
+#' @details Sorts `x` and `w` by size of the elements of `x`. Then re-scales the elements of `w` to be between 0 and 1.
 #' Then sets n equal to the sum of all scaled weights with values less than 0.5. If the (n+1)-th element of the 
-#' rescaled weights is greate than 0.5, the weighted median is the (n+1)-th element of the sorted `x`. Otherwise
+#' rescaled weights is greater than 0.5, the weighted median is the (n+1)-th element of the sorted `x`. Otherwise
 #' it is the average of the (n+1)-th and (n+2)-th elements of the sorted `x`.
 #'
 #' @note This is not compatible with complex data.
@@ -125,30 +124,31 @@ mad <- function(x, center = median(x), constant = 1.4826, na.rm = FALSE, low = F
 #' @export
 #'
 #' @examples
-#' xx <- rnorm(10, 4, 1.5)
+#' xx <- rnorm(10, 4L, 1.5)
 #' ww <- runif(10)
-#' wmed(xx, ww)
-wmed <- function(x, w) 
+#' wmedian(xx, ww)
+#' 
+wmedian <- function(x, w = rep(1, length(x)))
 {
-  if (is.numeric(x)) { # Works fine for complex regression because we take the absolute value of the residual in finding median absolute deviation.
+  if (is.numeric(x)) { ## Works fine for complex regression because we take the absolute value of the residual in finding median absolute deviation.
     o <- sort.list(x); x <- x[o]; w <- w[o] # Removed abs() from around x, so that the function is more general.
     p <- cumsum(w)/sum(w)
-    n <- sum(p < 0.5) # Count how many of elements of p are greater than .5
-    if (p[n + 1L] > 0.5) x[n + 1L] else (x[n + 1L] + x[n + 2L])/2 # For a normal distribution, the standard deviation ~equals MAD/0.6745 #Removed the /0.6745, thus making this just a weighted median function.
+    n <- sum(p < 0.5) ## Count how many of elements of p are greater than .5
+    if (p[n + 1L] > 0.5) x[n + 1L] else (x[n + 1L] + x[n + 2L])/2 ## For a normal distribution, the standard deviation about equals MAD/0.6745 #Removed the /0.6745, thus making this just a weighted median function.
   }
-  else { # Could be nice to have a weighted median function for complex variables, but not strictly necessary.
-    Zxmatrix <- as.matrix(data.frame(re = Re(x), im = Im(x)))
-    geomed <- geo_median(Zxmatrix) # From the pracma-package
-    #distances <- apply(X = Zxmatrix, MARGIN = 1, FUN = function(z) sum((z - geomed$p)^2)^0.5)
-    
+  else { ## Could be nice to have a weighted median function for complex variables, but not strictly necessary.
+    ## Zxmatrix <- as.matrix(data.frame(re = Re(x), im = Im(x)))
+    ## geomed <- pracma::geo_median(Zxmatrix) # From the pracma-package
+    ## distances <- apply(X = Zxmatrix, MARGIN = 1, FUN = function(z) sum((z - geomed$p)^2)^0.5)
+    print("Sorry, this function only works with numeric at the moment. If you have an idea for a complex weighted median algorithm, please contact the maintainer.")
   }
 }
 
-#####
-#### A wrapper for var from the stats package that will accept (and use) complex numbers.
-#### var is used in summary.rlm to find variance of a set of complex numbers (psiprime).
-#### Perhaps add cor and cov functionality in the future.
-#####
+####
+### A wrapper for var from the stats package that will accept (and use) complex numbers.
+### var is used in summary.rlm to find variance of a set of complex numbers (psiprime).
+### Perhaps add cor and cov functionality in the future.
+####
 #' Variance for Complex Data
 #'
 #' A wrapper for [stats::var] that can handle complex variables.
@@ -168,7 +168,7 @@ wmed <- function(x, w)
 #' foo <- complex(real = 1:5, imaginary = 1:5)
 #' var(foo)
 var <- function(x, y = NULL, na.rm = FALSE, use)
-{
+  {
   cll <- match.call()
   cll[[1]] <- stats::var
   if (is.numeric(x)) eval(cll, parent.frame())

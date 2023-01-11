@@ -40,6 +40,10 @@
 #' algorithm are defined over the set of complex numbers. While ordering is not defined for them, it is the output of rho(), a real number, that must be 
 #' in M-estimation.
 #' 
+#' @useDynLib complexlm, .registration = TRUE
+#' @import MASS
+#' @import stats
+#' @export
 rlm <- function(x, ...) UseMethod("rlm")
 
 #' @describeIn rlm S3 method for class 'formula'
@@ -59,13 +63,13 @@ rlm <- function(x, ...) UseMethod("rlm")
 #'
 #' @export
 #' 
-#' @example 
+#' @examples
 #' set.seed(4242)
 #' n = 8
 #' slope = complex(real = 4.23, imaginary = 2.323)
-#' intercept = complex(real = 1.4, imaginary = 1.804)
-#' testframe <- data.frame(x = x <- complex(real = rnorm(n), imaginary = rnorm(n)), y = slope * x + intercept)
-#' rlm(y ~ x, data = testframe, weights = rep(1,n))
+#' interc = complex(real = 1.4, imaginary = 1.804)
+#' tframe <- data.frame(x= x <- complex(real= rnorm(n), imaginary= rnorm(n)), y= slope*x + interc)
+#' rlm(y ~ x, data = tframe, weights = rep(1,n))
 rlm.formula <-
     function(formula, data, weights, ..., subset, na.action,
              method = c("M", "MM", "model.frame"),
@@ -83,7 +87,7 @@ rlm.formula <-
     else
     {
       mf <- match.call(expand.dots = FALSE)
-      mf$method <- mf$wt.method <- mf$model <- mf$x.ret <- mf$y.ret <- mf$contrasts <- mf$... <- NULL
+      mf$method <- mf $wt.method <- mf$model <- mf$x.ret <- mf$y.ret <- mf$contrasts <- mf$... <- NULL
       mf[[1L]] <- quote(stats::model.frame) # Works with complex numbers.
       mf <- eval.parent(mf)
       method <- match.arg(method)
@@ -141,7 +145,7 @@ rlm.formula <-
 #' @param interc TRUE or FALSE, default is FALSE. Used with rlm.default when fitting complex valued data. If true, a y-intercept is calculated during fitting. Otherwise, the intercept is set to zero.
 #'
 #' @export
-#' @example 
+#' @examples
 #' set.seed(4242)
 #' n = 8
 #' slope = complex(real = 4.23, imaginary = 2.323)
@@ -159,7 +163,7 @@ rlm.default <-
     thiscall <- match.call()
     if (is.numeric(x)) 
     {
-      thiscall[[1]] <- MASS:::rlm.default
+      thiscall[[1]] <- MASS::rlm.default
       eval(thiscall, parent.frame())
     }
     else if (is.complex(x))
@@ -264,12 +268,12 @@ rlm.default <-
     if(scale.est != "MM")
         scale <- if(is.null(wt)) {
           median(abs(resid), 0)/0.6745
-          } else wmed(abs(resid), wt)/0.6745
+          } else wmedian(abs(resid), wt)/0.6745
     for(iiter in 1L:maxit) {
         if(!is.null(test.vec)) testpv <- get(test.vec)
         if(scale.est != "MM") {
             scale <- if(scale.est == "MAD")
-                if(is.null(wt)) median(abs(resid))/0.6745 else wmed(resid, wt)/0.6745 ## wmad does not actually find the weighted MAD!!!! It just finds the weighted median!
+                if(is.null(wt)) median(abs(resid))/0.6745 else wmedian(resid, wt)/0.6745 ## wmad does not actually find the weighted MAD!!!! It just finds the weighted median!
             else if(is.null(wt)) ## The two lines below are the Huber proposal 2 scale estimate. Why they didn't use the Huber function included in the package elsewhere is beyond me...
                 sqrt(sum(pmin(Conj(resid)*resid, Conj(k2 * scale)*(k2 * scale)))/(n1*gamma))
             else sqrt(sum(wt*pmin(Conj(resid)*resid, Conj(k2 * scale)*(k2 * scale)))/(n1*gamma))
@@ -309,7 +313,7 @@ rlm.default <-
     else print("ERROR: data must be numeric or complex.")
 }
 
-### I don't think I need a seperate print.rlm function for complex variables...
+### I don't think I need a separate print.rlm function for complex variables...
 # print.rlm <- function(x, ...)
 # {
 #     if(!is.null(cl <- x$call)) {
@@ -361,13 +365,21 @@ rlm.default <-
 #' @export
 #'
 #' @examples
+#' set.seed(4242)
+#' n = 8
+#' slope = complex(real = 4.23, imaginary = 2.323)
+#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' x <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' y <- slope * x + intercept
+#' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = T)
+#' summary(robfit)
 summary.rlm <- function(object, method = c("XtX", "XtWX"),
                         correlation = FALSE, ...)
 {
     cll <- match.call()
     if (is.numeric(object$residuals))
     {
-      cll[[1]] <- MASS:::summary.rlm
+      cll[[1]] <- MASS::summary.rlm
       eval(cll, parent.frame())
     }
     else
@@ -461,13 +473,17 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
 }
 
 #' @describeIn summary.rlm Print the summary of a (possibly complex) robust linear fit.
+#' 
+#' @param x a rlm object or an rlm summary object. Used for `print.summary.rlm` 
+#' @param digits the number of digits to include in the printed report, default is three. Used for `print.summary.rlm`
+#' 
 #' @export
 print.summary.rlm <- function(x, digits = max(3, .Options$digits - 3), ...)
 {
   cll <- match.call()
-  if (is.numeric(object$residuals))
+  if (is.numeric(x$residuals))
   {
-    cll[[1]] <- MASS:::print.summary.rlm
+    cll[[1]] <- MASS::print.summary.rlm
     eval(cll, parent.frame())
   }
   else
@@ -638,6 +654,12 @@ psi.bisquare <- function(u, c = 4.685, deriv=0)
 # }
 
 #' @describeIn rlm Predict new data based on the model in object. Invokes `predict.lm`.
+#' @param object a `rlm` object; a fit from which you wish to predict new data.
+#' @param newdata new predictor data from which to predict response data. Default is NULL.
+#' @param scale this seems to be ignored. Default is NULL.
+#' @param ... further arguments to be passed to NextMethod().
+#' 
+#' @export
 predict.rlm <- function (object, newdata = NULL, scale = NULL, ...)
 {
     ## problems with using predict.lm are the scale and
@@ -659,12 +681,20 @@ predict.rlm <- function (object, newdata = NULL, scale = NULL, ...)
 #' @export
 #'
 #' @examples
+#' set.seed(4242)
+#' n = 8
+#' slope = complex(real = 4.23, imaginary = 2.323)
+#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' x <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' y <- slope * x + intercept
+#' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = T)
+#' vcov.rlm(robfit)
 vcov.rlm <- function (object, ...)
 {
   cll <- match.call()
   if (is.numeric(object$residuals))
   {
-    cll[[1]] <- MASS:::vcov.rlm
+    cll[[1]] <- MASS::vcov.rlm
     eval(cll, parent.frame())
   }
   else

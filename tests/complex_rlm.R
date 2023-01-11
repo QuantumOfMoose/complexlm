@@ -8,7 +8,7 @@
 
 
 library(complexlm)
-library(MASS)
+library(MASS, include.only = "mvrnorm")
 library(ggplot2)
 # Synthesize data.
 # (1) the independent variable `w`.
