@@ -26,6 +26,8 @@ A wrapper for [stats::var] that can handle complex variables.
 The sample variance is calculated as `sum(Conj( mean(x) - x ) * ( mean(x) - x )) / (length(x) - 1)`.
 }
 \examples{
-foo <- complex(real = 1:5, imaginary = 1:5)
+set.seed(4242)
+n <- 9
+foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 var(foo)
 }

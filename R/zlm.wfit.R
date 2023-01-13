@@ -419,7 +419,7 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 #' \item{`symbolic.cor`}{(only if correlation is true.) The value of the argument symbolic.cor.}
 #' \item{`na.action`}{from `object`, if present there.}
 #' 
-#' @export
+#' @export summary.lm
 #'
 #' @examples
 #' set.seed(4242)
@@ -506,7 +506,7 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
     respvar <- prss/rdf # Pseudo variance of the residuals.
     ## see thread at https://stat.ethz.ch/pipermail/r-help/2014-March/367585.html
     if (is.finite(resvar) &&
-        resvar < (as.numeric(Conj(mean(f))*mean(f)) + var(c(f))) * 1e-30)  # a few times .Machine$double.eps^2
+        resvar < (as.numeric(Conj(mean(f))*mean(f)) + complexlm::var(c(f))) * 1e-30)  # a few times .Machine$double.eps^2
       warning("essentially perfect fit: summary may be unreliable")
     p1 <- 1L:p
     R <- chol2inv(Qr$qr[p1, p1, drop = FALSE])

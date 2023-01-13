@@ -162,7 +162,7 @@ slope = complex(real = 4.23, imaginary = 2.323)
 intercept = complex(real = 1.4, imaginary = 1.804)
 x <- complex(real = rnorm(n), imaginary = rnorm(n))
 y <- slope * x + intercept
-rlm(x = x, y = y, weights = rep(1,n), interc = T)
+rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 }
 \references{
 P. J. Huber (1981)

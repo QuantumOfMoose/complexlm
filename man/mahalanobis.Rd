@@ -27,10 +27,12 @@ But a distance (and thus its square) is always positive real. This function calc
 the conjugate transpose if given complex data, otherwise it calls [stats::mahalanobis()].
 }
 \examples{
-x <- complex(real = rnorm(3), imaginary = rnorm(3))
+set.seed(4242)
+n <- 8
+x <- matrix(complex(real = rnorm(n), imaginary = rnorm(n)), ncol = 2)
 mu <- complex(real = 1.4, imaginary = 0.4)
 sigma <- 3.4
-mahalanobis(x, mu, sigma)
+mahalanobis(x, mu, sigma * diag(2))
 }
 \references{
 D. Dai and Y. Liang, High-Dimensional Mahalanobis Distances of Complex Random Vectors, Mathematics 9, 1877 (2021).

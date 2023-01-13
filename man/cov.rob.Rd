@@ -132,6 +132,6 @@ should be used with caution for complex variables.
 }
 \examples{
 n <- 16
-x <- matrix(complex(real = rnorm(n), imaginary = rnorm(n)), nrow = 4, ncol = 2)
+x <- matrix(rnorm(n), ncol = 2)
 cov.rob(x)
 }

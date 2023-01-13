@@ -37,7 +37,9 @@
 #' @seealso [stats::median] and [pracma::geo_median]
 #'
 #' @examples
-#' foo <- complex(real = 1:5, imaginary = 1:5)
+#' set.seed(4242)
+#' n <- 7
+#' foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' median(foo)
 median <- function(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
 {
@@ -80,7 +82,9 @@ median <- function(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
 #' @export
 #'
 #' @examples
-#' foo <- complex(real = 1:5, imaginary = 1:5)
+#' set.seed(4242)
+#' n <- 8
+#' foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' mad(foo)
 mad <- function(x, center = median(x), constant = 1.4826, na.rm = FALSE, low = FALSE, high = FALSE)
 {
@@ -165,7 +169,9 @@ wmedian <- function(x, w = rep(1, length(x)))
 #' @export
 #'
 #' @examples
-#' foo <- complex(real = 1:5, imaginary = 1:5)
+#' set.seed(4242)
+#' n <- 9
+#' foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' var(foo)
 var <- function(x, y = NULL, na.rm = FALSE, use)
   {
@@ -193,10 +199,12 @@ var <- function(x, y = NULL, na.rm = FALSE, use)
 #' @export
 #'
 #' @examples
-#' x <- complex(real = rnorm(3), imaginary = rnorm(3))
+#' set.seed(4242)
+#' n <- 8
+#' x <- matrix(complex(real = rnorm(n), imaginary = rnorm(n)), ncol = 2)
 #' mu <- complex(real = 1.4, imaginary = 0.4)
 #' sigma <- 3.4
-#' mahalanobis(x, mu, sigma)
+#' mahalanobis(x, mu, sigma * diag(2))
 mahalanobis <- function(x, center, cov, inverted=FALSE, ...)
 {
   cll <- match.call()

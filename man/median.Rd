@@ -23,7 +23,9 @@ Extends [stats::median] to understand complex variable input. If x is complex, t
 is calculated by [pracma::geo_median], and returned as a complex number. Otherwise, [stats::median] is called.
 }
 \examples{
-foo <- complex(real = 1:5, imaginary = 1:5)
+set.seed(4242)
+n <- 7
+foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 median(foo)
 }
 \seealso{

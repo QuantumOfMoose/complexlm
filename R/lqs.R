@@ -18,7 +18,7 @@
 
 #' Least Quantile Squared Regression, Sort of Complex Compatible
 #' 
-#' @inherit MASS::lqs description params return examples references seealso
+#' @inherit MASS::lqs description params return references seealso
 #' 
 #' @note This method of robust fitting relies on quantiles, which are not defined for complex numbers. While it will accept them and may return an acceptable fit, the accuracy, usefulness,
 #' and rigor of it are highly questionable. Please use [rlm] instead.
@@ -26,7 +26,17 @@
 #' Adjusting the intercept for each trial fit does need the residuals to be sorted, and may be significant extra computation if n is large and p small.
 #' Opinions differ over the choice of psamp. Rousseeuw and Hubert (1997) only consider p; Marazzi (1993) recommends `p+1` and suggests that more samples are better than adjustment for a given computational limit.
 #' The computations are exact for a model with just an intercept and adjustment, and for LQS for a model with an intercept plus one regressor and exhaustive search with adjustment. For all other cases the minimization is only known to be approximate.
+#' 
 #' @export
+#' @examples
+#' \dontrun{
+#' set.seed(4242)
+#' n = 8
+#' slope = complex(real = 4.23, imaginary = 2.323)
+#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' x <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' y <- slope * x + intercept +complex(real= rnorm(n), imaginary= rnorm(n))/9
+#' lqs(x = x, y = y) }
 lqs <- function(x, ...) UseMethod("lqs")
 
 ####
@@ -260,7 +270,7 @@ lqs.default <-
 #'
 #' @examples
 #' n <- 16
-#' x <- matrix(complex(real = rnorm(n), imaginary = rnorm(n)), nrow = 4, ncol = 2)
+#' x <- matrix(rnorm(n), ncol = 2)
 #' cov.rob(x)
 cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
                     method = c("mve", "mcd", "classical"), nsamp = "best", seed)

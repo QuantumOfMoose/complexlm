@@ -152,7 +152,7 @@ rlm.formula <-
 #' intercept = complex(real = 1.4, imaginary = 1.804)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' y <- slope * x + intercept
-#' rlm(x = x, y = y, weights = rep(1,n), interc = T)
+#' rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 rlm.default <-
   function(x, y, weights, ..., w = rep(1, nrow(x)),
            init = "ls", psi = psi.huber,
@@ -561,13 +561,14 @@ print.summary.rlm <- function(x, digits = max(3, .Options$digits - 3), ...)
 #' @export
 #'
 #' @examples
-#' z <- complex(real = rnorm(), complex = rnorm())
+#' set.seed(4242)
+#' z <- complex(real = rnorm(1), imaginary = rnorm(1))
+#' z <- complex(real = 0.4, imaginary = 0.7)
 #' psi.huber(z)
 #' psi.hampel(z)
 #' psi.bisquare(z)
 #' psi.huber(z, deriv=1)
 #' psi.hampel(z, deriv=1)
-#' psi.bisquare(z, deriv=1)
 psi.huber <- function(u, k = 1.345, deriv=0)
 {
     if(!deriv) return(pmin(1, k / abs(u)))
@@ -575,6 +576,8 @@ psi.huber <- function(u, k = 1.345, deriv=0)
 }
 
 #' @describeIn psi.huber The weight function of the hampel objective function.
+#' 
+#' @export
 psi.hampel <- function(u, a = 2, b = 4, c = 8, deriv=0)
 {
     U <- pmin(abs(u) + 1e-50, c)
@@ -583,11 +586,15 @@ psi.hampel <- function(u, a = 2, b = 4, c = 8, deriv=0)
 }
 
 #' @describeIn psi.huber The weight function of Tukey's bisquare objective function.
-psi.bisquare <- function(u, c = 4.685, deriv=0)
+#' 
+#' @example psi.bisquareo(u = z, deriv=1)
+#' 
+#' @export
+psi.bisquareo <- function(u, c = 4.685, deriv=0)
 {
   cll <- match.call()
-  if (is.numeric(u))
-  {
+  if (!is.complex(u)) {
+    #warning("dog")
     cll[[1]] <- MASS::psi.bisquare
     eval(cll, parent.frame())
   }
@@ -595,7 +602,10 @@ psi.bisquare <- function(u, c = 4.685, deriv=0)
   {
     if(!deriv) return((1  - pmin(1, abs(u/c))^2)^2)
     t <- (u/c)
-    ifelse(abs(t) < 1, complex(imaginary = -1) * (-1 + Conj(t)*t)*(-1 + 5*Conj(t)*t) * complex(modulus = 1, argument = Arg(t))^2, 0)
+    #warning(t)
+    #warning(abs(t))
+    ifelse(Mod(t) < 1, complex(imaginary = -1) * (-1 + Conj(t)*t)*(-1 + 5*Conj(t)*t) * complex(modulus = 1, argument = Arg(t))^2, 0)
+    #return('cat')
   }
 }
 

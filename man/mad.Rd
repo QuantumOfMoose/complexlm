@@ -41,6 +41,8 @@ The usefulness of multiplying by constant is thus called into question. However,
 reason than consistency, the default behavior of this function is to do so.
 }
 \examples{
-foo <- complex(real = 1:5, imaginary = 1:5)
+set.seed(4242)
+n <- 8
+foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 mad(foo)
 }

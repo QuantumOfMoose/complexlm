@@ -130,11 +130,14 @@ Opinions differ over the choice of psamp. Rousseeuw and Hubert (1997) only consi
 The computations are exact for a model with just an intercept and adjustment, and for LQS for a model with an intercept plus one regressor and exhaustive search with adjustment. For all other cases the minimization is only known to be approximate.
 }
 \examples{
-## IGNORE_RDIFF_BEGIN
-set.seed(123) # make reproducible
-lqs(stack.loss ~ ., data = stackloss)
-lqs(stack.loss ~ ., data = stackloss, method = "S", nsamp = "exact")
-## IGNORE_RDIFF_END
+\dontrun{
+set.seed(4242)
+n = 8
+slope = complex(real = 4.23, imaginary = 2.323)
+intercept = complex(real = 1.4, imaginary = 1.804)
+x <- complex(real = rnorm(n), imaginary = rnorm(n))
+y <- slope * x + intercept +complex(real= rnorm(n), imaginary= rnorm(n))/9
+lqs(x = x, y = y) }
 }
 \references{
 P. J. Rousseeuw and A. M. Leroy (1987)
