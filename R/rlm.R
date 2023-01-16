@@ -594,8 +594,6 @@ psi.hampel <- function(u, a = 2, b = 4, c = 8, deriv=0)
 
 #' @describeIn psi.huber The weight function of Tukey's bisquare objective function.
 #' 
-#' @example psi.bisquare(u = z, deriv=1)
-#' 
 #' @export
 psi.bisquare <- function(u, c = 4.685, deriv=0)
 {

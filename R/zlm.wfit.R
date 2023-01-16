@@ -479,7 +479,8 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
       stop("invalid 'lm' object:  no 'terms' component")
     if(!inherits(object, "lm"))
       warning("calling summary.lm(<fake-lm-object>) ...")
-    Qr <- stats:::qr.lm(object) # Internal function that just returns the thing in z$qr. Unless it's not there, in which case it gives an error.
+    #Qr <- stats:::qr.lm(object) # Internal function that just returns the thing in z$qr. Unless it's not there, in which case it gives an error.
+    try(Qr <- object$qr, stop("lm object does not have a proper 'qr' component. Rank zero or should not have used lm(.., qr=FALSE).")) # Replicates the behavior of the line above without calling a unexported function.
     n <- NROW(Qr$qr)
     if(is.na(z$df.residual) || n - p != z$df.residual)
       warning("residual degrees of freedom in object suggest this is not an \"lm\" fit")
