@@ -23,8 +23,9 @@ set.seed(4242)
 n = 8
 slope = complex(real = 4.23, imaginary = 2.323)
 intercept = complex(real = 1.4, imaginary = 1.804)
+e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 x <- complex(real = rnorm(n), imaginary = rnorm(n))
-y <- slope * x + intercept
-robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = T)
+y <- slope * x + intercept + e
+robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 vcov.rlm(robfit)
 }

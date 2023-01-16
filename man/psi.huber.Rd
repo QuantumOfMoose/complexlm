@@ -3,14 +3,14 @@
 \name{psi.huber}
 \alias{psi.huber}
 \alias{psi.hampel}
-\alias{psi.bisquareo}
+\alias{psi.bisquare}
 \title{Weighting functions for robust fitting}
 \usage{
 psi.huber(u, k = 1.345, deriv = 0)
 
 psi.hampel(u, a = 2, b = 4, c = 8, deriv = 0)
 
-psi.bisquareo(u, c = 4.685, deriv = 0)
+psi.bisquare(u, c = 4.685, deriv = 0)
 }
 \arguments{
 \item{u}{Numeric or complex. When used in M-estimation, a residual.}
@@ -44,13 +44,12 @@ Note that they do not return the derivative of the weight function, as might be 
 \itemize{
 \item \code{psi.hampel}: The weight function of the hampel objective function.
 
-\item \code{psi.bisquareo}: The weight function of Tukey's bisquare objective function.
+\item \code{psi.bisquare}: The weight function of Tukey's bisquare objective function.
 }}
 
 \examples{
 set.seed(4242)
-z <- complex(real = rnorm(1), imaginary = rnorm(1))
-z <- complex(real = 0.4, imaginary = 0.7)
+z <- complex(real = rnorm(3), imaginary = rnorm(3))
 psi.huber(z)
 psi.hampel(z)
 psi.bisquare(z)

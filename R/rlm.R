@@ -68,7 +68,9 @@ rlm <- function(x, ...) UseMethod("rlm")
 #' n = 8
 #' slope = complex(real = 4.23, imaginary = 2.323)
 #' interc = complex(real = 1.4, imaginary = 1.804)
-#' tframe <- data.frame(x= x <- complex(real= rnorm(n), imaginary= rnorm(n)), y= slope*x + interc)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+#' tframe <- data.frame(x = xx, y= slope*xx + interc + e)
 #' rlm(y ~ x, data = tframe, weights = rep(1,n))
 rlm.formula <-
     function(formula, data, weights, ..., subset, na.action,
@@ -150,8 +152,9 @@ rlm.formula <-
 #' n = 8
 #' slope = complex(real = 4.23, imaginary = 2.323)
 #' intercept = complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
-#' y <- slope * x + intercept
+#' y <- slope * x + intercept + e
 #' rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 rlm.default <-
   function(x, y, weights, ..., w = rep(1, nrow(x)),
@@ -369,9 +372,10 @@ rlm.default <-
 #' n = 8
 #' slope = complex(real = 4.23, imaginary = 2.323)
 #' intercept = complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
-#' y <- slope * x + intercept
-#' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = T)
+#' y <- slope * x + intercept + e
+#' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 #' summary(robfit)
 summary.rlm <- function(object, method = c("XtX", "XtWX"),
                         correlation = FALSE, ...)
@@ -427,7 +431,7 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
         kappa <- 1 + p*var(psiprime)/(n*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think.
         #print(var(psiprime))
         pkappa <- 1 + p*pvarpsi/(n*mn^2)
-        stddev <- sqrt(S)*(kappa/abs(mn)) ## Would it be usefull to do something similar with pseudo-variance? Probably.
+        stddev <- sqrt(S)*(kappa/abs(mn)) ## Would it be useful to do something similar with pseudo-variance? Probably.
         pstddev <- sqrt(pS)*(pkappa/mn) # The 'pseudo standard deviation', analogous with the pseudo-variance. Might be useful, might be meaningless.
       }
       X <- if(length(object$weights)) object$x * sqrt(object$weights) else object$x # The model (design?) matrix, or the model matrix times the sqrt of the weights.
@@ -440,14 +444,17 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
       R[lower.tri(R)] <- 0 # Remove the lower triangular matrix, the Q from the QR decomposition.
       rinv <- solve(R, rinv) # This is efficient, we only need the diagonal matrix diag(p) to get rinv, so just set rinv <- diag(p) ahead of time. Now rinv is a different p by p matrix.
       dimnames(rinv) <- list(cnames, cnames)
-      rowlen <- (as.numeric(Conj(rinv)*rinv) %*% rep(1, p))^0.5 # Produces a real vector of length p.
+      rowlen <- (abs(Conj(rinv)*rinv) %*% rep(1, p))^0.5 # Produces a real vector of length p.
       prowlen <- (rinv^2 %*% rep(1, p))^0.5 # Produces a complex vector of length p
       names(rowlen) <- cnames # cnames are the names of the coefficients.
       if(correlation) {
         correl <- rinv * array(1/rowlen, c(p, p))
         correl <- correl %*% Conj(t(correl))
         pcorrel <- correl %*% t(correl)
-      } else correl <- NULL
+      } else {
+        correl <- NULL
+        pcorrel <- NULL
+      }
       coef <- array(coef, c(p, 4L)) # Make an array with 4 columns and p rows. put the coefficients into the first column.
       dimnames(coef) <- list(cnames, c("Value", "Std. Error", "Pseudo Std. Error", "t value"))
       print(rinv)
@@ -494,6 +501,7 @@ print.summary.rlm <- function(x, digits = max(3, .Options$digits - 3), ...)
     resid <- x$residuals
     df <- x$df
     rdf <- df[2L]
+    print(rdf)
     cat(if(!is.null(x$weights) && diff(range(x$weights))) "Weighted ",
         "Residuals:\n", sep="")
     if(rdf > 5L) {
@@ -562,8 +570,7 @@ print.summary.rlm <- function(x, digits = max(3, .Options$digits - 3), ...)
 #'
 #' @examples
 #' set.seed(4242)
-#' z <- complex(real = rnorm(1), imaginary = rnorm(1))
-#' z <- complex(real = 0.4, imaginary = 0.7)
+#' z <- complex(real = rnorm(3), imaginary = rnorm(3))
 #' psi.huber(z)
 #' psi.hampel(z)
 #' psi.bisquare(z)
@@ -581,16 +588,16 @@ psi.huber <- function(u, k = 1.345, deriv=0)
 psi.hampel <- function(u, a = 2, b = 4, c = 8, deriv=0)
 {
     U <- pmin(abs(u) + 1e-50, c)
-    if(!deriv) return(ifelse(U <= a, U, ifelse(U <= b, a, a*(c-U)/(c-b) ))/U)
-    ifelse(abs(u) <= c, ifelse(U <= a, complex(modulus = 1, argument = Arg(u) - pi), ifelse(U <= b, 0, complex(modulus = a/(c-b), argument =  Arg(u)))), 0)
+    if(!deriv) return(as.vector(ifelse(U <= a, U, ifelse(U <= b, a, a * (c - U) / (c - b) )) / U))
+    ifelse(abs(u) <= c, ifelse(U <= a, complex(modulus = 1, argument = Arg(u) - pi), ifelse(U <= b, 0, complex(modulus = a/(c-b), argument = Arg(u)))), 0)
 }
 
 #' @describeIn psi.huber The weight function of Tukey's bisquare objective function.
 #' 
-#' @example psi.bisquareo(u = z, deriv=1)
+#' @example psi.bisquare(u = z, deriv=1)
 #' 
 #' @export
-psi.bisquareo <- function(u, c = 4.685, deriv=0)
+psi.bisquare <- function(u, c = 4.685, deriv=0)
 {
   cll <- match.call()
   if (!is.complex(u)) {
@@ -688,16 +695,17 @@ predict.rlm <- function (object, newdata = NULL, scale = NULL, ...)
 #' @param ... Additional parameters, not currently used for anything.
 #'
 #' @return A list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
-#' @export
+#' @export vcov.rlm
 #'
 #' @examples
 #' set.seed(4242)
 #' n = 8
 #' slope = complex(real = 4.23, imaginary = 2.323)
 #' intercept = complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
-#' y <- slope * x + intercept
-#' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = T)
+#' y <- slope * x + intercept + e
+#' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 #' vcov.rlm(robfit)
 vcov.rlm <- function (object, ...)
 {

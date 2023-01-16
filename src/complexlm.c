@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stddef.h>
+#include <Rinternals.h>
 
 #include <complex.h> // This contains functions to act on complex numbers.
 #include <R.h>
@@ -58,3 +59,5 @@ void R_init_complexlm(DllInfo *dll)
     R_useDynamicSymbols(dll, FALSE);
     R_forceSymbols(dll, TRUE);
 }
+
+//static SEXP La_chol2inv_cmplx(SEXP A, SEXP size);

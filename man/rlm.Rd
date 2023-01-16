@@ -154,14 +154,17 @@ set.seed(4242)
 n = 8
 slope = complex(real = 4.23, imaginary = 2.323)
 interc = complex(real = 1.4, imaginary = 1.804)
-tframe <- data.frame(x= x <- complex(real= rnorm(n), imaginary= rnorm(n)), y= slope*x + interc)
+e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+tframe <- data.frame(x = xx, y= slope*xx + interc + e)
 rlm(y ~ x, data = tframe, weights = rep(1,n))
 set.seed(4242)
 n = 8
 slope = complex(real = 4.23, imaginary = 2.323)
 intercept = complex(real = 1.4, imaginary = 1.804)
+e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 x <- complex(real = rnorm(n), imaginary = rnorm(n))
-y <- slope * x + intercept
+y <- slope * x + intercept + e
 rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 }
 \references{

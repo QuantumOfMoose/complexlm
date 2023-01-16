@@ -10,3 +10,6 @@
 *.RData
 *.Rbuildignore
 *~
+*.nop
+*.nope
+*

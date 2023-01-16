@@ -89,7 +89,8 @@ p = 2
 slop = complex(real = 4.23, imaginary = 2.323)
 slop2 = complex(real = 2.1, imaginary = -3.9)
 interc = complex(real = 1.4, imaginary = 1.804)
+e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 desmat <- matrix(c(complex(real = rnorm(n * p), imaginary = rnorm(n * p)), rep(1, n)), n, p + 1)
-y = desmat \%*\% c(slop, slop2, interc) + complex(real = rnorm(n), imaginary = rnorm(n))
+y = desmat \%*\% c(slop, slop2, interc) + e
 lm.fit(desmat, y)
 }

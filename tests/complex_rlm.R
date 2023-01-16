@@ -49,7 +49,6 @@ print(beta.hat <- solve(Conj(t(desX)) %*% desX, Conj(t(desX)) %*% z), digits=4)
 z.whuber <- beta.hat[2] * w + beta.hat[1]
 fitframe$z.whuber <- z.whuber
 fitframe$res.whuber <- as.vector(z - desX %*% beta.hat)
-s.whuber <- sqrt(Re(mean(Conj(fitframe$res.whuber)*fitframe$res.whuber))) ### This might be standard deviation or something similar.
 #
 # Robust complex linear fit.
 #
@@ -57,105 +56,18 @@ print(mytestfit <- rlm(x = w, y = z, interc = TRUE)) # Uses default psi=psi.hube
 rbeta.hat <- mytestfit$coefficients
 fitframe$z.robust <- mytestfit$coefficients[2] * w + mytestfit$coefficients[1]
 fitframe$res.robust <- mytestfit$residuals
-s.robust <- sqrt(Re(mean(Conj(fitframe$res.robust)*fitframe$res.robust))) ### This might be standard deviation or something similar.
 # Robust complex linear fit, with Hampel objective function.
 #
-print(mytestfitHam <- rlm(x = w, y = z, psi = psi.bisquare, interc = TRUE)) # Uses default psi=psi.huber, the Huber objective function.
-rHambeta.hat <- mytestfit$coefficients
-fitframe$z.robustHam <- mytestfit$coefficients[2] * w + mytestfit$coefficients[1]
-fitframe$res.robustHam <- mytestfit$residuals
-s.robustHam <- sqrt(Re(mean(Conj(fitframe$res.robust)*fitframe$res.robust))) ### This might be standard deviation or something similar.
+print(mytestfitHam <- rlm(x = w, y = z, psi = psi.hampel, interc = TRUE)) # Uses psi=psi.hampel, the Hampel objective function.
+rHambeta.hat <- mytestfitHam$coefficients
+fitframe$z.robustHam <- mytestfitHam$coefficients[2] * w + mytestfitHam$coefficients[1]
+fitframe$res.robustHam <- mytestfitHam$residuals
+# Robust complex linear fit, with Tukey's bisquare objective function.
 #
-# Robust complex linear fit, MM method. Will probably not work.
-#
-# print(mytestfitMM <- rlm(x = w, y = z, interc = TRUE, method = "MM"))
-# rMMbeta.hat <- mytestfitMM$coefficients
-# fitframe$z.robustMM <- mytestfitMM$coefficients[2] * w + mytestfitMM$coefficients[1]
-# fitframe$res.robustMM <- mytestfitMM$residuals
-# s.robustMM <- sqrt(Re(mean(Conj(fitframe$res.robustMM)*fitframe$res.robustMM))) ### This might be standard deviation or something similar.
-#
-# Show some diagnostics.
-#
-# par(mfrow=c(1,2))
-# library(grid)
-# col <- hsv((Arg(res)/pi + 1)/2, .8, .9)
-# size <- Mod(res) / s
-# resplot.whuber <- ggplot(fitframe, aes(x = Re(res.whuber), y = Im(res.whuber), color = Arg(res.whuber), size = Mod(res.whuber))) +
-#   geom_point() +
-#   theme(legend.position="none")
-# resplot.robust <- ggplot(fitframe, aes(x = Re(res.robust), y = Im(res.robust), color = Arg(res.robust), size = Mod(res.robust))) +
-#   geom_point() +
-#   theme(legend.position="none")
-# fitplot.whuber <- ggplot(fitframe, aes(x = Re(z.whuber), y = Im(z.whuber), color = Arg(z.whuber), size = Mod(z.whuber))) +
-#   geom_point() +
-#   theme(legend.position="none")
-# fitplot.robust <- ggplot(fitframe, aes(x = Re(z.robust), y = Im(z.robust), color = Arg(z.robust), size = Mod(z.robust))) +
-#   geom_point() +
-#   theme(legend.position="none")
-# 
-# grid.draw(cbind(rbind(ggplotGrob(resplot.whuber), ggplotGrob(fitplot.whuber)),rbind(ggplotGrob(resplot.robust), ggplotGrob(fitplot.robust))))
-#plot(res, pch=16, cex=size, col=col, main="Residuals")
-#plot(Re(fit), Im(fit), pch=16, cex = size, col=col,
-#     main="Residuals vs. Fitted")
-# 
-# plot(Re(c(z, fit)), Im(c(z, fit)), type="n",
-#      main="Residuals as Fit --> Data", xlab="Real", ylab="Imaginary")
-# points(Re(fit), Im(fit), col="Blue")
-# points(Re(z), Im(z), pch=16, col="Red")
-# arrows(Re(fit), Im(fit), Re(z), Im(z), col="Gray", length=0.1)
-# 
-# col.w <-  hsv((Arg(w)/pi + 1)/2, .8, .9)
-# plot(Re(c(w, z)), Im(c(w, z)), type="n",
-#      main="Fit as a Transformation", xlab="Real", ylab="Imaginary")
-# points(Re(w), Im(w), pch=16, col=col.w)
-# points(Re(w), Im(w))
-# points(Re(z), Im(z), pch=16, col=col.w)
-# arrows(Re(w), Im(w), Re(z), Im(z), col="#00000030", length=0.1)
-
-#
-# Visualize the data and different fits.
-#
-# ReRePlot <- ggplot(fitframe, aes(x = Re(w), y = Re(z))) +
-#   geom_point() +
-#   stat_function(fun = function(x) , color = "blue") +
-#   geom_line(aes(x = Re(w), y = Re(z.whuber)), color = "red")
-# ReRePlot
-# ImImPlot <- ggplot(fitframe, aes(Im(w), Im(z))) +
-#   geom_point() +
-#   geom_line(aes(x = Im(w), y = Im(z.robust)), color = "blue") +
-#   geom_line(aes(x = Im(w), y = Im(z.whuber)), color = "red")
-# ImImPlot
-# ReRePlot <- ggplot(fittestdf, aes(Re(w), Re(z))) +
-#   geom_point() +
-#   geom_line(aes(x = Re(w), y = Re(z.robust)), color = "blue") +
-#   geom_line(aes(x = Re(w), y = Re(z.whuber)), color = "red")
-# 
-# ImImPlot <- ggplot(fittestdf, aes(Re(w), Im(z))) +
-#   geom_point() +
-#   geom_line(aes(x = Im(w), y = Im(z.robust)), color = "blue") +
-#   geom_line(aes(x = Im(w), y = Im(z.whuber)), color = "red")
-# 
-# grid.draw(rbind(ggplotGrob(RealPlot),ggplotGrob(ImagPlot)))
-# 
-# par(mfrow=c(1,1))
-# pairs(cbind(w.Re=Re(w), w.Im=Im(w), z.Re=Re(z), z.Im=Im(z),
-#             ordfit.Re=Re(fitframe$z.whuber), ordfit.Im=Im(fitframe$z.whuber), robfit.Re = Re(fitframe$z.robust), robfit.Im = Im(fitframe$z.robust)), cex=1/2)
-# 
-# pairs(fitframe)
-
-# betterplot <- ggplot(fitframe, aes(x = Re(w), y = Im(w))) + 
-#   #geom_point(aes(color = Arg(z), size = Mod(z))) + scale_fill_viridis_c() +
-#   geom_point(aes(x = Re(z.pure), y = Im(z.pure), color = Arg(z.pure)), size = 3) +
-#   geom_point(aes(x = Re(z.pure), y = Im(z.pure)), color = "cyan2", size = 3, label = "pure z") +
-#   geom_point(aes(x = Re(z.clean), y = Im(z.clean)), color = "forestgreen", size = 3, shape = 0, label = "clean z") +
-#   geom_point(aes(x = Re(z), y = Im(z)), label = "z") +
-#   geom_point(aes(x = Re(z.whuber), y = Im(z.whuber)), color = "red", shape = 17, size = 2, label = "olm z") +
-#   geom_point(aes(x = Re(z.robust), y = Im(z.robust)), color = "blue", shape = 18, size = 3, label = "rlm z") +
-#   geom_segment(aes(x = Re(z), y = Im(z), xend = Re(z.whuber), yend = Im(z.whuber)), linetype = "dotted", size = 0.4, color = "lightcoral", group = "olm resid") + 
-#   geom_segment(aes(x = Re(z), y = Im(z), xend = Re(z.robust), yend = Im(z.robust), lty = "rlm resid"), linetype = "dotted", size = 0.4, color = "royalblue1", group = "rlm") + 
-#   theme(legend.position = "right")
-# betterplot
-
+print(mytestfitBi <- rlm(x = w, y = z, psi = psi.bisquare, interc = TRUE)) # Uses psi=psi.bisquare, Tukey's bisquare objective function.
+rBibeta.hat <- mytestfitBi$coefficients
+fitframe$z.robustBi <- mytestfitBi$coefficients[2] * w + mytestfitBi$coefficients[1]
+fitframe$res.robustBi <- mytestfitBi$residuals
 
 library(reshape2)
 meltedfitframe <- melt(fitframe, id = "w")

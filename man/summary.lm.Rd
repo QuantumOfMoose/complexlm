@@ -50,7 +50,9 @@ set.seed(4242)
 n = 8
 slop = complex(real = 4.23, imaginary = 2.323)
 interc = complex(real = 1.4, imaginary = 1.804)
-tfram <- data.frame(x = x <- complex(real= rnorm(n), imaginary= rnorm(n)), y= slop*x + interc)
-fit <- lm(y ~ x, data = tfram, weights = rep(1,n))
-summary.lm(fit)
+e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+tframe <- data.frame(x = xx, y= slop*xx + interc + e)
+fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
+summary(fit)
 }

@@ -37,7 +37,7 @@
 #' slop = complex(real = 4.23, imaginary = 2.323)
 #' interc = complex(real = 1.4, imaginary = 1.804)
 #' tframe <- expand.grid(-3:3,-3:3)
-#' Xt <- complex(real = testframe[[1]], imaginary = testframe[[2]])
+#' Xt <- complex(real = tframe[[1]], imaginary = tframe[[2]])
 #' tframe <- data.frame(Xt=Xt, Yt= Xt * slop + interc + complex(real=rnorm(length(Xt)),
 #'  imaginary=rnorm(length(Xt))))
 #' testterms <- terms(Yt ~ Xt)
@@ -115,7 +115,9 @@ Complexdqlrs <- function (x, y, tol, chk) {
 #' n = 8
 #' slop = complex(real = 4.23, imaginary = 2.323)
 #' interc = complex(real = 1.4, imaginary = 1.804)
-#' tframe <- data.frame(x = x <- complex(real= rnorm(n), imaginary= rnorm(n)), y= slop*x + interc)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+#' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
 #' lm(y ~ x, data = tframe, weights = rep(1,n))
 lm <- function (formula, data, subset, weights, na.action,
                 method = "qr", model = TRUE, x = FALSE, y = FALSE,
@@ -222,8 +224,9 @@ lm <- function (formula, data, subset, weights, na.action,
 #' slop = complex(real = 4.23, imaginary = 2.323)
 #' slop2 = complex(real = 2.1, imaginary = -3.9)
 #' interc = complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' desmat <- matrix(c(complex(real = rnorm(n * p), imaginary = rnorm(n * p)), rep(1, n)), n, p + 1)
-#' y = desmat %*% c(slop, slop2, interc) + complex(real = rnorm(n), imaginary = rnorm(n))
+#' y = desmat %*% c(slop, slop2, interc) + e
 #' lm.fit(desmat, y)
 lm.fit <- function(x, y, offset = NULL, method = "qr", tol = 1e-7,
        singular.ok = TRUE, ...)
@@ -419,16 +422,18 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 #' \item{`symbolic.cor`}{(only if correlation is true.) The value of the argument symbolic.cor.}
 #' \item{`na.action`}{from `object`, if present there.}
 #' 
-#' @export summary.lm
+#' @export
 #'
 #' @examples
 #' set.seed(4242)
 #' n = 8
 #' slop = complex(real = 4.23, imaginary = 2.323)
 #' interc = complex(real = 1.4, imaginary = 1.804)
-#' tfram <- data.frame(x = x <- complex(real= rnorm(n), imaginary= rnorm(n)), y= slop*x + interc)
-#' fit <- lm(y ~ x, data = tfram, weights = rep(1,n))
-#' summary.lm(fit)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+#' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
+#' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
+#' summary(fit)
 summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
 {
   cll <- match.call()
@@ -509,8 +514,12 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
         resvar < (as.numeric(Conj(mean(f))*mean(f)) + complexlm::var(c(f))) * 1e-30)  # a few times .Machine$double.eps^2
       warning("essentially perfect fit: summary may be unreliable")
     p1 <- 1L:p
-    R <- chol2inv(Qr$qr[p1, p1, drop = FALSE])
-    se <- sqrt(diag(R) * resvar)
+    #R <- chol2inv(Qr$qr[p1, p1, drop = FALSE]) # Replace this line with the following 4, taken from summary.rlm, since chol2inv() does not work with comlpex numbers.
+    R <- Qr$qr
+    R <- R[1L:p, 1L:p, drop = FALSE] # Trim the bottom of R, making it a square p by p matrix.
+    R[lower.tri(R)] <- 0 # Remove the lower triangular matrix, the Q from the QR decomposition.
+    R <- solve(R) # This is efficient, we only need the diagonal matrix diag(p) to get rinv, so just set rinv <- diag(p) ahead of time. Now rinv is a different p by p matrix.
+    se <- sqrt(diag(R) * resvar) #### Do I need diag(R) to be squared now? Or someting different?
     pse <- sqrt(diag(R) * respvar)
     est <- z$coefficients[Qr$pivot[p1]]
     tval <- est/se
@@ -543,6 +552,42 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
   }
 }
 
+#' @inherit stats::print.summary.lm title description details params return seealso
+#'
+#' @note This functions masks [stats::print.summary.lm] in order to give it compatability with complex fits. If the residuals of the passed object are numeric, `stats::print.summary.lm` is called. If they are complex, [print.summary.rlm] is called. The later is much simpler, with no function calls that require numeric input.
+#'
+#' @export
+#' 
+#' @examples
+#' set.seed(4242)
+#' n = 8
+#' slop = complex(real = 4.23, imaginary = 2.323)
+#' interc = complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+#' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
+#' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
+#' summary <- summary(fit)
+#' print(summary)
+#'
+print.summary.lm <-
+  function (x, digits = max(3L, getOption("digits") - 3L),
+            symbolic.cor = x$symbolic.cor,
+            signif.stars = getOption("show.signif.stars"),	...)
+  {
+    cll <- match.call()
+    if (!is.complex(x$residuals))
+    {
+      cll[[1]] <- stats::print.summary.lm
+      eval(cll, parent.frame())
+    }
+    else
+    {
+      cll[[1]] <- print.summary.rlm ## print.summary.lm() has many fancy features that call functions which don't play well with complex numbers, namely format.pval(). print.summary.rlm() is simpler, and will serve our purposes fine.
+      eval(cll, parent.frame())
+    }  
+  }
+
 #' @title Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
 #'
 #' A version of [stats::vcov] that is compatible with complex linear models. In addition to variance-covariance matrix,
@@ -552,7 +597,7 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
 #' @param ... Additional parameters, not currently used for anything.
 #'
 #' @return A list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
-#' @export
+#' @export vcov.lm
 #'
 #' @examples
 #' set.seed(4242)
