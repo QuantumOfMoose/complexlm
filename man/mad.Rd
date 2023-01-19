@@ -22,7 +22,7 @@ mad(
 
 \item{na.rm}{logical. Should NAs be removed from x before calculating.}
 
-\item{low}{logical. If TRUE, compute the "lo-median", i.e., for even sample size, do not aveage the two middle values, but take the smaller one. Not used if x is complex.}
+\item{low}{logical. If TRUE, compute the "lo-median", i.e., for even sample size, do not average the two middle values, but take the smaller one. Not used if x is complex.}
 
 \item{high}{logical. If TRUE, compute the "hi-median", i.e., take the larger of the two middle values for even sample size. Not used if x is complex.}
 }
@@ -31,13 +31,13 @@ numeric or complex. The median absolute deviation (MAD) from center.
 }
 \description{
 Median absolute deviation, adapted to operate on complex data as well as numeric.
-In the later case it simply calls [stats::mad()].
-For complex x it uses the geometric median, [pracma::geo_median()], as the center,
-then returns the median absolute difference between center and each element of x, multiplied by constant.
+In the later case it simply calls \code{\link[stats:mad]{stats::mad()}}.
+For complex x it uses the geometric median, \code{\link[pracma:geo_median]{pracma::geo_median()}}, as the center,
+then returns the median absolute difference between center and each element of x, multiplied by \code{constant}.
 }
 \note{
-The concept of Quantile requires ordering to be defined, which the complex numbers lack. 
-The usefulness of multiplying by constant is thus called into question. However, for no more rigourous
+The concept of Quantile requires ordering to be defined, which the complex numbers lack.
+The usefulness of multiplying by \code{constant} is thus called into question. However, for no more rigorous
 reason than consistency, the default behavior of this function is to do so.
 }
 \examples{

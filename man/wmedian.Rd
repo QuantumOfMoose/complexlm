@@ -2,9 +2,7 @@
 % Please edit documentation in R/medians.R
 \name{wmedian}
 \alias{wmedian}
-\title{Weighted Median
-
-This calculates the weighted median of a vector `x` using the weights in `w`. Weights are re-scaled based on their sum.}
+\title{Weighted Median}
 \usage{
 wmedian(x, w = rep(1, length(x)))
 }
@@ -14,18 +12,16 @@ wmedian(x, w = rep(1, length(x)))
 \item{w}{numeric, a vector of weights to give the data in x.}
 }
 \value{
-numeric. The weighted median of `x` using `w` as the weights.
+numeric. The weighted median of \code{x} using \code{w} as the weights.
 }
 \description{
-Weighted Median
-
-This calculates the weighted median of a vector `x` using the weights in `w`. Weights are re-scaled based on their sum.
+This calculates the weighted median of a vector \code{x} using the weights in \code{w}. Weights are re-scaled based on their sum.
 }
 \details{
-Sorts `x` and `w` by size of the elements of `x`. Then re-scales the elements of `w` to be between 0 and 1.
-Then sets n equal to the sum of all scaled weights with values less than 0.5. If the (n+1)-th element of the 
-rescaled weights is greater than 0.5, the weighted median is the (n+1)-th element of the sorted `x`. Otherwise
-it is the average of the (n+1)-th and (n+2)-th elements of the sorted `x`.
+Sorts \code{x} and \code{w} by size of the elements of \code{x}. Then re-scales the elements of \code{w} to be between 0 and 1.
+Then sets n equal to the sum of all scaled weights with values less than 0.5. If the (n+1)-th element of the
+rescaled weights is greater than 0.5, the weighted median is the (n+1)-th element of the sorted \code{x}. Otherwise
+it is the average of the (n+1)-th and (n+2)-th elements of the sorted \code{x}.
 }
 \note{
 This is not compatible with complex data.

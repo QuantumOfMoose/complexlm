@@ -2,25 +2,25 @@
 % Please edit documentation in R/zlm.wfit.R
 \name{Complexdqlrs}
 \alias{Complexdqlrs}
-\title{An alternative to `.Call(C_Cdqlrs, x * wts, y * wts, tol, FALSE))` that is compatible with complex variables}
+\title{An alternative to \verb{.Call(C_Cdqlrs, x * wts, y * wts, tol, FALSE))} that is compatible with complex variables}
 \usage{
 Complexdqlrs(x, y, tol, chk)
 }
 \arguments{
-\item{x}{a complex matrix (will also accept numeric, but in that case you might as well use `C_Cdqlrs`) whose QR decomposition is to be computed.}
+\item{x}{a complex matrix (will also accept numeric, but in that case you might as well use \code{C_Cdqlrs}) whose QR decomposition is to be computed.}
 
 \item{y}{a complex vector or matrix of right-hand side quantities.}
 
-\item{tol}{the tolerance for detecting linear dependencies in the columns of x. Not used for complex `x`.}
+\item{tol}{the tolerance for detecting linear dependencies in the columns of x. Not used for complex \code{x}.}
 
-\item{chk}{not used. Included to better immitate `C_Cdqlrs`.}
+\item{chk}{not used. Included to better immitate \code{C_Cdqlrs}.}
 }
 \value{
 A list that includes the qr decomposition, its coeffcionts, residuals, effects, rank, pivot information, qraux vector,
-tolerance, and whether or not it was pivoted. This is the same output as `C_Cdqlrs`.
+tolerance, and whether or not it was pivoted. This is the same output as \code{C_Cdqlrs}.
 }
 \description{
-This serves as a wrapper for qr, replicating the behavior and output of the C++ function `C_Cdqlrs`. It is used in `zlm.wfit`,
+This serves as a wrapper for qr, replicating the behavior and output of the C++ function \code{C_Cdqlrs}. It is used in \code{zlm.wfit},
 and is unlikely to be needed by end users.
 }
 \examples{

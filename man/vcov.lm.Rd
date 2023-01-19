@@ -2,10 +2,7 @@
 % Please edit documentation in R/zlm.wfit.R
 \name{vcov.lm}
 \alias{vcov.lm}
-\title{Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
-
-A version of [stats::vcov] that is compatible with complex linear models. In addition to variance-covariance matrix,
-the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.}
+\title{Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object}
 \usage{
 \method{vcov}{lm}(object, ...)
 }
@@ -18,9 +15,7 @@ the pseudo variance-covariance matrix, which is a measure of the covariance betw
 A list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
 }
 \description{
-Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
-
-A version of [stats::vcov] that is compatible with complex linear models. In addition to variance-covariance matrix,
+A version of \code{\link[stats:vcov]{stats::vcov()}} that is compatible with complex linear models. In addition to variance-covariance matrix,
 the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
 }
 \examples{
@@ -30,5 +25,5 @@ slop = complex(real = 4.23, imaginary = 2.323)
 interc = complex(real = 1.4, imaginary = 1.804)
 tframe <- data.frame(x= x <- complex(real= rnorm(n), imaginary= rnorm(n)), y= slop*x + interc)
 fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
-vcov.lm(fit)
+vcov(fit)
 }

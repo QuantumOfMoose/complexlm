@@ -22,9 +22,9 @@ mahalanobis(x, center, cov, inverted = FALSE, ...)
     the covariance matrix (if \code{inverted} is false).}
 }
 \description{
-The Mahalanobis distance function included in the `stats` package returns a complex number when given complex values of `x`.
+The Mahalanobis distance function included in the \code{stats} package returns a complex number when given complex values of \code{x}.
 But a distance (and thus its square) is always positive real. This function calculates the Mahalanobis distance using
-the conjugate transpose if given complex data, otherwise it calls [stats::mahalanobis()].
+the conjugate transpose if given complex data, otherwise it calls \code{\link[stats:mahalanobis]{stats::mahalanobis()}}.
 }
 \examples{
 set.seed(4242)

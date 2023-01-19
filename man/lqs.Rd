@@ -114,6 +114,36 @@ Fit a regression to the \emph{good} points in the dataset, thereby
   achieving a regression estimator with a high breakdown point.
   \code{lmsreg} and \code{ltsreg} are compatibility wrappers.
 }
+\details{
+Suppose there are \code{n} data points and \code{p} regressors,
+  including any intercept.
+
+  The first three methods minimize some function of the sorted squared
+  residuals. For methods \code{"lqs"} and \code{"lms"} is the
+  \code{quantile} squared residual, and for \code{"lts"} it is the sum
+  of the \code{quantile} smallest squared residuals. \code{"lqs"} and
+  \code{"lms"} differ in the defaults for \code{quantile}, which are
+  \code{floor((n+p+1)/2)} and \code{floor((n+1)/2)} respectively.
+  For \code{"lts"} the default is \code{floor(n/2) + floor((p+1)/2)}.
+
+  The \code{"S"} estimation method solves for the scale \code{s}
+  such that the average of a function chi of the residuals divided
+  by \code{s} is equal to a given constant.
+
+  The \code{control} argument is a list with components
+  \describe{
+    \item{\code{psamp}:}{the size of each sample. Defaults to \code{p}.}
+    \item{\code{nsamp}:}{the number of samples or \code{"best"} (the
+      default) or \code{"exact"} or \code{"sample"}.
+      If \code{"sample"} the number chosen is \code{min(5*p, 3000)},
+      taken from Rousseeuw and Hubert (1997).
+      If \code{"best"} exhaustive enumeration is done up to 5000 samples;
+      if \code{"exact"} exhaustive enumeration will be attempted however
+      many samples are needed.}
+    \item{\code{adjust}:}{should the intercept be optimized for each
+      sample?  Defaults to \code{TRUE}.}
+    }
+}
 \section{Methods (by class)}{
 \itemize{
 \item \code{formula}: S3 methad for class 'formula'
@@ -123,10 +153,10 @@ Fit a regression to the \emph{good} points in the dataset, thereby
 
 \note{
 This method of robust fitting relies on quantiles, which are not defined for complex numbers. While it will accept them and may return an acceptable fit, the accuracy, usefulness,
-and rigor of it are highly questionable. Please use [rlm] instead.
-There seems no reason other than historical to use the lms and lqs options. LMS estimation is of low efficiency (converging at rate `n^{-1/3})` whereas LTS has the same asymptotic efficiency as an M estimator with trimming at the quartiles (Marazzi, 1993, p.201). LQS and LTS have the same maximal breakdown value of `(floor((n-p)/2) + 1)/n attained if floor((n+p)/2) <= quantile <= floor((n+p+1)/2)`. The only drawback mentioned of LTS is greater computation, as a sort was thought to be required (Marazzi, 1993, p.201) but this is not true as a partial sort can be used (and is used in this implementation).
+and rigor of it are highly questionable. Please use \link{rlm} instead.
+There seems no reason other than historical to use the lms and lqs options. LMS estimation is of low efficiency (converging at rate \verb{n^\{-1/3\})} whereas LTS has the same asymptotic efficiency as an M estimator with trimming at the quartiles (Marazzi, 1993, p.201). LQS and LTS have the same maximal breakdown value of \verb{(floor((n-p)/2) + 1)/n attained if floor((n+p)/2) <= quantile <= floor((n+p+1)/2)}. The only drawback mentioned of LTS is greater computation, as a sort was thought to be required (Marazzi, 1993, p.201) but this is not true as a partial sort can be used (and is used in this implementation).
 Adjusting the intercept for each trial fit does need the residuals to be sorted, and may be significant extra computation if n is large and p small.
-Opinions differ over the choice of psamp. Rousseeuw and Hubert (1997) only consider p; Marazzi (1993) recommends `p+1` and suggests that more samples are better than adjustment for a given computational limit.
+Opinions differ over the choice of psamp. Rousseeuw and Hubert (1997) only consider p; Marazzi (1993) recommends \code{p+1} and suggests that more samples are better than adjustment for a given computational limit.
 The computations are exact for a model with just an intercept and adjustment, and for LQS for a model with an intercept plus one regressor and exhaustive search with adjustment. For all other cases the minimization is only known to be approximate.
 }
 \examples{

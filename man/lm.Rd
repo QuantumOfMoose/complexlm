@@ -126,8 +126,8 @@ lm(
   \code{\link[stats]{effects}}.
 }
 \description{
-An adaptation of lm that is compatible with complex variables. If the response is not complex, it calls the standard `stats::lm`
-Note: It is not capable of dealing with contrasts in the complex case. May not understand offsets either. 
+An adaptation of lm that is compatible with complex variables. If the response is not complex, it calls the standard \code{\link[stats:lm]{stats::lm()}}
+Note: It is not capable of dealing with contrasts in the complex case. May not understand offsets either.
 It also can't handle algebraic expressions in formula.
 model.frame needs to be changed to allow complex variables in order to enable these features.
 }

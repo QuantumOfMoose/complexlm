@@ -10,7 +10,7 @@ pseuzvar(x)
 \item{x}{a vector of complex numbers.}
 }
 \value{
-complex. The pseudo-variance of `x`. If `x` is numeric, this is just the variance.
+complex. The pseudo-variance of \code{x}. If \code{x} is numeric, this is just the variance.
 }
 \description{
 Calculates the pseudo-variance, also called the relational variance of a vector of complex numbers.

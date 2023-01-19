@@ -10,7 +10,7 @@ var(x, y = NULL, na.rm = FALSE, use)
 \item{x}{a numeric or complex vector, matrix, or dataframe.}
 
 \item{y}{NULL (default) or a numeric vector, matrix, or dataframe with dimensions compatible with x. For complex x,
-this parameter is not used as `cov()` and `cor()` are not implemented for complex variables.}
+this parameter is not used as \code{cov()} and \code{cor()} are not implemented for complex variables.}
 
 \item{na.rm}{logical. Should missing values be removed?}
 
@@ -20,10 +20,10 @@ this parameter is not used as `cov()` and `cor()` are not implemented for comple
 numeric, the sample variance of the input data.
 }
 \description{
-A wrapper for [stats::var] that can handle complex variables.
+A wrapper for \link[stats:cor]{stats::var} that can handle complex variables.
 }
 \details{
-The sample variance is calculated as `sum(Conj( mean(x) - x ) * ( mean(x) - x )) / (length(x) - 1)`.
+The sample variance is calculated as \code{sum(Conj( mean(x) - x ) * ( mean(x) - x )) / (length(x) - 1)}.
 }
 \examples{
 set.seed(4242)

@@ -14,10 +14,10 @@ ltsreg(...)
     \code{lqs.control}, see \code{control} above and \code{Details}.}
 }
 \description{
-This is just a wrapper for [lqs]. See [lqs] for documentation.
+This is just a wrapper for \link{lqs}. See \link{lqs} for documentation.
 }
 \section{Functions}{
 \itemize{
-\item \code{ltsreg}: comparability wrapper for `lqs`
+\item \code{ltsreg}: comparability wrapper for \code{lqs}
 }}
 

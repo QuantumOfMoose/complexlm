@@ -18,7 +18,7 @@
 
 #' Least Quantile Squared Regression, Sort of Complex Compatible
 #' 
-#' @inherit MASS::lqs description params return references seealso
+#' @inherit MASS::lqs description params details return references seealso
 #' 
 #' @note This method of robust fitting relies on quantiles, which are not defined for complex numbers. While it will accept them and may return an acceptable fit, the accuracy, usefulness,
 #' and rigor of it are highly questionable. Please use [rlm] instead.
@@ -55,7 +55,7 @@ lqs.formula <-
            model = TRUE, x.ret = FALSE, y.ret = FALSE, contrasts = NULL)
   {
     trms <- terms(formula)
-    respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
+    respname <- as.character(attr(trms, "variables")[[attr(trms, "r esponse") + 1]])
     cl <- match.call()
     if (is.complex(data[,respname]) == FALSE)
     {
@@ -74,6 +74,7 @@ lqs.formula <-
       y <- model.extract(mf, "response")
       offset <- model.offset(mf)
       if(!is.null(offset)) y <- y - offset
+      if (is.null(contrasts) == FALSE) warning("Contrasts are not supported for complex fits.")
       x <- zmodel.matrix(mt, mf, contrasts)
       contr <- attr(x, "contrasts")
       xint <- match("(Intercept)", colnames(x), nomatch = 0L)

@@ -15,29 +15,29 @@ psi.bisquare(u, c = 4.685, deriv = 0)
 \arguments{
 \item{u}{Numeric or complex. When used in M-estimation, a residual.}
 
-\item{k}{Numeric. A scaling constant for `psi.huber`. Default value is 1.345}
+\item{k}{Numeric. A scaling constant for \code{psi.huber}. Default value is 1.345}
 
-\item{deriv}{Numeric. If `0`, return the weight at `u`. If `1` return the first derivative of the influence function at `u`.}
+\item{deriv}{Numeric. If \code{0}, return the weight at \code{u}. If \code{1} return the first derivative of the influence function at \code{u}.}
 
-\item{a}{Numeric. A scaling constant for `psi.hampel`. Default value is 2}
+\item{a}{Numeric. A scaling constant for \code{psi.hampel}. Default value is 2}
 
-\item{b}{Numeric. A scaling constant for `psi.hampel`. Default value is 4}
+\item{b}{Numeric. A scaling constant for \code{psi.hampel}. Default value is 4}
 
-\item{c}{Numeric. A scaling constant for 'psi.hampel` or `psi.bisquare`. Default is 8 for the former and 4.685 for the later.}
+\item{c}{Numeric. A scaling constant for 'psi.hampel\code{or}psi.bisquare`. Default is 8 for the former and 4.685 for the later.}
 }
 \value{
-A numeric or complex that is either the value of the weight function at `u` (numeric) or the first derivative of the influence function at `u` (can be complex).
+A numeric or complex that is either the value of the weight function at \code{u} (numeric) or the first derivative of the influence function at \code{u} (can be complex).
 }
 \description{
-Weighting functions used in `rlm` for iteratively reweighted least squares. 
-Based on the same functions from [MASS], modified to accept complex variables.
+Weighting functions used in \code{rlm} for iteratively reweighted least squares.
+Based on the same functions from MASS, modified to accept complex variables.
 While named 'psi', these are actually weight functions, weight(u) = abs( influence(u) / u).
 }
 \details{
-Three weight functions for iteratively (re)weighted least squares. When used in M-estimation, `psi.huber` has
-a unique solution. `psi.hampel` and `psi.bisquare`, which are redescending M-estimators, do not have a unique solution.
+Three weight functions for iteratively (re)weighted least squares. When used in M-estimation, \code{psi.huber} has
+a unique solution. \code{psi.hampel} and \code{psi.bisquare}, which are redescending M-estimators, do not have a unique solution.
 These are capable of completely rejecting outliers, but need a good starting point to avoid falling into unhelpful local minima.
-If `deriv` is set to `1`, the functions return the value of the first derivative of the influence function at `u`.
+If \code{deriv} is set to \code{1}, the functions return the value of the first derivative of the influence function at \code{u}.
 Note that they do not return the derivative of the weight function, as might be expected.
 }
 \section{Functions}{

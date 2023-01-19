@@ -15,7 +15,7 @@
 A list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
 }
 \description{
-A version of [stats::vcov] that is compatible with complex linear models. In addition to variance-covariance matrix,
+A version of \link[stats:vcov]{stats::vcov} that is compatible with complex linear models. In addition to variance-covariance matrix,
 the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
 }
 \examples{
@@ -27,5 +27,5 @@ e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 x <- complex(real = rnorm(n), imaginary = rnorm(n))
 y <- slope * x + intercept + e
 robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
-vcov.rlm(robfit)
+vcov(robfit)
 }

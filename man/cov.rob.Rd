@@ -120,14 +120,14 @@ For method \code{"mve"}, an approximate search is made of a subset of
 }
 \section{Functions}{
 \itemize{
-\item \code{cov.mve}: comparability wrapper for `cov.rob`
+\item \code{cov.mve}: comparability wrapper for \code{cov.rob}
 
-\item \code{cov.mcd}: comparability wrapper for `cov.rob`
+\item \code{cov.mcd}: comparability wrapper for \code{cov.rob}
 }}
 
 \note{
 This function relies on interquartile range, which orders the inputs as part of the calculation. The concept of ordering does not translate to the complex numbers,
-so this function applies interquartile range to the real and imaginary components separately. The results of this will not be rotationally invariant, so this function 
+so this function applies interquartile range to the real and imaginary components separately. The results of this will not be rotationally invariant, so this function
 should be used with caution for complex variables.
 }
 \examples{

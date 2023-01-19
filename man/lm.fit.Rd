@@ -3,7 +3,7 @@
 \name{lm.fit}
 \alias{lm.fit}
 \alias{lm.wfit}
-\title{Complex Variable Compatible Wrappers for [stats::lm.fit()] and [stats::lm.wfit()]}
+\title{Complex Variable Compatible Wrappers for \code{\link[stats:lmfit]{stats::lm.fit()}} and \code{\link[stats:lmfit]{stats::lm.wfit()}}}
 \usage{
 lm.fit(
   x,
@@ -73,9 +73,9 @@ a \code{\link{list}} with components (for \code{lm.fit} and \code{lm.wfit})
 }
 \description{
 This function is just an if statement.
-If the design matrix `x` is complex, [zlm.wfit()] is called.
-Otherwise [stats::lm.fit()] or [stats::lm.wfit()] is called.
-These functions are unlikely to be needed by end users, as they are called by [lm()].
+If the design matrix \code{x} is complex, \code{\link[=zlm.wfit]{zlm.wfit()}} is called.
+Otherwise \code{\link[stats:lmfit]{stats::lm.fit()}} or \code{\link[stats:lmfit]{stats::lm.wfit()}} is called.
+These functions are unlikely to be needed by end users, as they are called by \code{\link[=lm]{lm()}}.
 }
 \section{Functions}{
 \itemize{

@@ -50,7 +50,7 @@ rlm(x, ...)
 
 \item{...}{further arguments to be passed to NextMethod().}
 
-\item{formula}{a [formula] object of the form y ~ x1 + x2. Note that algebraic expressions in formula cannot currently be used with complex data.}
+\item{formula}{a \link{formula} object of the form y ~ x1 + x2. Note that algebraic expressions in formula cannot currently be used with complex data.}
 
 \item{data}{a data frame containing the variables upon which a robust fit is to be applied.}
 
@@ -58,7 +58,7 @@ rlm(x, ...)
 
 \item{subset}{an index vector specifying the cases (rows of data or x and y) to be used for fitting.}
 
-\item{na.action}{a function that specifies what to do if NAs are found in the fitting data. The default is to omit them via [na.omit]. Can also be changed by [options] (na.action =).}
+\item{na.action}{a function that specifies what to do if NAs are found in the fitting data. The default is to omit them via \link{na.omit}. Can also be changed by \link{options} (na.action =).}
 
 \item{method}{string. What method of robust estimation should be used. Options are "M", "MM", or "model.frame". The default is M-estimation. MM-estimation has a high breakdown point but is not compatible with complex variables or case weights. model.frame just constructs the model frame, and only works with the formula method.}
 
@@ -70,7 +70,7 @@ rlm(x, ...)
 
 \item{y.ret}{logical. Should the response be included in the returned object?}
 
-\item{contrasts}{optional contrast specifications: see [stats::lm]. Not compatible with complex data.}
+\item{contrasts}{optional contrast specifications: see \link[stats:lm]{stats::lm}. Not compatible with complex data.}
 
 \item{y}{numeric or complex. A vector containing the dependent / response variables, the same length as x.}
 
@@ -90,11 +90,11 @@ rlm(x, ...)
 
 \item{test.vec}{the stopping criterion is based on changes in this vector.}
 
-\item{lqs.control}{An optional list of control values for [lqs].}
+\item{lqs.control}{An optional list of control values for \link{lqs}.}
 
 \item{interc}{TRUE or FALSE, default is FALSE. Used with rlm.default when fitting complex valued data. If true, a y-intercept is calculated during fitting. Otherwise, the intercept is set to zero.}
 
-\item{object}{a `rlm` object; a fit from which you wish to predict new data.}
+\item{object}{a \code{rlm} object; a fit from which you wish to predict new data.}
 
 \item{newdata}{new predictor data from which to predict response data. Default is NULL.}
 
@@ -128,16 +128,16 @@ An object of class \code{"rlm"} inheriting from \code{"lm"}.
   }
 }
 \description{
-Uses robust M-estimation to fit a linear model to numeric or complex data. Based on [MASS::rlm].
+Uses robust M-estimation to fit a linear model to numeric or complex data. Based on \code{\link[MASS:rlm]{MASS::rlm()}}.
 }
 \details{
-M-estimation works by finding the model coefficients that minimize the sum of a function of the residuals. 
+M-estimation works by finding the model coefficients that minimize the sum of a function of the residuals.
 This function, called the objective function rho(), is a kind of statistical distance (AKA divergence), and a semimetric.
-As a semimetric it is a function of the measured value `y` and the modeled value `Y` (residual `r = y - Y`) which maps from 
-the space of the data to the positive real numbers. Semimetrics can be defined for domains of any dimensionality, including the 
-two dimensional complex numbers, and thus so can M-estimation. 
+As a semimetric it is a function of the measured value \code{y} and the modeled value \code{Y} (residual r = y - Y) which maps from
+the space of the data to the positive real numbers. Semimetrics can be defined for domains of any dimensionality, including the
+two dimensional complex numbers, and thus so can M-estimation.
 What's more, all the standard algebraic operations used in the itteratively (re)weighted least-squares M-estimator robust regression
-algorithm are defined over the set of complex numbers. While ordering is not defined for them, it is the output of rho(), a real number, that must be 
+algorithm are defined over the set of complex numbers. While ordering is not defined for them, it is the output of rho(), a real number, that must be
 in M-estimation.
 }
 \section{Methods (by class)}{
@@ -146,7 +146,7 @@ in M-estimation.
 
 \item \code{default}: Default S3 method
 
-\item \code{rlm}: Predict new data based on the model in object. Invokes `predict.lm`.
+\item \code{rlm}: Predict new data based on the model in object. Invokes \code{predict.lm}.
 }}
 
 \examples{

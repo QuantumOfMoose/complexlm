@@ -16,17 +16,17 @@ zlm.wfit(
 )
 }
 \arguments{
-\item{x}{a complex design matrix, `n` rows by `p` columns.}
+\item{x}{a complex design matrix, \code{n} rows by \code{p} columns.}
 
-\item{y}{a vector of observations/responses of length `n`, or a matrix with `n` rows.}
+\item{y}{a vector of observations/responses of length \code{n}, or a matrix with \code{n} rows.}
 
-\item{w}{a vector of weights to be used in the fitting process. The sum of `w * r^2` is minimized, with `r` being the residuals. By default, `w` is a vector of length `n` with every element equal to 1, making this an unweighted fit.}
+\item{w}{a vector of weights to be used in the fitting process. The sum of \code{w * r^2} is minimized, with \code{r} being the residuals. By default, \code{w} is a vector of length \code{n} with every element equal to 1, making this an unweighted fit.}
 
 \item{offset}{optional. A complex vector of length n that will be subtracted from y prior to fitting.}
 
 \item{method}{optional. a string that can be used to choose any method you would like. As long as it is "qr".}
 
-\item{tol}{tolerance for the [qr] decomposition. Default is 1e-7.}
+\item{tol}{tolerance for the \link{qr} decomposition. Default is 1e-7.}
 
 \item{singular.ok}{logical. If false, a singular model is an error.}
 
@@ -54,9 +54,9 @@ a \code{\link{list}} with components (for \code{lm.fit} and \code{lm.wfit})
   underlying QR algorithm did pivot.
 }
 \description{
-The function eventually called by [lm()], [lm.fit()], and/or [lm.wfit()] if fed complex data.
+The function eventually called by \code{\link[=lm]{lm()}}, \code{\link[=lm.fit]{lm.fit()}}, and/or \code{\link[=lm.wfit]{lm.wfit()}} if fed complex data.
 Performs ordinary (least-squares) linear fitting on complex variable data.
-Like [stats::lm.wfit()], which it is based off of, it uses qr decomposition
+Like \code{\link[stats:lmfit]{stats::lm.wfit()}}, which it is based off of, it uses qr decomposition
 for the matrix algebra. Unlike `stats::lm.wfit()' it also handles un-weighted
 regression by setting the weights to 1 by default.
 }

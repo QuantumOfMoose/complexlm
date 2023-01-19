@@ -65,17 +65,17 @@ median <- function(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
 #' Median absolute deviation, adapted to operate on complex data as well as numeric.
 #' In the later case it simply calls [stats::mad()].
 #' For complex x it uses the geometric median, [pracma::geo_median()], as the center,
-#' then returns the median absolute difference between center and each element of x, multiplied by constant.
+#' then returns the median absolute difference between center and each element of x, multiplied by `constant`.
 #'
 #' @param x a numeric or complex vector.
 #' @param center optional, numeric or complex. The center about which to calculate MAD. Defaults to median for numeric, and geo_median for complex.
 #' @param constant a constant by which to multiply the median absolute deviation from center. Default is 1.4826, which is one over the quantile of 3/4 for the normal distribution.
 #' @param na.rm logical. Should NAs be removed from x before calculating.
-#' @param low logical. If TRUE, compute the "lo-median", i.e., for even sample size, do not aveage the two middle values, but take the smaller one. Not used if x is complex.
+#' @param low logical. If TRUE, compute the "lo-median", i.e., for even sample size, do not average the two middle values, but take the smaller one. Not used if x is complex.
 #' @param high logical. If TRUE, compute the "hi-median", i.e., take the larger of the two middle values for even sample size. Not used if x is complex.
 #'
 #' @note The concept of Quantile requires ordering to be defined, which the complex numbers lack. 
-#' The usefulness of multiplying by constant is thus called into question. However, for no more rigourous
+#' The usefulness of multiplying by `constant` is thus called into question. However, for no more rigorous
 #' reason than consistency, the default behavior of this function is to do so.
 #'
 #' @return numeric or complex. The median absolute deviation (MAD) from center.
@@ -110,7 +110,7 @@ mad <- function(x, center = median(x), constant = 1.4826, na.rm = FALSE, low = F
 ### to measurement - median it behaves like the WMAD in that context. Name changed to reflect this.
 ### TO DO: Come up with some kind of complex weighted median.
 ####
-#' @title Weighted Median
+#' Weighted Median
 #' 
 #' This calculates the weighted median of a vector `x` using the weights in `w`. Weights are re-scaled based on their sum.
 #'

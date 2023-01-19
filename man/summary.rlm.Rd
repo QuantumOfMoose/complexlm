@@ -18,32 +18,32 @@
 
 \item{...}{Other arguments, passed to or from other methods.}
 
-\item{x}{a rlm object or an rlm summary object. Used for `print.summary.rlm`}
+\item{x}{a rlm object or an rlm summary object. Used for \code{print.summary.rlm}}
 
-\item{digits}{the number of digits to include in the printed report, default is three. Used for `print.summary.rlm`}
+\item{digits}{the number of digits to include in the printed report, default is three. Used for \code{print.summary.rlm}}
 }
 \value{
-Returns a list containing the following elements. If the list is printed by the function (`print.summary.rlm` or invoked as a method by `summary`), a null value is returned instead.
-\item{`correlation`}{A numeric matrix. The computed correlation coefficient matrix for the coefficients in the model.}
-\item{`pseudocorrelation`}{A complex matrix. The computed pseudo-correlation coefficient matrix for the coefficients in the model.}
-\item{`cov.unscaled`}{The unscaled covariance matrix; i.e, a numeric matrix such that multiplying it by an estimate of the error variance produces an estimated covariance matrix for the coefficients.}
-\item{`pcov.unscaled`}{The unscaled pseudo-covariance matrix; i.e, a complex matrix such that multiplying it by an estimate of the error pseudo-variance produces an estimated pseudo-covariance matrix for the coefficients.}
-\item{`sigma`}{Numeric. The scale estimate returned by `rlm`, which was used to scale the residuals before passing them to the `psi` weight function.}
-\item{`stddev`}{Numeric. A scale estimate used for the standard errors. Calculated from the working residuals, the `psi` weight function, and the derivative of the influence function (`psi.method(deriv = 1)`).}
-\item{`pstddev`}{Complex. A scale estimate used for the 'pseudo' standard errors. Calculated from the working residuals, the `psi` weight function, and the derivative of the influence function (`psi.method(deriv = 1)`). See details above.}
-\item{`df`}{The number of degrees of freedom for the model and for residuals.}
-\item{`coefficients`}{A 4 column matrix that contains the model coefficients, their standard errors, their pseudo standard errors (see details above), and their t statistics.}
-\item{`terms`}{The terms object used in fitting this model.}
+Returns a list containing the following elements. If the list is printed by the function (\code{print.summary.rlm} or invoked as a method by \code{summary}), a null value is returned instead.
+\item{\code{correlation}}{A numeric matrix. The computed correlation coefficient matrix for the coefficients in the model.}
+\item{\code{pseudocorrelation}}{A complex matrix. The computed pseudo-correlation coefficient matrix for the coefficients in the model.}
+\item{\code{cov.unscaled}}{The unscaled covariance matrix; i.e, a numeric matrix such that multiplying it by an estimate of the error variance produces an estimated covariance matrix for the coefficients.}
+\item{\code{pcov.unscaled}}{The unscaled pseudo-covariance matrix; i.e, a complex matrix such that multiplying it by an estimate of the error pseudo-variance produces an estimated pseudo-covariance matrix for the coefficients.}
+\item{\code{sigma}}{Numeric. The scale estimate returned by \code{rlm}, which was used to scale the residuals before passing them to the \code{psi} weight function.}
+\item{\code{stddev}}{Numeric. A scale estimate used for the standard errors. Calculated from the working residuals, the \code{psi} weight function, and the derivative of the influence function (\code{psi.method(deriv = 1)}).}
+\item{\code{pstddev}}{Complex. A scale estimate used for the 'pseudo' standard errors. Calculated from the working residuals, the \code{psi} weight function, and the derivative of the influence function (\code{psi.method(deriv = 1)}). See details above.}
+\item{\code{df}}{The number of degrees of freedom for the model and for residuals.}
+\item{\code{coefficients}}{A 4 column matrix that contains the model coefficients, their standard errors, their pseudo standard errors (see details above), and their t statistics.}
+\item{\code{terms}}{The terms object used in fitting this model.}
 }
 \description{
-Summary method for objects of class "rlm", capable of processing complex variable fits. 
-If the residuals in the passed object are numeric, this function just calls [MASS::summary.rlm].
+Summary method for objects of class "rlm", capable of processing complex variable fits.
+If the residuals in the passed object are numeric, this function just calls \code{\link[MASS:summary.rlm]{MASS::summary.rlm()}}.
 }
 \details{
-This is a method for the generic `summary()` function. It is based on the function of the same name from [MASS], but has been modified to accept complex numbers.
-In addition to the standard error of the coefficients, it calculates a "pseudo standard error" or "relational standard error" as the square root of the pseudo-variance".
-This is a complex number that quantifies the covariance between the real and imaginary parts. Can also be thought of as the amount and direction of anisotropy in the 
-presumed (complex normal) probability distribution in the complex plane. The argument of this number gives the direction of the semi-major axis.
+This is a method for the generic \code{summary()} function. It is based on the function of the same name from MASS, but has been modified to accept complex numbers.
+In addition to the standard error of the coefficients, it calculates a "pseudo standard error" or "relational standard error" as the square root of the "pseudo-variance".
+This is a complex number that quantifies the covariance between the real and imaginary parts. It can also be thought of as the amount and direction of anisotropy in the
+(presumed complex normal) probability distribution in the complex plane. The argument of this number gives the direction of the semi-major axis.
 }
 \section{Functions}{
 \itemize{

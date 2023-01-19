@@ -11,7 +11,7 @@ median(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
 
 \item{na.rm}{logical. Should NA values be removed before finding the median?}
 
-\item{tol}{numeric. Relative tolerance to be passed to [pracma::geo_median]. Default is 1e-07.}
+\item{tol}{numeric. Relative tolerance to be passed to \link[pracma:geo_median]{pracma::geo_median}. Default is 1e-07.}
 
 \item{maxiter}{maximum number of iterations for calculating geometric median. Not used if x is numeric.}
 }
@@ -19,8 +19,8 @@ median(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
 The median of x. If x is complex, the geometric median as calculated by Weiszfeld's algorithm.
 }
 \description{
-Extends [stats::median] to understand complex variable input. If x is complex, the geometric median
-is calculated by [pracma::geo_median], and returned as a complex number. Otherwise, [stats::median] is called.
+Extends \link[stats:median]{stats::median} to understand complex variable input. If x is complex, the geometric median
+is calculated by \link[pracma:geo_median]{pracma::geo_median}, and returned as a complex number. Otherwise, \link[stats:median]{stats::median} is called.
 }
 \examples{
 set.seed(4242)
@@ -29,5 +29,5 @@ foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 median(foo)
 }
 \seealso{
-[stats::median] and [pracma::geo_median]
+\link[stats:median]{stats::median} and \link[pracma:geo_median]{pracma::geo_median}
 }
