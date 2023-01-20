@@ -56,9 +56,9 @@ rlm <- function(x, ...) UseMethod("rlm")
 #' 
 #' @examples
 #' set.seed(4242)
-#' n = 8
-#' slope = complex(real = 4.23, imaginary = 2.323)
-#' interc = complex(real = 1.4, imaginary = 1.804)
+#' n <- 8
+#' slope <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
 #' tframe <- data.frame(x = xx, y= slope*xx + interc + e)
@@ -140,9 +140,9 @@ rlm.formula <-
 #' @export
 #' @examples
 #' set.seed(4242)
-#' n = 8
-#' slope = complex(real = 4.23, imaginary = 2.323)
-#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' n <- 8
+#' slope <- complex(real = 4.23, imaginary = 2.323)
+#' intercept <- complex(real = 1.4, imaginary = 1.804)
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' y <- slope * x + intercept + e
@@ -360,9 +360,9 @@ rlm.default <-
 #'
 #' @examples
 #' set.seed(4242)
-#' n = 8
-#' slope = complex(real = 4.23, imaginary = 2.323)
-#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' n <- 8
+#' slope <- complex(real = 4.23, imaginary = 2.323)
+#' intercept <- complex(real = 1.4, imaginary = 1.804)
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' y <- slope * x + intercept + e
@@ -448,8 +448,8 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
       }
       coef <- array(coef, c(p, 4L)) # Make an array with 4 columns and p rows. put the coefficients into the first column.
       dimnames(coef) <- list(cnames, c("Value", "Std. Error", "Pseudo Std. Error", "t value"))
-      print(rinv)
-      coef[, 2] <- rowlen %o% stddev # Fill the 2nd column of the coef array. These should be real numbers. Isn't stddev a single number? What is the point of the outer product, then?
+      #print(rinv)
+      coef[, 2] <- rowlen %o% stddev # Fill the 2nd column of the coef array. These should be real numbers. Isn't stddev a single number? What is the point of the outer product? It transposes the vector into a column while multiplying all elements by stddev.
       coef[, 3] <- rowlen %o% pstddev # The 'pseudo - standard error', these things need better names...
       coef[, 4] <- coef[, 1]/coef[, 2]
       object <- object[c("call", "na.action")]
@@ -677,26 +677,33 @@ predict.rlm <- function (object, newdata = NULL, scale = NULL, ...)
 
 #' Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
 #'
-#' A version of [stats::vcov] that is compatible with complex linear models. In addition to variance-covariance matrix,
+#' A version of [stats::vcov] that is compatible with complex linear models. In addition to the variance-covariance matrix,
 #' the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
+#' Can also return the "big covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in (van den Bos 1995).
+#' While not as compact as two seperate smaller matrices, the big covariance matrix simplifies calculations such as the [mahalanobis] distance.
 #'
 #' @param object a fitted model object, typically. Sometimes also a summary() object of such a fitted model.
 #' @param ... Additional parameters, not currently used for anything.
+#' @param merge logical. Should the covariance matrix and pseudo-covariance / relational matrix be merged into one matrix of twice the dimensions? Default is TRUE.
 #'
-#' @return A list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
+#' @return
+#' If `merge` is false, a list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
+#' If `merge` is true, a large matrix (both dimensions twice the number of coefficients) containing both the variance-covariance matrix and the pseudo variance-covariance matrix, merged together.
 #' @export
+#' 
+#' @references A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
 #'
 #' @examples
 #' set.seed(4242)
-#' n = 8
-#' slope = complex(real = 4.23, imaginary = 2.323)
-#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' n <- 8
+#' slope <- complex(real = 4.23, imaginary = 2.323)
+#' intercept <- complex(real = 1.4, imaginary = 1.804)
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' y <- slope * x + intercept + e
 #' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 #' vcov(robfit)
-vcov.rlm <- function (object, ...)
+vcov.rlm <- function (object, merge = TRUE, ...)
 {
   cll <- match.call()
   if (is.numeric(object$residuals))
@@ -709,6 +716,15 @@ vcov.rlm <- function (object, ...)
     so <- summary(object, corr = FALSE)
     varcovar <- so$stddev^2 * so$cov.unscaled
     pseudovarcovar <- so$pstddev^2 * so$pcov.unscaled
-    return(list(varcovar = varcovar, pseudovarcovar = pseudovarcovar))
+    if (merge == TRUE)
+    {
+      #bigcovar <- diag(rep(diag(varcovar), each = 2)) # Start by making a square diagonal matrix with two adjacent diagonal elements for each variance.
+      n <- attributes(varcovar)$dim[1] # The size of the square covariance matrix.
+      bigcovar <- matrix(0, ncol = 2*n, nrow = 2*n) #Start by making an empty matrix with dimensions twice those of the small covariance matrix.
+      bigcovar[,seq(1, 2*n, 2)] <- matrix(as.vector(rbind(as.vector(varcovar), as.vector(Conj(pseudovarcovar)))), nrow = 2*n) # Fill the odd indexed columns of bigcovar with the entries from varcovar interleaved with the entries from pseudovarcovar conjugated.
+      bigcovar[,seq(2, 2*n, 2)] <- matrix(as.vector(rbind(as.vector(pseudovarcovar), as.vector(varcovar))), nrow = 2*n) # Fill the even indexed columns of bigcovar with the entries from varcovar interleaved with the entries from pseudovarcovar, this time the later first.
+      return(bigcovar)
+    }
+    else return(list(varcovar = as.numeric(varcovar), pseudovarcovar = pseudovarcovar))
   }  
 }

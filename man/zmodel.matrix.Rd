@@ -22,8 +22,8 @@ It cannot handle algebraic expressions in formula.
 }
 \examples{
 set.seed(4242)
-slop = complex(real = 4.23, imaginary = 2.323)
-interc = complex(real = 1.4, imaginary = 1.804)
+slop <- complex(real = 4.23, imaginary = 2.323)
+interc <- complex(real = 1.4, imaginary = 1.804)
 tframe <- expand.grid(-3:3,-3:3)
 Xt <- complex(real = tframe[[1]], imaginary = tframe[[2]])
 tframe <- data.frame(Xt=Xt, Yt= Xt * slop + interc + complex(real=rnorm(length(Xt)),

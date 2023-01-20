@@ -183,9 +183,9 @@ Models for \code{lm} are specified symbolically.  A typical model has
 }
 \examples{
 set.seed(4242)
-n = 8
-slop = complex(real = 4.23, imaginary = 2.323)
-interc = complex(real = 1.4, imaginary = 1.804)
+n <- 8
+slop <- complex(real = 4.23, imaginary = 2.323)
+interc <- complex(real = 1.4, imaginary = 1.804)
 e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 xx <- complex(real= rnorm(n), imaginary= rnorm(n))
 tframe <- data.frame(x = xx, y= slop*xx + interc + e)

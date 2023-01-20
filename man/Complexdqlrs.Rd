@@ -4,7 +4,7 @@
 \alias{Complexdqlrs}
 \title{An alternative to \verb{.Call(C_Cdqlrs, x * wts, y * wts, tol, FALSE))} that is compatible with complex variables}
 \usage{
-Complexdqlrs(x, y, tol, chk)
+Complexdqlrs(x, y, tol = 1e-07, chk)
 }
 \arguments{
 \item{x}{a complex matrix (will also accept numeric, but in that case you might as well use \code{C_Cdqlrs}) whose QR decomposition is to be computed.}
@@ -25,9 +25,9 @@ and is unlikely to be needed by end users.
 }
 \examples{
 set.seed(4242)
-n = 8
-slope = complex(real = 4.23, imaginary = 2.323)
-intercept = complex(real = 1.4, imaginary = 1.804)
+n <- 8
+slope <- complex(real = 4.23, imaginary = 2.323)
+intercept <- complex(real = 1.4, imaginary = 1.804)
 x <- complex(real = rnorm(n), imaginary = rnorm(n))
 y <- slope * x + intercept
 Complexdqlrs(x, y, 10^-4, 1.2)

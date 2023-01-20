@@ -35,8 +35,8 @@
 #'
 #' @examples
 #' set.seed(4242)
-#' slop = complex(real = 4.23, imaginary = 2.323)
-#' interc = complex(real = 1.4, imaginary = 1.804)
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
 #' tframe <- expand.grid(-3:3,-3:3)
 #' Xt <- complex(real = tframe[[1]], imaginary = tframe[[2]])
 #' tframe <- data.frame(Xt=Xt, Yt= Xt * slop + interc + complex(real=rnorm(length(Xt)),
@@ -74,13 +74,13 @@ zmodel.matrix <- function(trms, data, contrasts.arg = NULL)
 #'
 #' @examples
 #' set.seed(4242)
-#' n = 8
-#' slope = complex(real = 4.23, imaginary = 2.323)
-#' intercept = complex(real = 1.4, imaginary = 1.804)
+#' n <- 8
+#' slope <- complex(real = 4.23, imaginary = 2.323)
+#' intercept <- complex(real = 1.4, imaginary = 1.804)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' y <- slope * x + intercept
 #' Complexdqlrs(x, y, 10^-4, 1.2)
-Complexdqlrs <- function (x, y, tol, chk) {
+Complexdqlrs <- function (x, y, tol = 1E-07, chk) {
   thisqr <- qr(x, tol = tol)
   coefficients <- qr.coef(thisqr, y)
   resids <- y - as.matrix(x) %*% coefficients
@@ -113,9 +113,9 @@ Complexdqlrs <- function (x, y, tol, chk) {
 #'
 #' @examples
 #' set.seed(4242)
-#' n = 8
-#' slop = complex(real = 4.23, imaginary = 2.323)
-#' interc = complex(real = 1.4, imaginary = 1.804)
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
 #' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
@@ -220,11 +220,11 @@ lm <- function (formula, data, subset, weights, na.action,
 #' 
 #' @examples
 #' set.seed(4242)
-#' n = 6
-#' p = 2
-#' slop = complex(real = 4.23, imaginary = 2.323)
+#' n <- 6
+#' p <- 2
+#' slop <- complex(real = 4.23, imaginary = 2.323)
 #' slop2 = complex(real = 2.1, imaginary = -3.9)
-#' interc = complex(real = 1.4, imaginary = 1.804)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' desmat <- matrix(c(complex(real = rnorm(n * p), imaginary = rnorm(n * p)), rep(1, n)), n, p + 1)
 #' y = desmat %*% c(slop, slop2, interc) + e
@@ -427,9 +427,9 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 #'
 #' @examples
 #' set.seed(4242)
-#' n = 8
-#' slop = complex(real = 4.23, imaginary = 2.323)
-#' interc = complex(real = 1.4, imaginary = 1.804)
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
 #' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
@@ -520,16 +520,16 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
     R <- Qr$qr
     R <- R[1L:p, 1L:p, drop = FALSE] # Trim the bottom of R, making it a square p by p matrix.
     R[lower.tri(R)] <- 0 # Remove the lower triangular matrix, the Q from the QR decomposition.
-    R <- solve(R) # This is efficient, we only need the diagonal matrix diag(p) to get rinv, so just set rinv <- diag(p) ahead of time. Now rinv is a different p by p matrix.
-    se <- sqrt(diag(R) * resvar) #### Do I need diag(R) to be squared now? Or someting different?
-    pse <- sqrt(diag(R) * respvar)
+    rinv <- solve(R) # This is efficient, we only need the diagonal matrix diag(p) to get rinv, so just set rinv <- diag(p) ahead of time. Now rinv is a different p by p matrix.
+    se <- sqrt(abs(Conj(rinv)*rinv) %*% rep(1,p) * resvar) #### Do I need diag(R) to be squared now? Or someting different?
+    pse <- sqrt(rinv^2 %*% rep(1,p) * respvar)
     est <- z$coefficients[Qr$pivot[p1]]
     tval <- est/se
     ans <- z[c("call", "terms", if(!is.null(z$weights)) "weights")]
     ans$residuals <- r
     ans$coefficients <-
       cbind(Estimate = est, "Std. Error" = se, "Pseudo Std. Error" = pse, "t value" = tval,
-            "Pr(>|t|)" = 2*pt(abs(tval), rdf, lower.tail = FALSE))
+            "Pr(>|t|)" = 2*pt(abs(tval), rdf, lower.tail = FALSE)) # Only "Estimate" shows up as a column heading upon print..?
     ans$aliased <- is.na(z$coefficients)  # used in print method
     ans$sigma <- sqrt(resvar)
     ans$psigma <- sqrt(respvar)
@@ -541,10 +541,13 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
       ans$fstatistic <- c(value = (mss/(p - df.int))/resvar,
                           numdf = p - df.int, dendf = rdf)
     } else ans$r.squared <- ans$adj.r.squared <- 0
-    ans$cov.unscaled <- R
+    ans$cov.unscaled <- rinv %*% t(Conj(rinv)) # Real on diagonal, complex on off-diagonal.
+    ans$pcov.unscaled <- rinv %*% t(rinv) # pseudo covariance, all complex.
     dimnames(ans$cov.unscaled) <- dimnames(ans$coefficients)[c(1,1)]
     if (correlation) {
-      ans$correlation <- (R * resvar)/outer(se, se)
+      correl <- rinv * array(sqrt(resvar)/se, c(p, p))
+      ans$correlation <- correl %*% Conj(t(correl)) 
+      ans$pseudocorrelation <- correl %*% t(correl)
       dimnames(ans$correlation) <- dimnames(ans$cov.unscaled)
       ans$symbolic.cor <- symbolic.cor
     }
@@ -562,9 +565,9 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
 #' 
 #' @examples
 #' set.seed(4242)
-#' n = 8
-#' slop = complex(real = 4.23, imaginary = 2.323)
-#' interc = complex(real = 1.4, imaginary = 1.804)
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
 #' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
@@ -594,22 +597,28 @@ print.summary.lm <-
 #'
 #' A version of [stats::vcov()] that is compatible with complex linear models. In addition to variance-covariance matrix,
 #' the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
+#' Can also return the "big covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in (van den Bos 1995).
+#' While not as compact as two seperate smaller matrices, the big covariance matrix simplifies calculations such as the [mahalanobis] distance.
 #' 
 #' @param object a fitted model object, typically. Sometimes also a summary() object of such a fitted model.
 #' @param ... Additional parameters, not currently used for anything.
+#' @param merge logical. Should the covariance matrix and pseudo-covariance / relational matrix be merged into one matrix of twice the dimensions? Default is TRUE.
 #'
-#' @return A list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
+#' @return
+#' If `merge` is false, a list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
+#' If `merge` is true, a large matrix (both dimensions twice the number of coefficients) containing both the variance-covariance matrix and the pseudo variance-covariance matrix, merged together.
 #' @export
 #'
 #' @examples
 #' set.seed(4242)
-#' n = 8
-#' slop = complex(real = 4.23, imaginary = 2.323)
-#' interc = complex(real = 1.4, imaginary = 1.804)
-#' tframe <- data.frame(x= x <- complex(real= rnorm(n), imaginary= rnorm(n)), y= slop*x + interc)
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
+#' err <- complex(real = rnorm(n)/16, imaginary = rnorm(n)/16)
+#' tframe <- data.frame(x= x <- complex(real=rnorm(n), imaginary= rnorm(n)), y=slop*x + interc+err)
 #' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
 #' vcov(fit)
-vcov.lm <- function (object, ...)
+vcov.lm <- function (object, merge = TRUE, ...)
   
 {
   cll <- match.call()
@@ -621,9 +630,19 @@ vcov.lm <- function (object, ...)
   else
   {
     so <- summary(object, corr = FALSE)
-    varcovar <- so$stddev^2 * so$cov.unscaled
-    pseudovarcovar <- so$pstddev^2 * so$pcov.unscaled
-    return(list(varcovar = varcovar, pseudovarcovar = pseudovarcovar))
+    print(varcovar <- so$sigma^2 * so$cov.unscaled)
+    pseudovarcovar <- so$psigma^2 * so$pcov.unscaled
+    if (merge == TRUE)
+    {
+      #bigcovar <- diag(rep(diag(varcovar), each = 2)) # Start by making a square diagonal matrix with two adjacent diagonal elements for each variance.
+      n <- attributes(varcovar)$dim[1] # The size of the square covariance matrix.
+      print(attributes(varcovar))
+      bigcovar <- matrix(0, ncol = 2*n, nrow = 2*n) #Start by making an empty matrix with dimensions twice those of the small covariance matrix.
+      bigcovar[,seq(1, 2*n, 2)] <- matrix(as.vector(rbind(as.vector(varcovar), as.vector(Conj(pseudovarcovar)))), nrow = 2*n) # Fill the odd indexed columns of bigcovar with the entries from varcovar interleaved with the entries from pseudovarcovar conjugated.
+      bigcovar[,seq(2, 2*n, 2)] <- matrix(as.vector(rbind(as.vector(pseudovarcovar), as.vector(varcovar))), nrow = 2*n) # Fill the even indexed columns of bigcovar with the entries from varcovar interleaved with the entries from pseudovarcovar, this time the later first.
+      return(bigcovar)
+    }
+    else return(list(varcovar = as.numeric(varcovar), pseudovarcovar = pseudovarcovar))
   }  
 }
 

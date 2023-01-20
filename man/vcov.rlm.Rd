@@ -4,28 +4,36 @@
 \alias{vcov.rlm}
 \title{Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object}
 \usage{
-\method{vcov}{rlm}(object, ...)
+\method{vcov}{rlm}(object, merge = TRUE, ...)
 }
 \arguments{
 \item{object}{a fitted model object, typically. Sometimes also a summary() object of such a fitted model.}
 
+\item{merge}{logical. Should the covariance matrix and pseudo-covariance / relational matrix be merged into one matrix of twice the dimensions? Default is TRUE.}
+
 \item{...}{Additional parameters, not currently used for anything.}
 }
 \value{
-A list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
+If \code{merge} is false, a list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
+If \code{merge} is true, a large matrix (both dimensions twice the number of coefficients) containing both the variance-covariance matrix and the pseudo variance-covariance matrix, merged together.
 }
 \description{
-A version of \link[stats:vcov]{stats::vcov} that is compatible with complex linear models. In addition to variance-covariance matrix,
+A version of \link[stats:vcov]{stats::vcov} that is compatible with complex linear models. In addition to the variance-covariance matrix,
 the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
+Can also return the "big covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in (van den Bos 1995).
+While not as compact as two seperate smaller matrices, the big covariance matrix simplifies calculations such as the \link{mahalanobis} distance.
 }
 \examples{
 set.seed(4242)
-n = 8
-slope = complex(real = 4.23, imaginary = 2.323)
-intercept = complex(real = 1.4, imaginary = 1.804)
+n <- 8
+slope <- complex(real = 4.23, imaginary = 2.323)
+intercept <- complex(real = 1.4, imaginary = 1.804)
 e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 x <- complex(real = rnorm(n), imaginary = rnorm(n))
 y <- slope * x + intercept + e
 robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 vcov(robfit)
+}
+\references{
+A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
 }
