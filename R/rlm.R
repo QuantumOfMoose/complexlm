@@ -129,7 +129,7 @@ rlm.formula <-
 #' @param w (optional) initial down-weighting for each case
 #' @param init (optional) initial values for the coefficients OR a method to find initial values OR the result of a fit with a coef component. Known methods are "ls" (the default) for an initial least-squares fit using weights w*weights, and "lts" for an unweighted least-trimmed squares fit with 200 samples.
 #' @param psi the psi function is specified by this argument. It must give (possibly by name) a function g(x, ..., deriv) that for deriv=0 returns psi(x)/x and for deriv=1 returns psi'(x). Tuning constants will be passed in via ...
-#' @param scale.est method of scale estimation: re-scaled MAD of the residuals (default) or Huber's proposal 2 (which can be selected by either "Huber" or "proposal 2"). Only MAD is implimented for complex variables.
+#' @param scale.est method of scale estimation: re-scaled MAD of the residuals (default) or Huber's proposal 2 (which can be selected by either "Huber" or "proposal 2"). Only MAD is implemented for complex variables.
 #' @param k2 tuning constant used for Huber proposal 2 scale estimation.
 #' @param maxit maximum number of IWLS iterations.
 #' @param acc the accuracy for the stopping criterion.
@@ -253,8 +253,8 @@ rlm.default <-
     done <- FALSE
     conv <- NULL
     n1 <- (if(is.null(wt)) nrow(x) else sum(wt)) - ncol(x)
-    theta <- 2*pnorm(k2) - 1
-    gamma <- theta + k2^2 * (1 - theta) - 2 * k2 * dnorm(k2)
+    #theta <- 2*pnorm(k2) - 1 # pnorm() gives CDF of a normal distribution at k2 quantile. Do I need a complex normal pnorm()? Does such a thing exist? Maybe I should just ditch Huber's proposal 2...
+  gamma <- theta + k2^2 * (1 - theta) - 2 * k2 * dnorm(k2) # dnorm gives density of normal distribution at quantile k2. Shoot.
     ## At this point the residuals are weighted for inv.var and
     ## unweighted for case weights.  Only Huber handles case weights
     ## correctly.
@@ -267,10 +267,16 @@ rlm.default <-
         if(!is.null(test.vec)) testpv <- get(test.vec)
         if(scale.est != "MM") {
             scale <- if(scale.est == "MAD")
-                if(is.null(wt)) median(abs(resid))/0.6745 else wmedian(resid, wt)/0.6745 ## wmad does not actually find the weighted MAD!!!! It just finds the weighted median!
-            else if(is.null(wt)) ## The two lines below are the Huber proposal 2 scale estimate. Why they didn't use the Huber function included in the package elsewhere is beyond me...
-                sqrt(sum(pmin(Conj(resid)*resid, Conj(k2 * scale)*(k2 * scale)))/(n1*gamma))
-            else sqrt(sum(wt*pmin(Conj(resid)*resid, Conj(k2 * scale)*(k2 * scale)))/(n1*gamma))
+                if(is.null(wt)) median(abs(resid))/0.6745 else wmedian(abs(resid), wt)/0.6745 ## wmad does not actually find the weighted MAD!!!! It just finds the weighted median!
+            #else if(is.null(wt)) ## The two lines below are the Huber proposal 2 scale estimate. Why they didn't use the Huber function included in the package elsewhere is beyond me...
+            #    sqrt(sum(pmin(Conj(resid)*resid, Conj(k2 * scale)*(k2 * scale)))/(n1*gamma))
+            #else sqrt(sum(wt*pmin(Conj(resid)*resid, Conj(k2 * scale)*(k2 * scale)))/(n1*gamma))
+            else 
+              {
+                warning("Only MAD scale is supported for complex variables. Continuing with scale.est = \"MAD.\"")
+                scale <- if(scale.est == "MAD")
+                  if(is.null(wt)) median(abs(resid))/0.6745 else wmedian(abs(resid), wt)/0.6745
+              }
             if(scale == 0) {
                 done <- TRUE
                 break
