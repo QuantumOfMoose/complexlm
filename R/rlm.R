@@ -236,7 +236,7 @@ rlm.default <-
         scale.est <- "MM"
         temp <- do.call("lqs",
                         c(list(x, y, intercept = interc, method = "S",
-                               k0 = 1.548), lqs.control)) ## Why was intercept set to false? 
+                               k0 = 1.548), lqs.control))
         coef <- temp$coefficients
         resid <- temp$residuals
         psi <- psi.bisquare
@@ -261,8 +261,8 @@ rlm.default <-
     residdf <- data.frame(Re(resid), Im(resid)) 
     if(scale.est != "MM")
         scale <- if(is.null(wt)) {
-          median(abs(resid), 0)/0.6745
-          } else wmedian(abs(resid), wt)/0.6745
+        median(abs(resid - 0))/0.6745 # The median absolute deviation, centered on zero. Modeled on rlm from MASS, but I don't think that the median of the residuals can be counted on to always be the case...
+          } else wmedian(abs(resid - 0), wt)/0.6745
     for(iiter in 1L:maxit) {
         if(!is.null(test.vec)) testpv <- get(test.vec)
         if(scale.est != "MM") {
