@@ -168,7 +168,7 @@ rlm.default <-
       attr(xx, "assign") <- c(0,1)
       x <- xx
     }
-    irls.delta <- function(old, new)
+  irls.delta <- function(old, new)
         as.numeric(sqrt(sum(Conj(old - new)*(old-new))/max(1e-20, as.numeric(sum(Conj(old)*old)))))
     irls.rrxwr <- function(x, w, r)
     {
@@ -300,7 +300,7 @@ rlm.default <-
     ## fix up call to refer to the generic, but leave arg name as `formula'
     cl <- match.call()
     cl[[1L]] <- as.name("rlm")
-    fit <- list(coefficients = coef, residuals = yy - fitted, wresid = resid,
+    fit <- list(coefficients = coef, residuals = yy - fitted, wresid = resid, # If inv.var weights are used, wresid are pre-weighted, otherwise they are the same as residuals.
                 effects = temp$effects,
                 rank = temp$rank, fitted.values = fitted,
                 assign = temp$assign,  qr = temp$qr, df.residual = NA, w = w,
@@ -401,13 +401,13 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
       if(length(object$call$wt.method) && object$call$wt.method == "case") {
         rdf <- sum(wts) - p ## 'residual degrees of freedom'
         w <- object$psi(wresid/s)
-        S <- sum(wts * (wresid*w)*Conj(wresid*w))/rdf # The estimated variance is analogous to the area of a circle around the estimated parameters, so it is a real number.
+        S <- sum(wts * (wresid*w)*Conj(wresid*w))/rdf # The estimated variance of the residuals is analogous to the area of a circle around the estimated parameters, so it is a real number.
         pS <- sum(wts * (wresid*w)*(wresid*w))/rdf # The estimated pseudo-variance is a complex number that describes the anisotropy of the distribution or set.
         # Distributions that are less circularly symmetric and more bilaterally symmetric have higher pseudovariance.
         # The direction of the pseudovariance indicates the orientation of the anisotropy; bilateral symmetry axis angle from 
         # the +real axis = pseudovariance angle divided by two. In other words, pseudovariance is the covariance between real and imaginary.
         psiprime <- object$psi(wresid/s, deriv=1) # This region of code occupies the position that finding the sum of squared deviations from the mean of the fitted values does in summary.lm().
-        m1 <- sum(wts*psiprime) # What are these for? psiprime will depend on length (size) of residual, and direction. It depends on what psi function was chosen. Huber will have psiprime = 1 Exp[i (phi - pi)] for small residuals and 0 for large ones.
+        m1 <- sum(wts*psiprime) # What are these for? psiprime will depend on length (size) of residual, and direction. It depends on what psi function was chosen. Huber will have psiprime = 1 Exp[i (phi - pi)] for small residuals and 0 for large ones. A kind of weighted sample 1st moment of psiprime.
         m2 <- sum(wts*as.numeric(Conj(psiprime)*psiprime))
         pm2 <- sum(wts*psiprime*psiprime) # 'pseudo m2' a complex quantity.
         nn <- sum(wts) # "sample size" is sum of the weights, makes sense for case weights I suppose.
@@ -424,7 +424,7 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
         pS <- sum((wresid*w)*(wresid*w))/rdf # See above definition of pS.
         psiprime <- object$psi(wresid/s, deriv=1) # The derivative of the influence function.
         mn <- mean(psiprime)
-        pvarpsi <- sum(psiprime^2)/(n-1)
+        pvarpsi <- sum((psiprime - mean(psiprime))^2)/(n-1)
         kappa <- 1 + p*var(psiprime)/(n*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think.
         #print(var(psiprime))
         pkappa <- 1 + p*pvarpsi/(n*mn^2)
@@ -432,7 +432,7 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
         pstddev <- sqrt(pS)*(pkappa/mn) # The 'pseudo standard deviation', analogous with the pseudo-variance. Might be useful, might be meaningless.
       }
       X <- if(length(object$weights)) object$x * sqrt(object$weights) else object$x # The model (design?) matrix, or the model matrix times the sqrt of the weights.
-      if(method == "XtWX")  { # (X transposed) [weight matrix] (X)
+      if(method == "XtWX")  { # (X transposed) [weight matrix] (X) #These are not the IWLS weights, these are the ones given by the user.
         mn <- sum(wts*w)/sum(wts)
         X <- X * sqrt(w/mn)
       }
@@ -460,7 +460,7 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
       coef[, 4] <- coef[, 1]/coef[, 2]
       object <- object[c("call", "na.action")]
       object$residuals <- res
-      object$coefficients <- coef
+object$coefficients <- coef
       object$sigma <- s
       object$stddev <- stddev
       object$pstdev <- pstddev

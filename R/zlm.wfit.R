@@ -519,9 +519,9 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
     #R <- chol2inv(Qr$qr[p1, p1, drop = FALSE]) # Replace this line with the following 4, taken from summary.rlm, since chol2inv() does not work with comlpex numbers.
     R <- Qr$qr
     R <- R[1L:p, 1L:p, drop = FALSE] # Trim the bottom of R, making it a square p by p matrix.
-    R[lower.tri(R)] <- 0 # Remove the lower triangular matrix, the Q from the QR decomposition.
+    R[lower.tri(R)] <- 0 # Remove the lower triangular matrix, the Q from the QR decomposition. Now we just have R, the upper triangular matrix.
     rinv <- solve(R) # This is efficient, we only need the diagonal matrix diag(p) to get rinv, so just set rinv <- diag(p) ahead of time. Now rinv is a different p by p matrix.
-    se <- sqrt(abs(Conj(rinv)*rinv) %*% rep(1,p) * resvar) #### Do I need diag(R) to be squared now? Or someting different?
+  se <- sqrt( abs(Conj(rinv)*rinv) %*% rep(1,p) * resvar) #### Do I need diag(R) to be squared now? Or someting different?
     pse <- sqrt(rinv^2 %*% rep(1,p) * respvar)
     est <- z$coefficients[Qr$pivot[p1]]
     tval <- est/se
