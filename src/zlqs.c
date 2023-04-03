@@ -396,12 +396,16 @@ static void mve_setup(int *n, int *p, int *ps)
 }
 
 
-/* find the squared Mahalanobis distance to x via QR decomposition in xr. This should return a real number, it's a distance after all. */
-static double mah(Rcomplex *xr, int nnew, int p, Rcomplex *x)
+/* find the squared Mahalanobis distance to x via QR decomposition in xr. 
+This should return a real number, it's a distance after all. 
+But, that would have cascading effects on other functions.
+So I will keep it as a complex number, the functions that use it mostly take the 
+absolute value anyway. */
+static Rcomplex mah(Rcomplex *xr, int nnew, int p, Rcomplex *x)
 {
     int i, j;
     //Rcomplex s, ss = {.r = 0.0, .i = 0.0};
-    double mahh;
+    Rcomplex mahh;
     double complex s, ss = 0.0;
 
     for(j = 0; j < p; j++) {
@@ -412,7 +416,8 @@ static double mah(Rcomplex *xr, int nnew, int p, Rcomplex *x)
 	work[i].i = cimag(cwork[j]);
 	ss += cwork[j] * cwork[j];
     }
-    mahh = cabs(ss*(nnew-1));
+    mahh.r = creal(ss*(nnew-1));
+    mahh.i = cimag(ss*(nnew-1));
     return(mahh);
 }
 
