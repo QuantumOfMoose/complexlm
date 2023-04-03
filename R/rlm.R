@@ -364,6 +364,10 @@ rlm.default <-
 #' \item{`terms`}{The terms object used in fitting this model.}
 #' @export
 #'
+#'@references
+#' W. N. Venables and B. D. Ripley, Modern Applied Statistics with S, 4th ed (Springer, New York, 2002).
+#' P. J. Huber and E. Ronchetti, Robust Statistics, 2nd ed (Wiley, Hoboken, N.J, 2009).
+#'
 #' @examples
 #' set.seed(4242)
 #' n <- 8
@@ -424,15 +428,15 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
         pS <- sum((wresid*w)*(wresid*w))/rdf # See above definition of pS.
         psiprime <- object$psi(wresid/s, deriv=1) # The derivative of the influence function.
         mn <- mean(psiprime)
-        pvarpsi <- sum((psiprime - mean(psiprime))^2)/(n-1)
+        pvarpsi <- sum((psiprime - mn)^2)/(n-1)
         kappa <- 1 + p*var(psiprime)/(n*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think.
         #print(var(psiprime))
         pkappa <- 1 + p*pvarpsi/(n*mn^2)
         stddev <- sqrt(S)*(kappa/abs(mn)) ## Would it be useful to do something similar with pseudo-variance? Probably.
         pstddev <- sqrt(pS)*(pkappa/mn) # The 'pseudo standard deviation', analogous with the pseudo-variance. Might be useful, might be meaningless.
       }
-      X <- if(length(object$weights)) object$x * sqrt(object$weights) else object$x # The model (design?) matrix, or the model matrix times the sqrt of the weights.
-      if(method == "XtWX")  { # (X transposed) [weight matrix] (X) #These are not the IWLS weights, these are the ones given by the user.
+      X <- if(length(object$weights)) object$x * sqrt(object$weights) else object$x # The model (design) matrix, or the model matrix times the sqrt of the weights.
+      if(method == "XtWX")  { # (X transposed) [weight matrix] (X) #wts are not the IWLS weights, they are the ones given by the user. w are the IWLRS weights.
         mn <- sum(wts*w)/sum(wts)
         X <- X * sqrt(w/mn)
       }
@@ -441,7 +445,7 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
       R[lower.tri(R)] <- 0 # Remove the lower triangular matrix, the Q from the QR decomposition.
       rinv <- solve(R, rinv) # This is efficient, we only need the diagonal matrix diag(p) to get rinv, so just set rinv <- diag(p) ahead of time. Now rinv is a different p by p matrix.
       dimnames(rinv) <- list(cnames, cnames)
-      rowlen <- (abs(Conj(rinv)*rinv) %*% rep(1, p))^0.5 # Produces a real vector of length p.
+      rowlen <- (abs(Conj(rinv)*rinv) %*% rep(1, p))^0.5 # Produces a real vector of length p. Elements are the sum of the rows of (X^T X)^-1, each square rooted. 
       prowlen <- (rinv^2 %*% rep(1, p))^0.5 # Produces a complex vector of length p
       names(rowlen) <- cnames # cnames are the names of the coefficients.
       if(correlation) {

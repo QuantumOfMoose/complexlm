@@ -435,7 +435,7 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 #' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
 #' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
 #' summary(fit)
-summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
+summary.lm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
 {
   cll <- match.call()
   if (is.numeric(object$residuals)) 
@@ -498,11 +498,11 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
       prss <- sum(r^2)
     } else {
       mss <- if (attr(z$terms, "intercept")) {
-        m <- sum(w * f /sum(w))
+        m <- sum(w * f / sum(w))
         sum(w * as.numeric(Conj(f - m)*(f - m)))
       } else sum(w * as.numeric(Conj(f)*f))
       pmss <- if (attr(z$terms, "intercept")) {
-        m <- sum(w * f /sum(w))
+        m <- sum(w * f / sum(w))
         sum(w * (f - m)^2)
       } else sum(w * f^2)
       rss <- sum(w * as.numeric(Conj(r)*r))
@@ -516,7 +516,7 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
         resvar < (as.numeric(Conj(mean(f))*mean(f)) + complexlm::var(c(f))) * 1e-30)  # a few times .Machine$double.eps^2
       warning("essentially perfect fit: summary may be unreliable")
     p1 <- 1L:p
-    #R <- chol2inv(Qr$qr[p1, p1, drop = FALSE]) # Replace this line with the following 4, taken from summary.rlm, since chol2inv() does not work with comlpex numbers.
+    #R <- chol2inv(Qr$qr[p1, p1, drop = FALSE]) # Replace this line with the following 4, taken from summary.rlm, since chol2inv() does not work with complex numbers.
     R <- Qr$qr
     R <- R[1L:p, 1L:p, drop = FALSE] # Trim the bottom of R, making it a square p by p matrix.
     R[lower.tri(R)] <- 0 # Remove the lower triangular matrix, the Q from the QR decomposition. Now we just have R, the upper triangular matrix.
