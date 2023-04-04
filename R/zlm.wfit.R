@@ -46,13 +46,21 @@
 zmodel.matrix <- function(trms, data, contrasts.arg = NULL)
 {
   respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
-  prednames <- attr(trms, "term.labels")
+  termlabs <- attr(trms, "term.labels")
+  interactions <- grep(":", attr(trms, "term.labels"), value = TRUE)
+  prednames <- termlabs[termlabs != interactions]
   modelframe <- data[prednames]
+  if (length(interactions) != 0) {
+    for (inter in interactions) {
+      intersplit <- strsplit(inter, ":")[[1]]
+      modelframe[, inter] <- data[, intersplit[1]] * data[, intersplit[2]]
+    }
+  }
   if (attr(trms, "intercept") == 1) modelmatrix <- as.matrix(data.frame("(intercept)" = rep(1,length(modelframe[,1])), modelframe))
   else  modelmatrix <- as.matrix(modelframe)
-  if (attr(trms, "intercept") == 1) attr(modelmatrix, "assign") <- 0:length(prednames)
-  else attr(modelmatrix, "assign") <- 1:length(prednames)
-  attr(modelmatrix, "dimnames") <- list(as.character(1:length(modelframe[,1])), c("(intercept)", prednames)) # Fix the dimnames to match those on standard model matrices.
+  if (attr(trms, "intercept") == 1) attr(modelmatrix, "assign") <- 0:length(termlabs)
+  else attr(modelmatrix, "assign") <- 1:length(termlabs)
+  attr(modelmatrix, "dimnames") <- list(as.character(1:length(modelframe[,1])), c("(intercept)", prednames, interactions)) # Fix the dimnames to match those on standard model matrices.
   return(modelmatrix)
 }
 
@@ -103,8 +111,8 @@ Complexdqlrs <- function (x, y, tol = 1E-07, chk) {
 #' Linear Model Fitting for Complex or Numeric Variables
 #' 
 #' An adaptation of lm that is compatible with complex variables. If the response is not complex, it calls the standard [stats::lm()]
-#' Note: It is not capable of dealing with contrasts in the complex case. May not understand offsets either. 
-#' It also can't handle algebraic expressions in formula.
+#' Note: It is not capable of dealing with contrasts in the complex case. And it may not understand offsets either. 
+#' The formula interpretation is also incapable of handling algebraic expressions in formula.
 #' model.frame needs to be changed to allow complex variables in order to enable these features.
 #'
 #' @inherit stats::lm description details params return
@@ -157,7 +165,7 @@ lm <- function (formula, data, subset, weights, na.action,
     w <- as.vector(model.weights(mf))
     if(!is.null(w) && !is.numeric(w))
       stop("'weights' must be a numeric vector")
-    offset <- model.offset(mf) # Uncertain if this works with complex variables.
+    offset <- model.offset(mf) # Uncertain if this works with complex variables. It appears to...
     mlm <- is.matrix(y)
     ny <- if(mlm) nrow(y) else length(y)
     if(!is.null(offset)) {

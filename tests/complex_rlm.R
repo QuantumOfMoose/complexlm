@@ -136,3 +136,16 @@ ggplot(fitframe, aes(x = Re(z), y = Im(z))) +
   theme(axis.text = element_text(size = 14), axis.title = element_text(size = 16), plot.title = element_text(size = 18)) +
   coord_fixed() +
   ylim(-19,19) + xlim(-28, 8)
+
+####
+#### A test to compare the performance of zmodel.matrix to model.matrix
+####
+library(profvis)
+set.seed(4242)
+slop <- 4.23
+interc <- 1.4
+Xt <- -20:20
+tframe <- data.frame(Xt=Xt, Yt= Xt * slop + interc + rnorm(length(Xt)))
+testerms <- terms(Yt ~ Xt)
+zmodel.matrix(testerms, tframe)
+model.matrix(testerms, tframe)
