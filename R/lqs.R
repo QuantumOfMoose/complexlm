@@ -43,7 +43,7 @@ lqs <- function(x, ...) UseMethod("lqs")
 ### I am uncertain how rigorous / effective this is, as quantiles are not defined for complex random variables.
 ### It appears to work though.
 ####
-#' @describeIn lqs S3 methad for class 'formula'
+#' @describeIn lqs S3 method for class 'formula'
 #'
 #' @inherit MASS::lqs.formula params
 #'

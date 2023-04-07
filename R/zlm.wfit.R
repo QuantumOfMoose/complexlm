@@ -567,7 +567,7 @@ summary.lm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
 
 #' @inherit stats::print.summary.lm title description details params return seealso
 #'
-#' @note This functions masks [stats::print.summary.lm] in order to give it compatability with complex fits. If the residuals of the passed object are numeric, `stats::print.summary.lm` is called. If they are complex, [print.summary.rlm] is called. The later is much simpler, with no function calls that require numeric input.
+#' @note This functions masks [stats::print.summary.lm] in order to give it compatibility with complex fits. If the residuals of the passed object are numeric, `stats::print.summary.lm` is called. If they are complex, [print.summary.rlm] is called. The later is much simpler, with no function calls that require numeric input.
 #'
 #' @export
 #' 
@@ -606,17 +606,21 @@ print.summary.lm <-
 #'
 #' A version of [stats::vcov()] that is compatible with complex linear models. In addition to variance-covariance matrix,
 #' the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
-#' Can also return the "big covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in (van den Bos 1995).
-#' While not as compact as two seperate smaller matrices, the big covariance matrix simplifies calculations such as the [mahalanobis] distance.
+#' Can also return the "big covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in van den Bos 1995[1].
+#' While not as compact as two separate smaller matrices, the big covariance matrix simplifies calculations such as the [mahalanobis] distance.
 #' 
 #' @param object a fitted model object, typically. Sometimes also a summary() object of such a fitted model.
 #' @param ... Additional parameters, not currently used for anything.
+#' @param complete logical. Indicates if the full covariance and pseudo-covariance matrices should be returned even in the case of an over-determined system, meaning that some coefficients are undefined.
 #' @param merge logical. Should the covariance matrix and pseudo-covariance / relational matrix be merged into one matrix of twice the dimensions? Default is TRUE.
 #'
 #' @return
 #' If `merge` is false, a list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
-#' If `merge` is true, a large matrix (both dimensions twice the number of coefficients) containing both the variance-covariance matrix and the pseudo variance-covariance matrix, merged together.
+#' If `merge` is true, a large matrix (both dimensions being twice the number of coefficients) containing both the variance-covariance matrix and the pseudo variance-covariance matrix, merged together.
 #' @export
+#' 
+#' @references [1] A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
+
 #'
 #' @examples
 #' set.seed(4242)
@@ -627,7 +631,7 @@ print.summary.lm <-
 #' tframe <- data.frame(x= x <- complex(real=rnorm(n), imaginary= rnorm(n)), y=slop*x + interc+err)
 #' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
 #' vcov(fit)
-vcov.lm <- function (object, merge = TRUE, ...)
+vcov.lm <- function (object, complete = TRUE, merge = TRUE, ...)
   
 {
   cll <- match.call()
@@ -638,9 +642,22 @@ vcov.lm <- function (object, merge = TRUE, ...)
   }
   else
   {
+    ## Copied from stats::vcov , modified to used NA_complex_ instead of NA_real_.
+    complex.vcov.aliased <- function(aliased, vc, ccomplete = TRUE) {
+      ## Checking for "NA coef": "same" code as in print.summary.lm() in ./lm.R :
+      if(ccomplete && NROW(vc) < (P <- length(aliased)) && any(aliased)) {
+        ## add NA rows and columns in vcov
+        cn <- names(aliased)
+        VC <- matrix(NA_complex_, P, P, dimnames = list(cn,cn))
+        j <- which(!aliased)
+        VC[j,j] <- vc
+        VC
+      } else  # default
+        vc
+    }
     so <- summary(object, corr = FALSE)
-    print(varcovar <- so$sigma^2 * so$cov.unscaled)
-    pseudovarcovar <- so$psigma^2 * so$pcov.unscaled
+    varcovar <- complex.vcov.aliased(aliased = so$aliased, vc = so$sigma^2 * so$cov.unscaled, ccomplete = complete)
+    pseudovarcovar <- complex.vcov.aliased(aliased = so$aliased, vc = so$psigma^2 * so$pcov.unscaled, ccomplete  = complete)
     if (merge == TRUE)
     {
       #bigcovar <- diag(rep(diag(varcovar), each = 2)) # Start by making a square diagonal matrix with two adjacent diagonal elements for each variance.
