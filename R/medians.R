@@ -186,6 +186,29 @@ var <- function(x, y = NULL, na.rm = FALSE, use)
   }
 }
 
+### A function for calculating the unbiased sample pseudo-variance of a vector of complex numbers.
+### Can return a complex number.
+### Not used in anything else at the moment.
+#' Pseudo-Variance of Complex Variables
+#' 
+#' Calculates the pseudo-variance, also called the relational variance of a vector of complex numbers.
+#' This describes the degree of covariance between the real and imaginary components.
+#'
+#' @param x a vector of complex numbers.
+#'
+#' @return complex. The pseudo-variance of `x`. If `x` is numeric, this is just the variance.
+#' @export
+#'
+#' @examples
+#' n = 6
+#' z <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' pseuzvar(z)
+pseuzvar <- function(x)
+{
+  sampmean <- mean(x, trim = 0)
+  return((1 / (length(x) - 1)) * sum((x - sampmean) * (x - sampmean)))
+}
+
 #' Mahalanobis Distance, with better complex behavior
 #' 
 #' The Mahalanobis distance function included in the `stats` package returns a complex number when given complex values of `x`.
