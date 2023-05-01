@@ -620,7 +620,6 @@ print.summary.lm <-
 #' @export
 #' 
 #' @references [1] A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
-
 #'
 #' @examples
 #' set.seed(4242)

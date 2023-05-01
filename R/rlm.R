@@ -169,12 +169,15 @@ rlm.default <-
       x <- xx
     }
   irls.delta <- function(old, new)
-        as.numeric(sqrt(sum(Conj(old - new)*(old-new))/max(1e-20, as.numeric(sum(Conj(old)*old)))))
+    as.numeric(sqrt(sum(Conj(old - new)*(old - new))/max(1e-20, as.numeric(sum(Conj(old)*old)))))
     irls.rrxwr <- function(x, w, r)
     {
         w <- sqrt(w)
         max(abs((matrix(r * w, 1L, length(r)) %*% x)/
-                sqrt(matrix(w, 1L, length(r)) %*% (x^2))))/abs(sqrt(sum(w * r^2))) # What is the point of the max() here? As far as I can tell, the matrix multiplication would return a single value...?
+                sqrt(matrix(w, 1L, length(r)) %*% (x^2))))/abs(sqrt(sum(w * r^2))) 
+        # What is the point of the max() here? As far as I can tell, the matrix multiplication would return
+        # a single value...? The max function turns the 1x1 matrix into just a number. Unexpected use, but ok.
+        # Oh, right; x can, and often will be, a matrix.
     }
     # wmad function used to be here. Moved up in rank to a user accessible function.
     method <- match.arg(method)
