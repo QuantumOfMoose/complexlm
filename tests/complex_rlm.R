@@ -140,7 +140,7 @@ ggplot(fitframe, aes(x = Re(z), y = Im(z))) +
 ####
 #### A test to compare the performance of zmodel.matrix to model.matrix
 ####
-library(profvis)
+#library(profvis)
 set.seed(4242)
 slop <- 4.23
 interc <- 1.4

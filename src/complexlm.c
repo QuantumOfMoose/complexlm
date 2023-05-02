@@ -59,5 +59,3 @@ void R_init_complexlm(DllInfo *dll)
     R_useDynamicSymbols(dll, FALSE);
     R_forceSymbols(dll, TRUE);
 }
-
-//static SEXP La_chol2inv_cmplx(SEXP A, SEXP size);

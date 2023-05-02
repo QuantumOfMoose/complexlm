@@ -127,8 +127,8 @@ lm(
 }
 \description{
 An adaptation of lm that is compatible with complex variables. If the response is not complex, it calls the standard \code{\link[stats:lm]{stats::lm()}}
-Note: It is not capable of dealing with contrasts in the complex case. May not understand offsets either.
-It also can't handle algebraic expressions in formula.
+Note: It is not capable of dealing with contrasts in the complex case. And it may not understand offsets either.
+The formula interpretation is also incapable of handling algebraic expressions in formula.
 model.frame needs to be changed to allow complex variables in order to enable these features.
 }
 \details{
@@ -188,6 +188,6 @@ slop <- complex(real = 4.23, imaginary = 2.323)
 interc <- complex(real = 1.4, imaginary = 1.804)
 e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 xx <- complex(real= rnorm(n), imaginary= rnorm(n))
-tframe <- data.frame(x = xx, y= slop*xx + interc + e)
+tframe <- data.frame(x= xx, y= slop*xx + interc + e)
 lm(y ~ x, data = tframe, weights = rep(1,n))
 }

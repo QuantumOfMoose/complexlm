@@ -80,7 +80,7 @@ rlm(x, ...)
 
 \item{psi}{the psi function is specified by this argument. It must give (possibly by name) a function g(x, ..., deriv) that for deriv=0 returns psi(x)/x and for deriv=1 returns psi'(x). Tuning constants will be passed in via ...}
 
-\item{scale.est}{method of scale estimation: re-scaled MAD of the residuals (default) or Huber's proposal 2 (which can be selected by either "Huber" or "proposal 2"). Only MAD is implimented for complex variables.}
+\item{scale.est}{method of scale estimation: re-scaled MAD of the residuals (default) or Huber's proposal 2 (which can be selected by either "Huber" or "proposal 2"). Only MAD is implemented for complex variables.}
 
 \item{k2}{tuning constant used for Huber proposal 2 scale estimation.}
 

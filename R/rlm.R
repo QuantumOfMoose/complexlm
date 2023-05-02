@@ -257,7 +257,7 @@ rlm.default <-
     conv <- NULL
     n1 <- (if(is.null(wt)) nrow(x) else sum(wt)) - ncol(x)
     #theta <- 2*pnorm(k2) - 1 # pnorm() gives CDF of a normal distribution at k2 quantile. Do I need a complex normal pnorm()? Does such a thing exist? Maybe I should just ditch Huber's proposal 2...
-  gamma <- theta + k2^2 * (1 - theta) - 2 * k2 * dnorm(k2) # dnorm gives density of normal distribution at quantile k2. Shoot.
+  #gamma <- theta + k2^2 * (1 - theta) - 2 * k2 * dnorm(k2) # dnorm gives density of normal distribution at quantile k2. Shoot.
     ## At this point the residuals are weighted for inv.var and
     ## unweighted for case weights.  Only Huber handles case weights
     ## correctly.

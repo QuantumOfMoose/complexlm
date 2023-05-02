@@ -2,21 +2,21 @@
 
 Confidence intervals: make a function for calculating them from complex lm and rlm objects. Like the confint function from the stats package.
 
-generalized linear model
+SKIP generalized linear model
 
-weighted median for complex data
+SKIP weighted median for complex data
 
-huber estimator for complex data
+SKIP huber estimator for complex data
 
-s-estimator for complex data
+SKIP s-estimator for complex data
 
 DONE. incorporate the directional nature of the derivatives of the influence functions, mainly relavent for redescending estimators (Hampel and bisquare).
 
-come up with better names for the "pseudo-" variances, covariances, and standard errors. Maybe "complex-" ? Or "relation-" ?
+SKIP come up with better names for the "pseudo-" variances, covariances, and standard errors. Maybe "complex-" ? Or "relation-" ?
 
 Done Remove uneeded code from MASS.c, rename.
 
-pseudo MAD?
+SKIP pseudo MAD?
 
 DONE? add missing functions for complex linear model.
 
@@ -25,12 +25,12 @@ modify model.c from stats to allow complex variables in model matrices.
 
 DONE documentation
 
-add citations to documentation
+DONE add citations to documentation
 
 DONE add examples to documentation.
 
 DONE make a complex version of Mahalanobis distance function.
 
-add complex compatible cov, cor, and cov2cor functions.
+SKIP add complex compatible cov, cor, and cov2cor functions.
 
 clean up example file.

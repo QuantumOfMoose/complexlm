@@ -13,14 +13,14 @@
 
 \item{symbolic.cor}{Logical. If TRUE, print the correlations in a symbolic form (see \link[stats:symnum]{stats::symnum}) rather than as numbers. (This may not work.)}
 
-\item{...}{Further argements passed to or from other methods.}
+\item{...}{Further arguments passed to or from other methods.}
 }
 \value{
 Returns a list containing the following elements.
 \item{\code{residuals}}{Complex or numeric. The weighted residuals, that is the measured value minus the fitted value, scaled by the square root of the weights given in the call to lm.}
-\item{\code{correlation}}{A numeric matrix. The computed correlation coefficient matrix for the coefficients in the model.}
+\item{\code{correlation}}{A complex matrix with real diagonal elements. The computed correlation coefficient matrix for the coefficients in the model.}
 \item{\code{pseudocorrelation}}{A complex matrix. The computed pseudo-correlation coefficient matrix for the coefficients in the model.}
-\item{\code{cov.unscaled}}{The unscaled covariance matrix; i.e, a numeric matrix such that multiplying it by an estimate of the error variance produces an estimated covariance matrix for the coefficients.}
+\item{\code{cov.unscaled}}{The unscaled covariance matrix; i.e, a complex matrix with real diagonal elements such that multiplying it by an estimate of the error variance produces an estimated covariance matrix for the coefficients.}
 \item{\code{pcov.unscaled}}{The unscaled pseudo-covariance matrix; i.e, a complex matrix such that multiplying it by an estimate of the error pseudo-variance produces an estimated pseudo-covariance matrix for the coefficients.}
 \item{\code{sigma}}{Numeric. The square root of the estimated variance of the random error.}
 \item{\code{psigma}}{Complex. The square root of the estimated pseudo-variance of the random error. See details above.}
@@ -31,7 +31,7 @@ Returns a list containing the following elements.
 \item{\code{fstatistic}}{(for models including non-intercept terms) a 3 element numeric vector with the value of the F-statistic with its numerator and denominator degrees of freedom.}
 \item{\code{r.squared}}{Numeric. The fraction of variance explained by the model.}
 \item{\code{adj.r.squared}}{the above R^2 statistic "adjusted", penalizing for higher p.}
-\item{\code{symbolic.cor}}{(only if correlation is true.) The value of the argument symbolic.cor.}
+\item{\code{symbolic.cor}}{(only if \code{correlation} is true.) The value of the argument symbolic.cor.}
 \item{\code{na.action}}{from \code{object}, if present there.}
 }
 \description{
@@ -40,7 +40,7 @@ If the residuals of the fit object are numeric, \code{stats::summary.lm()} is ca
 }
 \details{
 See \link[stats:summary.lm]{stats::summary.lm} for more information.
-In addition to the output information returned by \code{stats::summary.lm}, this complex variable compatable version also returns
+In addition to the output information returned by \code{stats::summary.lm}, this complex variable compatible version also returns
 "pseudo standard error" or "relational standard error" which is the square root of the "pseudo-variance".
 This is a complex number that quantifies the covariance between the real and imaginary parts. Can also be thought of as the amount and direction of anisotropy in the
 presumed (complex normal) probability distribution in the complex plane. The argument of this number gives the direction of the semi-major axis.

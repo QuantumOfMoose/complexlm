@@ -4,10 +4,12 @@
 \alias{vcov.lm}
 \title{Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object}
 \usage{
-\method{vcov}{lm}(object, merge = TRUE, ...)
+\method{vcov}{lm}(object, complete = TRUE, merge = TRUE, ...)
 }
 \arguments{
 \item{object}{a fitted model object, typically. Sometimes also a summary() object of such a fitted model.}
+
+\item{complete}{logical. Indicates if the full covariance and pseudo-covariance matrices should be returned even in the case of an over-determined system, meaning that some coefficients are undefined.}
 
 \item{merge}{logical. Should the covariance matrix and pseudo-covariance / relational matrix be merged into one matrix of twice the dimensions? Default is TRUE.}
 
@@ -15,13 +17,13 @@
 }
 \value{
 If \code{merge} is false, a list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
-If \code{merge} is true, a large matrix (both dimensions twice the number of coefficients) containing both the variance-covariance matrix and the pseudo variance-covariance matrix, merged together.
+If \code{merge} is true, a large matrix (both dimensions being twice the number of coefficients) containing both the variance-covariance matrix and the pseudo variance-covariance matrix, merged together.
 }
 \description{
 A version of \code{\link[stats:vcov]{stats::vcov()}} that is compatible with complex linear models. In addition to variance-covariance matrix,
 the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
-Can also return the "big covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in (van den Bos 1995).
-While not as compact as two seperate smaller matrices, the big covariance matrix simplifies calculations such as the \link{mahalanobis} distance.
+Can also return the "double covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in (van den Bos 1995).
+While not as compact as two separate smaller matrices, the double covariance matrix simplifies calculations such as the \link{mahalanobis} distance.
 }
 \examples{
 set.seed(4242)
@@ -32,4 +34,7 @@ err <- complex(real = rnorm(n)/16, imaginary = rnorm(n)/16)
 tframe <- data.frame(x= x <- complex(real=rnorm(n), imaginary= rnorm(n)), y=slop*x + interc+err)
 fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
 vcov(fit)
+}
+\references{
+A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
 }

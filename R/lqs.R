@@ -188,8 +188,8 @@ lqs.default <-
                  as.integer(quantile), as.integer(lts), as.integer(adj),
                  as.integer(samp), as.integer(ps), as.integer(nsamp),
                  crit=complex(1), sing=integer(1L), bestone=integer(ps),
-                 coefficients=complex(p), as.complex(k0), as.complex(beta)
-             )[c("crit", "sing", "coefficients", "bestone")]
+                 coefficients=complex(p), as.complex(k0), as.complex(beta),
+             PACKAGE = zlqs.so)[c("crit", "sing", "coefficients", "bestone")]
     if(z$sing == nsamp)
       stop("'lqs' failed: all the samples were singular", call.=FALSE)
     z$sing <- paste(z$sing, "singular samples of size", ps, "out of", nsamp)
@@ -328,7 +328,7 @@ cov.zrob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
     divisor <- complex(real = apply(Re(x), 2, IQR), imaginary = apply(Im(x), 2, IQR)) # I'm uncertain how to adapt this to complex numbers... Interquartile range doesn't make much sense for
             # complex or >= 2 dimensional numbers, it'd have to some kind of area...
     if(any(divisor == 0)) stop("at least one column has IQR 0")
-    x <- x /rep(divisor, rep(n,p))
+    x <- x / rep(divisor, rep(n,p))
     qn <- quantile.used
     ps <- p + 1
     nexact <- choose(n, ps)

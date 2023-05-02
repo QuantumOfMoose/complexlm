@@ -61,3 +61,7 @@ y <- slope * x + intercept + e
 robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 summary(robfit)
 }
+\references{
+W. N. Venables and B. D. Ripley, Modern Applied Statistics with S, 4th ed (Springer, New York, 2002).
+P. J. Huber and E. Ronchetti, Robust Statistics, 2nd ed (Wiley, Hoboken, N.J, 2009).
+}

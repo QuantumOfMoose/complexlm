@@ -13,7 +13,7 @@ Complexdqlrs(x, y, tol = 1e-07, chk)
 
 \item{tol}{the tolerance for detecting linear dependencies in the columns of x. Not used for complex \code{x}.}
 
-\item{chk}{not used. Included to better immitate \code{C_Cdqlrs}.}
+\item{chk}{not used. Included to better imitate \code{C_Cdqlrs}.}
 }
 \value{
 A list that includes the qr decomposition, its coeffcionts, residuals, effects, rank, pivot information, qraux vector,

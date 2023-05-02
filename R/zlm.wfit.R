@@ -48,7 +48,8 @@ zmodel.matrix <- function(trms, data, contrasts.arg = NULL)
   respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
   termlabs <- attr(trms, "term.labels")
   interactions <- grep(":", attr(trms, "term.labels"), value = TRUE)
-  prednames <- termlabs[termlabs != interactions]
+  if (length(interactions) == 0) prednames <- termlabs
+  else prednames <- termlabs[termlabs != interactions]
   modelframe <- data[prednames]
   if (length(interactions) != 0) {
     for (inter in interactions) {
@@ -60,7 +61,10 @@ zmodel.matrix <- function(trms, data, contrasts.arg = NULL)
   else  modelmatrix <- as.matrix(modelframe)
   if (attr(trms, "intercept") == 1) attr(modelmatrix, "assign") <- 0:length(termlabs)
   else attr(modelmatrix, "assign") <- 1:length(termlabs)
-  attr(modelmatrix, "dimnames") <- list(as.character(1:length(modelframe[,1])), c("(intercept)", prednames, interactions)) # Fix the dimnames to match those on standard model matrices.
+  if (length(interactions) != 0) {
+    attr(modelmatrix, "dimnames") <- list(as.character(1:length(modelframe[,1])), c("(intercept)", prednames, interactions)) # Fix the dimnames to match those on standard model matrices.
+  }
+  else attr(modelmatrix, "dimnames") <- list(as.character(1:length(modelframe[,1])), c("(intercept)", prednames)) # Fix the dimnames to match those on standard model matrices.
   return(modelmatrix)
 }
 
@@ -126,7 +130,7 @@ Complexdqlrs <- function (x, y, tol = 1E-07, chk) {
 #' interc <- complex(real = 1.4, imaginary = 1.804)
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
-#' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
+#' tframe <- data.frame(x= xx, y= slop*xx + interc + e)
 #' lm(y ~ x, data = tframe, weights = rep(1,n))
 lm <- function (formula, data, subset, weights, na.action,
                 method = "qr", model = TRUE, x = FALSE, y = FALSE,
@@ -606,8 +610,8 @@ print.summary.lm <-
 #'
 #' A version of [stats::vcov()] that is compatible with complex linear models. In addition to variance-covariance matrix,
 #' the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
-#' Can also return the "big covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in van den Bos 1995[1].
-#' While not as compact as two separate smaller matrices, the big covariance matrix simplifies calculations such as the [mahalanobis] distance.
+#' Can also return the "double covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in (van den Bos 1995).
+#' While not as compact as two separate smaller matrices, the double covariance matrix simplifies calculations such as the [mahalanobis] distance.
 #' 
 #' @param object a fitted model object, typically. Sometimes also a summary() object of such a fitted model.
 #' @param ... Additional parameters, not currently used for anything.
@@ -619,7 +623,7 @@ print.summary.lm <-
 #' If `merge` is true, a large matrix (both dimensions being twice the number of coefficients) containing both the variance-covariance matrix and the pseudo variance-covariance matrix, merged together.
 #' @export
 #' 
-#' @references [1] A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
+#' @references A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
 #'
 #' @examples
 #' set.seed(4242)
