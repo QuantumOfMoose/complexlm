@@ -21,7 +21,7 @@
 #' @inherit MASS::lqs description params details return references seealso
 #' 
 #' @note This method of robust fitting relies on quantiles, which are not defined for complex numbers. While it will accept them and may return an acceptable fit, the accuracy, usefulness,
-#' and rigor of it are highly questionable. Please use [rlm] instead.
+#' and rigor of it are highly questionable. We would also like to note that this function is not always stable, and may cause R to crash. Please use [rlm] instead.
 #' 
 #' There seems no reason other than historical to use the lms and lqs options. LMS estimation is of low efficiency (converging at rate `n^{-1/3})` whereas LTS has the same asymptotic efficiency as an M estimator with trimming at the quartiles (Marazzi, 1993, p.201). LQS and LTS have the same maximal breakdown value of `(floor((n-p)/2) + 1)/n attained if floor((n+p)/2) <= quantile <= floor((n+p+1)/2)`. The only drawback mentioned of LTS is greater computation, as a sort was thought to be required (Marazzi, 1993, p.201) but this is not true as a partial sort can be used (and is used in this implementation).
 #' Adjusting the intercept for each trial fit does need the residuals to be sorted, and may be significant extra computation if n is large and p small.
@@ -29,15 +29,16 @@
 #' The computations are exact for a model with just an intercept and adjustment, and for LQS for a model with an intercept plus one regressor and exhaustive search with adjustment. For all other cases the minimization is only known to be approximate.
 #' 
 #' @export
+#' @useDynLib complexlm, .registration = TRUE
 #' @examples
-#' \dontrun{
 #' set.seed(4242)
-#' n = 8
-#' slope = complex(real = 4.23, imaginary = 2.323)
-#' intercept = complex(real = 1.4, imaginary = 1.804)
-#' x <- complex(real = rnorm(n), imaginary = rnorm(n))
-#' y <- slope * x + intercept +complex(real= rnorm(n), imaginary= rnorm(n))/9
-#' lqs(x = x, y = y) }
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+#' tframe <- data.frame(x= xx, y= slop*xx + interc + e)
+#' lqs(y ~ x, data = tframe)
 lqs <- function(x, ...) UseMethod("lqs")
 
 ####
@@ -56,7 +57,7 @@ lqs.formula <-
            model = TRUE, x.ret = FALSE, y.ret = FALSE, contrasts = NULL)
   {
     trms <- terms(formula)
-    respname <- as.character(attr(trms, "variables")[[attr(trms, "r esponse") + 1]])
+    respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
     cl <- match.call()
     if (is.complex(data[,respname]) == FALSE)
     {
@@ -188,8 +189,8 @@ lqs.default <-
                  as.integer(quantile), as.integer(lts), as.integer(adj),
                  as.integer(samp), as.integer(ps), as.integer(nsamp),
                  crit=complex(1), sing=integer(1L), bestone=integer(ps),
-                 coefficients=complex(p), as.complex(k0), as.complex(beta),
-             PACKAGE = zlqs.so)[c("crit", "sing", "coefficients", "bestone")]
+                 coefficients=complex(p), as.complex(k0), as.complex(beta)
+            )[c("crit", "sing", "coefficients", "bestone")]
     if(z$sing == nsamp)
       stop("'lqs' failed: all the samples were singular", call.=FALSE)
     z$sing <- paste(z$sing, "singular samples of size", ps, "out of", nsamp)

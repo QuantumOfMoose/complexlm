@@ -23,7 +23,7 @@
  *	zlqs_fitlots(...)
  *	zmve_fitlots(...)
  *
- * to be called as  .C(.)  in ../R/zlqs.R
+ * to be called as  .C(.)  in ../R/lqs.R
  *
  * Modified by William Ryan to handle complex number data.
  * Note: In many cases, I didn't know if it would be better to define variables or pointers, so I tried to imitate the original code.
