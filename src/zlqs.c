@@ -53,16 +53,16 @@
 #define BIG DBL_MAX
 
 /* GLOBAL Variables, explicitly allocated and freed: They would obviously need to be changed to complex.*/
-static Rcomplex *coef, *qraux, *work, *res, *yr, *xr, *means, *d2, *d2copy, *rwork, *lwork, *rb ;
-static double complex *ccoef, *cqraux, *cres, *y, *x, *cyr, *cxr, *cmeans, *cd2, *cd2copy;
+static Rcomplex *coef, *qraux, *work, *res, *yr, *xr, *means, *d2, *d2copy, *rb ;//, *rwork, *lwork
+static double complex *ccoef, *cqraux, *cwork, *cres, *y, *x, *cyr, *cxr, *cmeans, *cd2, *cd2copy;
 static int *pivot, *which, *which2;
 static int *ind;
 static double *s;
 
 /* This is probably not the correct way to do it, but try defining duplicate global variables for the Rcomplex ones above, which are the same, but represented as C99 double complex. */
-static double complex *ccoef, *cqraux, *cwork, *cres, *cyr, *cxr, *cd2, *cd2copy, *cb;
+//static double complex *ccoef, *cqraux, *cwork, *cres, *cyr, *cxr, *cd2, *cd2copy;//, *cb;
 
-/* A function that allocates memoy and */
+/* A function that allocates memory and */
 
 /* A function to create a matching array of Rcomplex from a double complex array of length n. It does not allocate memory, or create a variable, it just copies over values. */
 static void to_Rcmplx_array(double complex *carray, int n, Rcomplex *Rarray)
@@ -208,7 +208,7 @@ static double complex chi(double complex x, double complex a)
 {
     //double complex x = toC99(Rx);
     //double complex a = toC99(Ra);
-    double complex chi;
+    //double complex chi;
     //Rcomplex Rchi;
     
     x /= a; x *= x;
@@ -224,6 +224,7 @@ static double complex chi(double complex x, double complex a)
    For lots of subsets of size *nwhich, compute the exact fit to those
    data points and the residuals from all the data points. -> Convert lots of Rcomplex to C99 double complex, then back for returning.
    -> Finish changing to zgelsd. -> Based on La_qr_cmplx() from Lapack.c in r-source.
+   Something in this function causes a seg fault that lies in wait for the next function call...
  */
 void
 zlqs_fitlots(Rcomplex *Rx, Rcomplex *Ry, int *n, int *p, int *qn,
@@ -233,14 +234,14 @@ zlqs_fitlots(Rcomplex *Rx, Rcomplex *Ry, int *n, int *p, int *qn,
 {
     int nnew = *nwhich, pp = *p;
     int i, iter, j, k,  nn = *n, this, trial, lwork, *iwork, itmp;
-    int rank, info, n100 = 100;
+    int rank, info;//, n100 = 100;
     int firsttrial = 1;
     int nrhs = 1;
     double tol = 1.0e-7, *rwork, rtmp;
-    Rcomplex *work, tmp;
+    Rcomplex tmp;// *work,
     double complex a = 0.0, sum, target,
-	old, new, dummy, k0 = toC99(Rpk0), beta = toC99(Rbeta), best = BIG + BIG*I, *bestcoef,
-	crit = toC99(Rcrit), thiscrit; /* I hope that works for setting the Rcomplex values. */
+	old, new, k0 = toC99(Rpk0), beta = toC99(Rbeta), best = BIG + BIG*I, *bestcoef,
+	crit = toC99(Rcrit), thiscrit; /* I hope that works for setting the Rcomplex values. Used to be a variable "dummy" here too. */
 
     lqs_setup(n, p, nwhich);
     /* Copy values from Rcomplx arrays to double complex arrays. */
@@ -256,17 +257,17 @@ zlqs_fitlots(Rcomplex *Rx, Rcomplex *Ry, int *n, int *p, int *qn,
 
     for(trial = 0; trial < *ntrials; trial++) {
 
-	R_CheckUserInterrupt();
+    	R_CheckUserInterrupt();
 
-	if(!(*sample)) {if(trial > 0) next_set(which, nn, nnew);}
-	else sample_noreplace(which, nn, nnew);
+	    if(!(*sample)) {if(trial > 0) next_set(which, nn, nnew);}
+	    else sample_noreplace(which, nn, nnew);
 
 	/* The following loop formats b (aka y) and A (aka x) before passing them to zgelsd. It's a relic from using dqrdc2 and dqrsl. Would it be better to pass them directly? Probably not. I think this takes a random sample of the data in b (aka y) and A (aka x). Copy yr into rb, since zgels will replace it with the solution x (aka b) ((That's some confusing notation...)).*/
-	for(j = 0; j < nnew; j++) {
-	    this = which[j];
-	    yr[j] = Ry[this];
-	    rb[j] = yr[j];
-	    for(k = 0; k < pp; k++) xr[j + nnew*k] = Rx[this + nn*k];
+	    for(j = 0; j < nnew; j++) {
+	      this = which[j];
+	      yr[j] = Ry[this];
+	      rb[j] = yr[j];
+	      for(k = 0; k < pp; k++) xr[j + nnew*k] = Rx[this + nn*k];
 	}
 	
 	/* Workspace query. Get optimal value of lwork, and minimum values of rwork and iwork. Then allocate space for work, rwork, and iwork. */
@@ -279,11 +280,11 @@ zlqs_fitlots(Rcomplex *Rx, Rcomplex *Ry, int *n, int *p, int *qn,
 	rwork = (double *) R_alloc(rtmp, sizeof(double));
 	iwork = (int *) R_alloc(itmp, sizeof(int));
 	/* compute fit, find residuals */
-	F77_CALL(zgelsd)(&nnew, &pp, &nrhs, xr, &nnew, rb, &nnew, s, &tol, &rank, work, &lwork, rwork, iwork, &info);
+  F77_CALL(zgelsd)(&nnew, &pp, &nrhs, xr, &nnew, rb, &nnew, s, &tol, &rank, work, &lwork, rwork, iwork, &info);
 	//if(rank < pp) { (*sing)++; continue; }
 	/* F77_CALL(zqrsl)(xr, &nnew, &nnew, &rank, qraux, yr, &dummy, yr,
 			coef, &dummy, &dummy, &n100, &info); zgelsd does the work of both dqrdc2 and dqrsl, though in a different way. */
-/* the only thing that gets used later from thes FORTRAN calls is coef, as far as I can tell. */
+/* the only thing that gets used later from these FORTRAN calls is coef, as far as I can tell. */
 	coef = rb;
 	to_dblcmplx_array(coef, pp, ccoef);
 	/* This loop calculates the residuals.*/
@@ -344,7 +345,7 @@ zlqs_fitlots(Rcomplex *Rx, Rcomplex *Ry, int *n, int *p, int *qn,
 		sum = 0.0;
 		for(i = 0; i < nn; i ++) sum += chi(cres[i], k0 * old);
 		new = csqrt(sum/target) * old; /* Not sure if it's necessary to change sqrt to csqrt. */
-		if(fabs(cabs(sum/target) - 1.) < 1e-4) break; //The specific modifications to this line are unjustified. Someting needed changing, but this may not be the proper way to do it.
+		if(fabs(cabs(sum/target) - 1.) < 1e-4) break; //The specific modifications to this line are unjustified. Something needed changing, but this may not be the proper way to do it.
 		old = new;
 	    }
 	    thiscrit = new;
@@ -389,7 +390,7 @@ static void mve_setup(int *n, int *p, int *ps)
     cxr = (double complex *) R_alloc((*ps)*(*p), sizeof(double complex));
     x = (double complex *) R_alloc((*ps)*(*p), sizeof(double complex));
     cqraux = (double complex *) R_alloc(*p, sizeof(double complex));
-    //cwork = (double complex *) R_alloc(2*(*p), sizeof(double complex));
+    cwork = (double complex *) R_alloc(2*(*p), sizeof(double complex));
     cd2 = (double complex *) R_alloc(*n, sizeof(double complex));
     cd2copy = (double complex *) R_alloc(*n, sizeof(double complex));
     cmeans = (double complex *) R_alloc((*p), sizeof(double complex));
@@ -406,7 +407,7 @@ static Rcomplex mah(Rcomplex *xr, int nnew, int p, Rcomplex *x)
     int i, j;
     //Rcomplex s, ss = {.r = 0.0, .i = 0.0};
     Rcomplex mahh;
-    double complex s, ss = 0.0;
+    double s, ss = 0.0;
 
     for(j = 0; j < p; j++) {
 	s = toC99(&x[j]);
@@ -432,7 +433,7 @@ static int do_one(Rcomplex *Rx, int *which, int n, int nnew, int p,
     int i, j, k, lwork;
     int rank;
     int info;
-    double tol = 1.0e-7, *rwork, rtmp;
+    double *rwork, rtmp;//tol = 1.0e-7, 
     Rcomplex *work, tmp;
     double complex sum;
     //cxr = toC99(xr);
@@ -460,6 +461,7 @@ static int do_one(Rcomplex *Rx, int *which, int n, int nnew, int p,
     F77_CALL(zgeqp3)(&nnew, &p, xr, &nnew, pivot, qraux, work, &lwork, rwork, &info);
     to_dblcmplx_array(qraux, p, cqraux);
     to_dblcmplx_array(xr, n*p, cxr);
+    rank = nnew < p ? nnew : p;
     if(rank < p) return(1);
 
     sum = 0.0;
@@ -484,8 +486,8 @@ zmve_fitlots(Rcomplex *x, int *n, int *p, int *qn, int *mcd,
 {
     int i, iter, j, nn = *n, quan = *qn, trial, this_sing;
     int nnew = *nwhich;
-    Rcomplex thiscrit, lim, Rdet;
-    double complex det, best = BIG + BIG*I, *cx;
+    Rcomplex thiscrit, lim;//, Rdet;
+    double complex det, best = BIG + BIG*I;//, *cx;
 
     if(*mcd != 1)
 	mve_setup(n, p, nwhich);

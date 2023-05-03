@@ -38,7 +38,7 @@
 #' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 #' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
 #' tframe <- data.frame(x= xx, y= slop*xx + interc + e)
-#' lqs(y ~ x, data = tframe)
+#' lqs(y ~ x, data = tframe, method = "S")
 lqs <- function(x, ...) UseMethod("lqs")
 
 ####
@@ -211,7 +211,9 @@ lqs.default <-
     if(method == "S") { # IWLS refinement
       psi <- function(u, k0) (1  - pmin(1, abs(u/k0))^2)^2
       resid <- z$residuals
-      scale <- s
+      #print(resid)
+      scale <- s #ifelse(s > 100000, 10000, s)
+      #print(s)
       for(i in 1L:30L) {
         w <- psi(resid/scale, k0)
         if (is.complex(x)) temp <- zlm.wfit(x, y, w, method="qr") else temp <- lm.wfit(x, y, w, method="qr")
