@@ -16,6 +16,8 @@
 #  http://www.r-project.org/Licenses/
 #
 
+#@useDynLib complexlm, .registration = TRUE # Not needed since lqs.R functions moved to experimental branch.
+
 #' Robust Fitting of Linear Models, Compatible with Complex Variables
 #' 
 #' Uses robust M-estimation to fit a linear model to numeric or complex data. Based on [MASS::rlm()].
@@ -31,7 +33,6 @@
 #' algorithm are defined over the set of complex numbers. While ordering is not defined for them, it is the output of rho(), a real number, that must be 
 #' in M-estimation.
 #' 
-#' @useDynLib complexlm, .registration = TRUE
 #' @import MASS
 #' @import stats
 #' @export
