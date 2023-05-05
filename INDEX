@@ -1,9 +1,22 @@
 Functions:
 =========
 
-cov.rob                 Resistant Estimation of Multivariate Location and
-
-predict.lqs             Predict from an lqs Fit
-rlm                     Robust Fitting of Linear Models
-
-summary.rlm             Summary Method for Robust Linear Models
+Complexdqlrs            Complex QR Decomposition for Linear Fitting
+lm                      Least Squares Fitting of Linear Models with Complex Variables
+mad                     Median Absolute Deviation of Complex Data
+mahalanobis             Mahalanobis Distance of Complex Vectors and Distributions
+matrixweave             Interleave the Elements of Two Equal Dimension Square Matrices 
+median                  Median of Complex Valued Data
+predict.rlm             Predict Method for Robust Complex Linear Models
+print.summary.lm        Print a Summary of a Complex Linear Model
+print.summary.rlm       Print a Summary of a Robust Complex Linear Model
+pseuzvar                Pseudo or Relational Variance of Complex Vectors
+psi.bisquare            Weight Function of Tukey's Bisquare Influence Function
+psi.hampel              Weight Function of Hampel Influence Function
+psi.huber               Weight Function of Huber Loss Influence Functio
+rlm                     Robust Fitting of Linear Models with Complex Variables
+summary.lm              Summary Method for Complex Linear Models
+summary.rlm             Summary Method for Robust Complex Linear Models
+var                     Variance of Complex Vectors
+wmedian                 Weighted Median
+zmodel.matrix           Generate a Complex Model Matrix

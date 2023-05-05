@@ -304,3 +304,29 @@ mahalanobis <- function(x, center, cov, pcov = NULL, inverted=FALSE, ...)
     setNames(rowSums(Conj(x) %*% cov * x), rownames(x))
   }
 }
+
+#' summary method for complex objects
+#' 
+#' The base summary method for complex objects only reports their length and that they are complex..
+#' This improved method returns the mean, median, variance, and pseudo variance of the given complex object.
+#'
+#' @param object a complex vector or scalar.
+#' @param ... additional arguments, not used.
+#' @param digits integer specifying the number of digits to include in the summary values.
+#' 
+#' @return
+#' @export
+#'
+#' @examples
+#' set.seed(4242)
+#' n <- 8
+#' foo <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' summary(foo)
+summary.complex <- function(object, ..., digits)
+{
+  value <- c(length(object), median(object), mean(object), var(object), pseuzvar(object))
+  if(!missing(digits)) value <- signif(value, digits)
+  names(value) <- c("length", "median", "mean", "var.", "pvar.")
+  class(value) <- c("summaryDefault", "table")
+  value
+}
