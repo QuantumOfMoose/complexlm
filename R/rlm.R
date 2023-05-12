@@ -489,6 +489,8 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
 #' @param x a rlm object or an rlm summary object. Used for `print.summary.rlm` 
 #' @param digits the number of digits to include in the printed report, default is three. Used for `print.summary.rlm`
 #' 
+#' @note For complex fits the quantiles reported by this function are based on sorting the real parts of the residuals. They should not be considered reliable..
+#' 
 #' @export
 print.summary.rlm <- function(x, digits = max(3, .Options$digits - 3), ...)
 {
