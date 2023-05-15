@@ -187,6 +187,12 @@ residplot
 
 ### Finally, we will have a look at the coefficient estimates produced by these regressions, and their uncertainties. 
 ### We shall see which best extracted the relationship between the predictor and response variables.
+fits <- paste('ex.one.', fitnames, sep = '')
+summarizer <- function(fitname) { # function that returns a vector of coefficients and standard devs from the name of a lm object.
+  fit <- as.name(fitname)
+  fitsum <- summary(eval(fit))
+  c(intercept = )
+}
 summarydf.exone <- data.frame()
 
 plot(ex.one)

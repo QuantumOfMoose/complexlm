@@ -507,7 +507,8 @@ print.summary.rlm <- function(x, digits = max(3, .Options$digits - 3), ...)
     dput(x$call, control=NULL)
     resid <- x$residuals
     df <- x$df
-    rdf <- df[2L]
+    if (length(x$df) == 1) rdf <- df
+      else rdf <- df[2L]
     print(rdf)
     cat(if(!is.null(x$weights) && diff(range(x$weights))) "Weighted ",
         "Residuals:\n", sep="")
@@ -689,6 +690,7 @@ predict.rlm <- function (object, newdata = NULL, scale = NULL, ...)
     ## the QR decomp which has been done on down-weighted values.
     ## Only works if explicit weights are given during the call that produced object..?
     object$qr <- qr(sqrt(object$weights) * object$x)
+    #print('cats') # For debugging.
     NextMethod(object, scale = object$s, ...) # So this just calls predict.lm on the object.
 }
 

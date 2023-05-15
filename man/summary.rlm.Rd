@@ -50,6 +50,9 @@ This is a complex number that quantifies the covariance between the real and ima
 \item \code{print.summary.rlm}: Print the summary of a (possibly complex) robust linear fit.
 }}
 
+\note{
+For complex fits the quantiles reported by this function are based on sorting the real parts of the residuals. They should not be considered reliable..
+}
 \examples{
 set.seed(4242)
 n <- 8

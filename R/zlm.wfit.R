@@ -120,6 +120,8 @@ Complexdqlrs <- function (x, y, tol = 1E-07, chk) {
 #' model.frame needs to be changed to allow complex variables in order to enable these features.
 #'
 #' @inherit stats::lm description details params return
+#' 
+#' @note In `complexlm`, the `x` parameter defaults to `TRUE` so that followup methods such as [predict.lm] have access to the model matrix.
 #'
 #' @export
 #'
@@ -133,7 +135,7 @@ Complexdqlrs <- function (x, y, tol = 1E-07, chk) {
 #' tframe <- data.frame(x= xx, y= slop*xx + interc + e)
 #' lm(y ~ x, data = tframe, weights = rep(1,n))
 lm <- function (formula, data, subset, weights, na.action,
-                method = "qr", model = TRUE, x = FALSE, y = FALSE,
+                method = "qr", model = TRUE, x = TRUE, y = FALSE,
                 qr = TRUE, singular.ok = TRUE, contrasts = NULL,
                 offset, ...)
 {
@@ -540,8 +542,9 @@ summary.lm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
     ans <- z[c("call", "terms", if(!is.null(z$weights)) "weights")]
     ans$residuals <- r
     ans$coefficients <-
-      cbind(Estimate = est, "Std. Error" = se, "Pseudo Std. Error" = pse, "t value" = tval,
+      cbind("Estimate" = est, "Std. Error" = se, "Pseudo Std. Error" = pse, "t value" = tval,
             "Pr(>|t|)" = 2*pt(abs(tval), rdf, lower.tail = FALSE)) # Only "Estimate" shows up as a column heading upon print..?
+    dimnames(ans$coefficients)[[2]] <- c("Estimate", "Std. Error", "Pseudo Std. Error", "t value", "Pr(>|t|)")
     ans$aliased <- is.na(z$coefficients)  # used in print method
     ans$sigma <- sqrt(resvar)
     ans$psigma <- sqrt(respvar)
