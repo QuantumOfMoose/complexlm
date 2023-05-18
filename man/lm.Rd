@@ -12,7 +12,7 @@ lm(
   na.action,
   method = "qr",
   model = TRUE,
-  x = FALSE,
+  x = TRUE,
   y = FALSE,
   qr = TRUE,
   singular.ok = TRUE,
@@ -58,10 +58,7 @@ lm(
     response, the QR decomposition) are returned.
   }
 
-\item{x}{logicals.  If \code{TRUE} the corresponding
-    components of the fit (the model frame, the model matrix, the
-    response, the QR decomposition) are returned.
-  }
+\item{x}{logical. If TRUE return the model matrix of the fit. Default is TRUE.}
 
 \item{y}{logicals.  If \code{TRUE} the corresponding
     components of the fit (the model frame, the model matrix, the
@@ -180,6 +177,10 @@ Models for \code{lm} are specified symbolically.  A typical model has
   All of \code{weights}, \code{subset} and \code{offset} are evaluated
   in the same way as variables in \code{formula}, that is first in
   \code{data} and then in the environment of \code{formula}.
+}
+\note{
+In \code{complexlm}, the \code{x} parameter defaults to \code{TRUE} so that followup
+methods such as \link{predict.lm} have access to the model matrix.
 }
 \examples{
 set.seed(4242)

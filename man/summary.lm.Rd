@@ -36,7 +36,7 @@ Returns a list containing the following elements.
 }
 \description{
 This extends summary.lm() to handle linear fits of complex variables.
-If the residuals of the fit object are numeric, \code{stats::summary.lm()} is called.
+If the residuals of the fit object are numeric, \code{\link[stats:summary.lm]{stats::summary.lm()}} is called.
 }
 \details{
 See \link[stats:summary.lm]{stats::summary.lm} for more information.

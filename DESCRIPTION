@@ -2,7 +2,7 @@ Package: complexlm
 Version: 0.2
 Date: 2022-12-09
 Depends: R (>= 3.3.0), stats, MASS
-Imports: methods, grDevices, utils, ggplot2, reshape2, pracma
+Imports: methods, grDevices, utils, ggplot2, reshape2, pracma, graphics
 # Enhances: MASS
 Authors@R: c(person("Brian", "Ripley", role = c("aut", "cph"),
                     email = "ripley@stats.ox.ac.uk"),

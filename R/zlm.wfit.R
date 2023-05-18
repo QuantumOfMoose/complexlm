@@ -91,8 +91,8 @@ zmodel.matrix <- function(trms, data, contrasts.arg = NULL)
 #' intercept <- complex(real = 1.4, imaginary = 1.804)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' y <- slope * x + intercept
-#' Complexdqlrs(x, y, 10^-4, 1.2)
-Complexdqlrs <- function (x, y, tol = 1E-07, chk) {
+#' complexdqlrs(x, y, 10^-4, 1.2)
+complexdqlrs <- function (x, y, tol = 1E-07, chk) {
   thisqr <- qr(x, tol = tol)
   coefficients <- qr.coef(thisqr, y)
   resids <- y - as.matrix(x) %*% coefficients
@@ -121,7 +121,10 @@ Complexdqlrs <- function (x, y, tol = 1E-07, chk) {
 #'
 #' @inherit stats::lm description details params return
 #' 
-#' @note In `complexlm`, the `x` parameter defaults to `TRUE` so that followup methods such as [predict.lm] have access to the model matrix.
+#' @param x logical. If TRUE return the model matrix of the fit. Default is TRUE.
+#' 
+#' @note In `complexlm`, the `x` parameter defaults to `TRUE` so that followup
+#' methods such as [predict.lm] have access to the model matrix.
 #'
 #' @export
 #'
@@ -339,12 +342,14 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
                 fitted.values = 0 * y, weights = w, rank = 0L, df.residual = 0L))
   }
   wts <- sqrt(w)
+  #print(wts) # Used for debugging.
   #print(typeof(wts)) # Used for debugging.
   #print(typeof(x)) # Used for debugging.
-  z <- Complexdqlrs(x * wts, y * wts, tol, FALSE)
+  z <- complexdqlrs(x * wts, y * wts, tol, FALSE)
   if (!singular.ok && z$rank < p) 
     stop("singular fit encountered")
   coef <- z$coefficients
+  #print(coef) # Used for debugging.
   pivot <- z$pivot
   r1 <- seq_len(z$rank)
   dn <- colnames(x)
@@ -406,7 +411,7 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 #' Summarize Complex Linear Model Fits.
 #' 
 #' This extends summary.lm() to handle linear fits of complex variables.
-#' If the residuals of the fit object are numeric, `stats::summary.lm()` is called.
+#' If the residuals of the fit object are numeric, [stats::summary.lm()] is called.
 #'
 #' @param object An object of class 'lm'. Presumably returned by [lm]. May contain complex variables.
 #' @param correlation Logical. If TRUE, the correlation matrix of the estimated parameters is returned and printed.
@@ -640,14 +645,14 @@ print.summary.lm <-
 vcov.lm <- function (object, complete = TRUE, merge = TRUE, ...)
   
 {
-  cll <- match.call()
-  if (is.numeric(object$residuals))
-  {
-    cll[[1]] <- stats::vcov.lm
-    eval(cll, parent.frame())
-  }
-  else
-  {
+cll <- match.call()
+if (is.numeric(object$residuals))
+{
+  cll[[1]] <- stats::vcov.lm
+  eval(cll, parent.frame())
+}
+else
+{
     ## Copied from stats::vcov , modified to used NA_complex_ instead of NA_real_.
     complex.vcov.aliased <- function(aliased, vc, ccomplete = TRUE) {
       ## Checking for "NA coef": "same" code as in print.summary.lm() in ./lm.R :
@@ -678,3 +683,534 @@ vcov.lm <- function (object, complete = TRUE, merge = TRUE, ...)
   }  
 }
 
+#' Generate the Hat Matrix or Leverage Scores of a Complex Linear Model
+#' 
+#' This function returns either the full hat matrix (AKA the projection matrix) of a complex "lm" or "rlm" object. 
+#' It performs the same basic role as [stats::hat] and [stats::hatvalues] do for numeric fits, but is quite a bit simpler
+#' and less versatile. 
+#' 
+#'
+#' @param model A complex linear fit object, of class "lm" or "rlm". An object with numeric residuals will produce a warning and NULL output.
+#' @param full Logical. If TRUE, return the entire hat matrix. If FALSE, return a vector of the diagonal elements of the hat matrix. These are the influence scores. Default is FALSE.
+#' @param ... Additional arguments. Not used.
+#' 
+#' @details For unweighted least-squares fits the hat matrix is calculated from the model matrix, `X = model$x`, as
+#' \eqn{H = X (X^\dagger X)^{-1} X^\dagger}
+#' For rlm or weighted least-squares fits the hat matrix is calculated as
+#' \eqn{H = X (X^\dagger W X)^{-1} X^\dagger W}
+#' Where \eqn{W} is the identity matrix times the user provided weights and the final IWLS weights if present.
+#' Note that this function requires that the model matrix be returned when calling [lm] or [rlm].
+#' The diagonals will be purely real, and are converted to numeric if `full == FALSE`.
+#'
+#' @return Either a \eqn{(n x n)} complex matrix or a length \eqn{n} numeric vector.
+#' @export
+#'
+#' @examples
+#' set.seed(4242)
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+#' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
+#' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
+#' zhatvalues(fit)
+zhatvalues <- function(model, full = FALSE, ...)
+{
+  if (!is.complex(model$residuals)) 
+    {
+    warning('This is for complex models only. Please use stats::hatvalues() instead.')
+    return(NULL)
+  }
+  X <- model$x
+  if ((is.null(model$weights) || all(model$weights == 1)) && !inherits(model, 'rlm')) {
+    # Clever computation with the QR decomposition failed to produce something reasonable. Do it the slow way.
+    hat <- X %*% solve((Conj(t(X)) %*% X)) %*% Conj(t(X))
+  }
+  else {
+    if (inherits(model, 'rlm')) wmat <- diag(ifelse(is.null(model$weights), 1, model$weights) * model$w) # If rlm, take into account the user supplied weights and the IWLS weights.
+      else wmat <- diag(model$weights)
+    hat <- X %*% solve((Conj(t(X)) %*% wmat %*% X)) %*% Conj(t(X)) %*% wmat
+  }
+  if (full) return(hat)
+  else return(Re(diag(hat)))
+}
+
+
+#' Standardized Residuals from Ordinary or Robust Linear fits with Complex Variables
+#' 
+#' Generates a vector of residuals from the given complex linear model that are normalized to have unit variance.
+#' Similar to [stats::rstandard], which this function calls if given numeric input.
+#'
+#' @param model An object of class "lm" or "rlm". Can be complex or numeric.
+#' @param lever A list of leverage scores with the same length as `model$residuals`. By default [zhatvalues] is called on `model`.
+#' @param ... Other parameters. Only used if `model` is numeric; in which case they are passed to `stats::rstandard`.
+#'
+#' @details The standardized residuals are calculated as,
+#' \eqn{r' = r / ( s sqrt(1 - lever) )}
+#' Where \eqn{r} is the residual vector and \eqn{s} is the residual standard error for "lm" objects
+#' and the robust scale estimate for "rlm" objects.
+#' 
+#' @note This is a much simpler function than [stats::rstandard]. 
+#' It cannot perform leave-one-out cross validation residuals, or anything else not mentioned here.
+#'
+#' @return A complex vector of length equal to that of the residuals of `model`. Numeric for numeric input.
+#' @export
+#'
+#' @examples
+#' set.seed(4242)
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+#' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
+#' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
+#' rstandard(fit)
+rstandard <- function(model, lever = zhatvalues(model), ...)
+{
+  cll <- match.call()
+  if (is.numeric(model$residuals))
+  {
+    cll[[1]] <- stats::rstandard
+    eval(cll, parent.frame())
+  }
+  else
+  {
+    p <- model$rank
+    s <- if (inherits(model, "rlm")) model$s # This is the residual standard error.
+      else sqrt(abs(deviance(model))/df.residual(model)) # deviance is the sum of residuals squared. The abs() gives us sum (r*r), which is numeric.
+    return((model$residuals) / (s * sqrt(1 - lever)))
+  }
+}
+
+#' Cook's Distance for Complex Linear Models
+#' 
+#' Calculates the Cook's distances (technically a divergence, i.e. distance squared) of a complex linear model. 
+#' These serve as a measurement of how much each input data point had on the model.
+#'
+#' @param model An object of class "lm" or "rlm". Can be complex or numeric.
+#' @param lever A list of leverage scores with the same length as `model$residuals`. By default [zhatvalues] is called on `model`.
+#' @param ... Other parameters. Only used if `model` is numeric; in which case they are passed to `stats::cooks.distance`.
+#' 
+#' @details Consider a linear model relating a response vector `y` to a predictor vector `x`, both of length `n`. Using the model and predictor vector we can
+#' calculate a vector of predicted values `yh`. `y` and `yh` are points in a `n` dimensional output space. If we drop the `i`-th element of `x` and `y`, then fit another
+#' model using the "dropped `i`" vectors, we can get another point in output space, `yhi`. The squared Euclidean distance between `yh` and `yhi`, divided by the 
+#' rank of the model times its mean squared error, is the `i`-th Cook's distance.
+#' \eqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}
+#' A more elegent way to calculate it, which this function uses, is with the influence scores, `hii`.
+#' \eqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}
+#' Where `r_i` is the `i`-th residual. 
+#' 
+#' @note `complexlm::cooks.distance` is a simpler function than [stats::cooks.distance], and does not understand any additional parameters not listed in this entry.
+#' 
+#' @references R. D. Cook, Influential Observations in Linear Regression, Journal of the American Statistical Association 74, 169 (1979).
+#'
+#' @return A numeric vector. The elements are the Cook's distances of each data point in `model`.
+#' @export
+#'
+#' @examples
+#' set.seed(4242)
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+#' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
+#' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
+#' cooks.distance(fit)
+cooks.distance <- function(model, lever = zhatvalues(model), ...)
+{
+  cll <- match.call()
+  if (is.numeric(model$residuals))
+  {
+    cll[[1]] <- stats::cooks.distance
+    eval(cll, parent.frame())
+  }
+  else
+  {
+    p <- model$rank
+    s <- if (inherits(model, "rlm")) model$s # This is the residual standard error.
+      else sqrt(abs(deviance(model))/df.residual(model)) # deviance is the sum of residuals squared. The abs() gives us sum (r*r), which is numeric.
+    return(as.numeric((sum(Conj(model$residuals) * model$residuals) / (p * s^2)) * (lever / (1 - lever)^2))) # As a distance, this will be positive real.
+  }
+}
+
+#' Plot Diagnostics for a Complex lm Object
+#' 
+#' A modified version of [stats::plot.lm] which is capable of visualizing ordinary ("lm") and robust ("rlm")
+#' linear models of complex variables. This documentation entry describes the complex version, focusing on the
+#' differences and changes from the numeric. For a more thorough explanation of the plots please see [stats::plot.lm].
+#' If given a numeric linear model, this function calls [stats::plot.lm].
+#'
+#' @inherit stats::plot.lm params
+#' 
+#' @details Five of the six plots generated by [stats::plot.lm] can be produced by this function:
+#' The residuals vs. fitted values plot, the scale-location plot, the plot of Cook's distances vs. row labels,
+#' the plot of residuals vs. leverages, and the plot of Cook's distances vs. leverage/(1-leverage). The Q-Q plot is
+#' \emph{not} drawn because it requires quantiles, which are not unambiguously defined for complex numbers.
+#' Because complex numbers are two dimensional, [pairs] is used to create multiple scatter plots of the real 
+#' and imaginary components for the residuals vs. fitted values and scale-location plots.
+#'
+#' @return Several diagnostic plots.
+#' @export
+#'
+#' @examples
+#' set.seed(4242)
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
+#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
+#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
+#' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
+#' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
+#' plot(fit)
+plot.lm <- function(x, which = c(1,3,5), ## was which = 1L:4L,
+                    caption = list("Residuals vs Fitted",
+                                   "Scale-Location", "Cook's distance",
+                                   "Residuals vs Leverage",
+                                   expression("Cook's dist vs Leverage  " * h[ii] / (1 - h[ii]))),
+                    panel = if(add.smooth) function(x, y, ...)
+                      panel.smooth(x, y, iter=iter.smooth, ...) else points,
+                    sub.caption = NULL, main = "",
+                    ask = prod(par("mfcol")) < length(which) && dev.interactive(), ...,
+                    id.n = 3, labels.id = names(residuals(x)), cex.id = 0.75,
+                    qqline = TRUE, cook.levels = c(0.5, 1.0),
+                    add.smooth = getOption("add.smooth"),
+                    iter.smooth = if(isGlm # && binomialLike
+                    ) 0 else 3,
+                    label.pos = c(4,2), cex.caption = 1, cex.oma.main = 1.25) ## Looks like I can do the leverage, the scale-location, and the residuaals vs fitted.
+{
+  # Note: It's not very efficient to perform all these calculations even if the user only wants some of the plots.
+  # plotdf <- data.frame("Real Residuals" = Re(x$residuals), "Imaginary Residuals" = Im(x$residuals), "Real Fitted Values" = Re(x$fitted.values), "Imaginary Fitted Values" = Im(x$fitted.values))
+  # plotdf$leverage <- zhatvalues(x)
+  # standerr <- summary(x)$sigma
+  # plotdf$standresid <- x$residuals / (standerr * sqrt(1 - plotdf$leverage))
+  # plotdf$Real.Standardized.Residuals <- Re(plotdf$standresid)
+  # plotdf$Imaginary.Standardized.Residuals <- Im(plotdf$standresid)
+  # # Cook's distance.
+  # p <- x$rank
+  # plotdf$CooksDistance <- ((Conj(t(x$residuals)) * x$residuals) / (p * standerr^2)) * (plotdf$leverage / (1 - leverage)^2)
+  # 
+  # # Now for the plotting.
+  # # Start with the Residuals vs. Fitted plot(s).
+  # plot(subset(plotdf, select = c(Real.Residuals, Imaginary.Residuals, Real.Fitted.Values, Imaginary.Fitted.Values)))
+  # 
+  dropInf <- function(x, h) {
+    if(any(isInf <- h >= 1.0)) {
+      warning(gettextf("not plotting observations with leverage one:\n  %s",
+                       paste(which(isInf), collapse=", ")),
+              call. = FALSE, domain = NA)
+      x[isInf] <- NaN
+    }
+    x
+  }
+  
+  if (!inherits(x, "lm"))
+    stop("use only with \"lm\" objects")
+  if(!is.numeric(which) || any(which < 1) || any(which > 6))
+    stop("'which' must be in 1:6")
+  if((isGlm <- inherits(x, "glm")))
+    binomialLike <- family(x)$family == "binomial" # || "multinomial" (maybe)
+  show <- rep(FALSE, 6)
+  show[which] <- TRUE
+  r <- if(isGlm) residuals(x, type="pearson") else residuals(x)
+  yh <- predict(x) # != fitted() for glm
+  w <- weights(x)
+  if(!is.null(w)) { # drop obs with zero wt: PR#6640
+    wind <- w != 0
+    r <- r[wind]
+    yh <- yh[wind]
+    w <- w[wind]
+    labels.id <- labels.id[wind]
+  }
+  n <- length(r)
+  if (any(show[2L:6L])) {
+    s <- if (inherits(x, "rlm")) x$s
+    else if(isGlm) sqrt(summary(x)$dispersion)
+    else sqrt(deviance(x)/df.residual(x)) # deviance is the sum of residuals squared.
+    hii <- zhatvalues(x) # calculate the influence scores.
+    if (any(show[4L:6L])) {
+      cook <- cooks.distance(x, lever = hii)
+      ## cook <-
+      ##     if (isGlm)
+      ##         cooks.distance (x, infl = infl)
+      ##     else cooks.distance(x, infl = infl, sd = s, res = r, hat = hii)
+    }
+  }
+  if (any(show[c(2L,3L,5L)])) {
+    ## (Defensive programming used when fusing code for 2:3 and 5)
+    ylab5 <- ylab23 <- if(isGlm) "Std. Pearson resid." else "Standardized residuals"
+    r.w <- if (is.null(w)) r else sqrt(w) * r
+    ## NB: rs is already NaN if r=0, hii=1
+    rsp <- rs <- dropInf( if (isGlm) rstandard(x, type="pearson") else r.w/(s * sqrt(1 - hii)), hii )
+}
+  
+  if (any(show[5L:6L])) { # using 'leverages'
+    r.hat <- range(hii, na.rm = TRUE) # though should never have NA
+    isConst.hat <- all(r.hat == 0) ||
+      diff(r.hat) < 1e-10 * mean(hii, na.rm = TRUE)
+  }
+  if (any(show[c(1L, 3L)]))
+    l.fit <- if (isGlm) "Predicted values" else "Fitted values"
+  if (is.null(id.n))
+    id.n <- 0
+else {
+    id.n <- as.integer(id.n)
+    if(id.n < 0L || id.n > n)
+      stop(gettextf("'id.n' must be in {1,..,%d}", n), domain = NA)
+  }
+  if(id.n > 0L) { ## label the largest residuals
+    if(is.null(labels.id))
+      labels.id <- paste(1L:n)
+    iid <- 1L:id.n
+    show.r <- sort.list(abs(median(r) - r), decreasing = TRUE)[iid] # sort based on distance from median.
+    if(any(show[2L:3L]))
+      show.rs <- sort.list(abs(median(rs) - rs), decreasing = TRUE)[iid] # sort based on distance from the median.
+    text.id <- function(x, y, ind, adj.x = TRUE) {
+      labpos <-
+        if(adj.x) label.pos[1+as.numeric(abs(x) > abs(mean(range(x))))] else 3
+      text(x, y, labels.id[ind], cex = cex.id, xpd = TRUE,
+           pos = labpos, offset = 0.25)
+    }
+  }
+  getCaption <- function(k) # allow caption = "" , plotmath etc
+    if(length(caption) < k) NA_character_ else as.graphicsAnnot(caption[[k]])
+  
+  if(is.null(sub.caption)) { ## construct a default:
+    cal <- x$call
+    if (!is.na(m.f <- match("formula", names(cal)))) {
+      cal <- cal[c(1, m.f)]
+      names(cal)[2L] <- "" # drop	" formula = "
+    }
+    cc <- deparse(cal, 80) # (80, 75) are ``parameters''
+    nc <- nchar(cc[1L], "c")
+    abbr <- length(cc) > 1 || nc > 75
+    sub.caption <-
+      if(abbr) paste(substr(cc[1L], 1L, min(75L, nc)), "...") else cc[1L]
+  }
+  one.fig <- prod(par("mfcol")) == 1
+  if (ask) {
+    oask <- devAskNewPage(TRUE)
+    on.exit(devAskNewPage(oask))
+  }
+  ##---------- Do the individual plots : ----------
+  if (show[1L]) { # Residuals vs. Fitted Values
+    # ylim <- range(Im(r), na.rm=TRUE)
+    # xlim <- range(Re(r), na.rm=TRUE)
+    # if(id.n > 0) {
+    #   ylim <- extendrange(r = ylim, f = 0.08)
+    #   xlim <- extendrange(r = xlim, f = 0.08)
+    # }
+    ## pairs seems to do a good job of setting the limits.
+    resfitdf <- data.frame(rer = Re(r), imr = Im(r), reyh = Re(yh), imyh = Im(yh))
+    dev.hold()
+    #plot(yh, r, xlab = l.fit, ylab = "Residuals", main = main,
+    #     ylim = ylim, type = "n", ...)
+    plot(resfitdf, labels = c("Re(Residuals)", "Im(Residuals", "Re(Fitted Values)", "Im(Fitted Values)"), panel = panel) # Uses pairs to draw a matrix of scatterplots.
+    #panel(yh, r, ...)
+    if (one.fig)
+      title(sub = sub.caption, ...)
+    mtext(getCaption(1), 3, 0.25, cex = cex.caption)
+    # if(id.n > 0) { # This won't look right with the pairs scatterplot matrix.
+    #   y.id <- r[show.r] # arrange r decreasing distance from median.
+    #   y.id[y.id < 0] <- y.id[y.id < 0] - strheight(" ")/3
+    #   text.id(yh[show.r], y.id, show.r)
+    # }
+    abline(h = 0, lty = 3, col = "gray")
+    dev.flush()
+  }
+  # if (show[2L]) { ## Normal # Q-Q plot, not available without definition of complex quantile.
+  #   ylim <- range(rs, na.rm=TRUE)
+  #   ylim[2L] <- ylim[2L] + diff(ylim) * 0.075
+  #   dev.hold()
+  #   qq <- qqnorm(rs, main = main, ylab = ylab23, ylim = ylim, ...)
+  #   if (qqline) qqline(rs, lty = 3, col = "gray50")
+  #   if (one.fig)
+  #     title(sub = sub.caption, ...)
+  #   mtext(getCaption(2), 3, 0.25, cex = cex.caption)
+  #   if(id.n > 0)
+  #     text.id(qq$x[show.rs], qq$y[show.rs], show.rs)
+  #   dev.flush()
+  # }
+  if (show[3L]) { # fitted values vs. sqrt abs standardized residuals. AKA Scale-Location Plot
+    sqrtabsr <- sqrt(abs(rs))
+    #ylim <- c(0, max(sqrtabsr, na.rm=TRUE))
+    yl <- as.expression(substitute(sqrt(abs(YL)), list(YL=as.name(ylab23))))
+    yhn0 <- if(is.null(w)) yh else yh[w!=0]
+    dev.hold()
+    scalocdf <- data.frame(sqrtabsr, reyhn0 = Re(yhn0), imyhn0 = Im(yhn0))
+    plot(scalocdf, labels = c(yl, "Re(Fitted Values)", "Im(Fitted Values)"), panel = panel)
+    #plot(yhn0, sqrtabsr, xlab = l.fit, ylab = yl, main = main,
+    #     ylim = ylim, type = "n", ...)
+    #panel(yhn0, sqrtabsr, ...)
+    if (one.fig)
+      title(sub = sub.caption, ...)
+    mtext(getCaption(3), 3, 0.25, cex = cex.caption)
+    if(id.n > 0)
+      text.id(yhn0[show.rs], sqrtabsr[show.rs], show.rs)
+    dev.flush()
+  }
+  if (show[4L]) { ## Cook's Distances
+    if(id.n > 0) {
+      show.r <- order(-cook)[iid]# index of largest 'id.n' ones
+      ymx <- cook[show.r[1L]] * 1.075
+    } else ymx <- max(cook, na.rm = TRUE)
+    dev.hold()
+    plot(cook, type = "h", ylim = c(0, ymx), main = main,
+         xlab = "Obs. number", ylab = "Cook's distance", ...) # What is the x axis here..? Oh, just an index.
+    if (one.fig)
+      title(sub = sub.caption, ...)
+    mtext(getCaption(4), 3, 0.25, cex = cex.caption)
+    if(id.n > 0)
+      text.id(show.r, cook[show.r], show.r, adj.x=FALSE)
+    dev.flush()
+  }
+  if (show[5L]) {
+    ### Now handled earlier, consistently with 2:3, except variable naming
+    ## ylab5 <- if (isGlm) "Std. Pearson resid." else "Standardized residuals"
+    ## r.w <- residuals(x, "pearson")
+    ## if(!is.null(w)) r.w <- r.w[wind] # drop 0-weight cases
+    ## rsp <- dropInf( r.w/(s * sqrt(1 - hii)), hii )
+    ylim <- range(rsp, na.rm = TRUE)
+    ylim <- c(Re(ylim), Im(ylim))
+    ylim <- c(min(ylim), max(ylim)) # The smallest and largest value of real or imaginary rsp.
+    if (id.n > 0) {
+      ylim <- extendrange(r = ylim, f = 0.08)
+      show.rsp <- order(-cook)[iid]
+    }
+    do.plot <- TRUE
+    if(isConst.hat) { ## leverages are all the same
+      if(missing(caption)) # set different default
+        caption[[5L]] <- "Constant Leverage:\n Residuals vs Factor Levels"
+      ## plot against factor-level combinations instead
+      aterms <- attributes(terms(x))
+      ## classes w/o response
+      dcl <- aterms$dataClasses[ -aterms$response ]
+      facvars <- names(dcl)[dcl %in% c("factor", "ordered")]
+      mf <- model.frame(x)[facvars]# better than x$model
+      if(ncol(mf) > 0) {
+        dm <- data.matrix(mf)
+        ## #{levels} for each of the factors:
+        nf <- length(nlev <- unlist(unname(lapply(x$xlevels, length))))
+        ff <- if(nf == 1) 1 else rev(cumprod(c(1, nlev[nf:2])))
+        facval <- (dm-1) %*% ff
+        xx <- facval # for use in do.plot section.
+        dev.hold()
+        plot(facval, rsp, xlim = c(-1/2, sum((nlev-1) * ff) + 1/2),
+             ylim = ylim, xaxt = "n",
+             main = main, xlab = "Factor Level Combinations",
+             ylab = ylab5, type = "n", ...)
+        axis(1, at = ff[1L]*(1L:nlev[1L] - 1/2) - 1/2,
+             labels = x$xlevels[[1L]])
+        mtext(paste(facvars[1L],":"), side = 1, line = 0.25, adj=-.05)
+        abline(v = ff[1L]*(0:nlev[1L]) - 1/2, col="gray", lty="F4")
+        panel(facval, rsp, ...)
+        abline(h = 0, lty = 3, col = "gray")
+        dev.flush()
+      }
+      else { # no factors
+        message(gettextf("hat values (leverages) are all = %s\n and there are no factor predictors; no plot no. 5",
+                         format(mean(r.hat))),
+                domain = NA)
+        frame()
+        do.plot <- FALSE
+      }
+    }
+    else { ## Residual vs Leverage
+      xx <- hii
+      ## omit hatvalues of 1.
+      xx[xx >= 1] <- NA
+      
+      dev.hold()
+      plot(xx, Re(rsp), xlim = c(0, max(xx, na.rm = TRUE)), ylim = ylim,
+           main = main, xlab = "Leverage", ylab = ylab5, type = "n",
+           ...)
+      points(xx, Im(rsp), type = 'n', pch = 5)
+      panel(xx, Re(rsp), ...)
+      panel(xx, Im(rsp), col = "blue", ...)
+      abline(h = 0, v = 0, lty = 3, col = "gray")
+      if (one.fig)
+        title(sub = sub.caption, ...)
+      if(length(cook.levels)) {
+        p <- x$rank # not length(coef(x))
+        usr <- par("usr")
+        hh <- seq.int(min(r.hat[1L], r.hat[2L]/100), usr[2L],
+                      length.out = 101)
+        for(crit in cook.levels) {
+          cl.h <- sqrt(crit*p*(1-hh)/hh)
+          lines(hh, cl.h, lty = 2, col = 2)
+          lines(hh,-cl.h, lty = 2, col = 2)
+        }
+        legend("bottomleft", legend = c("Cook's distance", "Real", "Imaginary"),
+               lty = c(2,1,1), col = c(2, 2, 3), pch = c(99, 1, 5) , bty = "n")
+        xmax <- min(0.99, usr[2L])
+        ymult <- sqrt(p*(1-xmax)/xmax)
+        aty <- sqrt(cook.levels)*ymult
+        axis(4, at = c(-rev(aty), aty),
+             labels = paste(c(rev(cook.levels), cook.levels)),
+             mgp = c(.25,.25,0), las = 2, tck = 0,
+             cex.axis = cex.id, col.axis = 2)
+      }
+      dev.flush()
+    } # if(const h_ii) .. else ..
+    if (do.plot) {
+      mtext(getCaption(5), 3, 0.25, cex = cex.caption)
+      if (id.n > 0) {
+        y.id <- rsp[show.rsp]
+        y.id[(Re(y.id) < 0 | Im(y.id) < 0)] <- y.id[(Re(y.id) < 0 | Im(y.id) < 0)] - strheight(" ")/3
+        text.id(xx[show.rsp], Re(y.id), show.rsp)
+        text.id(xx[show.rsp], Im(y.id), show.rsp)
+      }
+    }
+  }
+  if (show[6L]) { # Secret plot? seems to plot Cook's distance vs a kind of leverage score.
+    g <- dropInf( hii/(1-hii), hii )
+    ymx <- max(cook, na.rm = TRUE)*1.025
+    dev.hold()
+    plot(g, cook, xlim = c(0, max(g, na.rm=TRUE)), ylim = c(0, ymx),
+         main = main, ylab = "Cook's distance",
+         xlab = expression("Leverage  " * h[ii]),
+         xaxt = "n", type = "n", ...)
+    panel(g, cook, ...)
+    ## Label axis with h_ii values
+    athat <- pretty(hii)
+    axis(1, at = athat/(1-athat), labels = paste(athat))
+    if (one.fig)
+      title(sub = sub.caption, ...)
+    ## Draw pretty "contour" lines through origin and label them
+    p <- x$rank
+    bval <- pretty(sqrt(p*cook/g), 5)
+    usr <- par("usr")
+    xmax <- usr[2L]
+    ymax <- usr[4L]
+    for(i in seq_along(bval)) {
+      bi2 <- bval[i]^2
+      if(p*ymax > bi2*xmax) {
+        xi <- xmax + strwidth(" ")/3
+        yi <- bi2*xi/p
+        abline(0, bi2, lty = 2)
+        text(xi, yi, paste(bval[i]), adj = 0, xpd = TRUE)
+      } else {
+        yi <- ymax - 1.5*strheight(" ")
+        xi <- p*yi/bi2
+        lines(c(0, xi), c(0, yi), lty = 2)
+        text(xi, ymax-0.8*strheight(" "), paste(bval[i]),
+             adj = 0.5, xpd = TRUE)
+      }
+    }
+    
+    ## axis(4, at=p*cook.levels, labels=paste(c(rev(cook.levels), cook.levels)),
+    ##	mgp=c(.25,.25,0), las=2, tck=0, cex.axis=cex.id)
+    mtext(getCaption(6), 3, 0.25, cex = cex.caption)
+    if (id.n > 0) {
+      show.r <- order(-cook)[iid]
+      text.id(g[show.r], cook[show.r], show.r)
+    }
+    dev.flush()
+  }
+  
+  if (!one.fig && par("oma")[3L] >= 1)
+    mtext(sub.caption, outer = TRUE, cex = cex.oma.main)
+  invisible()
+}

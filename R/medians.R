@@ -314,7 +314,8 @@ mahalanobis <- function(x, center, cov, pcov = NULL, inverted=FALSE, ...)
 #' @param ... additional arguments, not used.
 #' @param digits integer specifying the number of digits to include in the summary values.
 #' 
-#' @return
+#' @return A complex vector containing in order the length, median, mean, variance, and pseudo variance of the object. 
+#' The length element will be a positive integer, despite being in the complex mode.
 #' @export
 #'
 #' @examples
@@ -329,4 +330,40 @@ summary.complex <- function(object, ..., digits)
   names(value) <- c("length", "median", "mean", "var.", "pvar.")
   class(value) <- c("summaryDefault", "table")
   value
+}
+
+#' Range For Complex Objects
+#'
+#' This function extends [base::range] to the field of complex numbers.
+#' It returns a vector containing two complex numbers that are the diagonal points of a rectangle,
+#' with sides parallel to the real and imaginary axes, that just contains all the complex numbers 
+#' given as arguments. If given non complex input it calls [base::range], please see the documentation
+#' for that function for an explanation of its behavior with other input.
+#'
+#' @param ... Any complex, numeric, or character object
+#' @param na.rm logical, indicates if `NA`'s should be removed.
+#' @param finite logical, indicates if non-finite elements should be omitted.
+#'
+#' @return A complex vector describing a rectangle that all input values fall within.
+#' @export
+#' 
+#' @seealso [base::range]
+#'
+#' @examples
+#' set.seed(4242)
+#' n <- 8
+#' foo <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' range(foo)
+range <- function(..., na.rm = FALSE, finite = FALSE)
+{
+  cll <- match.call()
+  cll[[1]] <- base::range
+  x <- c(..., recursive = TRUE)
+  if (!is.complex(x)) eval(cll, parent.frame())
+  else 
+  {
+    real.range <- range(Re(x), na.rm, finite)
+    imag.range <- range(Im(x), na.rm, finite)
+    return(c(complex(real = min(real.range), imaginary = min(imag.range)), complex(real = max(real.range), imaginary = max(imag.range))))
+  }
 }

@@ -33,8 +33,6 @@
 #' algorithm are defined over the set of complex numbers. While ordering is not defined for them, it is the output of rho(), a real number, that must be 
 #' in M-estimation.
 #' 
-#' @import MASS
-#' @import stats
 #' @export
 rlm <- function(x, ...) UseMethod("rlm")
 

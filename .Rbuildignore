@@ -1,7 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^\R\*.no
-^\src\*.no
-^\src.no\*
-^\todo.txt
-^\notNAMESPACE
+^.*\.no$
+^.*src\.no.*$
+^.*todo\.txt$
+^.*notNAMESPACE$
+^.*Illustrations\.R$
