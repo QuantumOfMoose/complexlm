@@ -6,11 +6,11 @@
 \alias{var}
 \title{Variance, Covariance, and Correlation for Complex Data}
 \usage{
-cov(x, y = NULL, na.rm = FALSE, method = "pearson", use, ...)
+cov(x, y = NULL, na.rm = FALSE, method = "pearson", use = "everything", ...)
 
-cor(x, y = NULL, na.rm = FALSE, use, method = "pearson", ...)
+cor(x, y = NULL, na.rm = FALSE, use = "everything", method = "pearson", ...)
 
-var(x, y = NULL, na.rm = FALSE, use, ...)
+var(x, y = NULL, na.rm = FALSE, use = "everything", ...)
 }
 \arguments{
 \item{x}{a numeric or complex vector, matrix, or dataframe.}
@@ -19,8 +19,12 @@ var(x, y = NULL, na.rm = FALSE, use, ...)
 
 \item{na.rm}{logical. Should missing values be removed? Only considered when \code{x} is a vector.}
 
+\item{method}{The method for calculating correlation coefficient. Only \code{"pearson"} is supported for complex variables, so this parameter is ignored.}
+
 \item{use}{character string giving the desired method of computing covariances in the presence of missing values. Options are "everything" (default),
 "all.obs", "complete.obs", or "na.or.complete". See \link[stats:cor]{stats::cov} for explanation of what each one does. Note that "pairwise.complete.obs" is not available for this complex method.}
+
+\item{...}{Other parameters, ignored.}
 }
 \value{
 numeric or complex the sample variance, covariance, or correlation of the input data.

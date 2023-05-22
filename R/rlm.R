@@ -22,7 +22,7 @@
 #' 
 #' Uses robust M-estimation to fit a linear model to numeric or complex data. Based on [MASS::rlm].
 #' 
-#' @inherit MASS::rlm details references methods usage
+#' @inherit MASS::rlm details references
 #' 
 #' @details M-estimation works by finding the model coefficients that minimize the sum of a function of the residuals. 
 #' This function, called the objective function rho(), is a kind of statistical distance (AKA divergence), and a semimetric.

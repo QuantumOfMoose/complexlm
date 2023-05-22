@@ -172,6 +172,8 @@ wmedian <- function(x, w = rep(1, length(x)))
 #' @param na.rm logical. Should missing values be removed? Only considered when `x` is a vector.
 #' @param use character string giving the desired method of computing covariances in the presence of missing values. Options are "everything" (default),
 #' "all.obs", "complete.obs", or "na.or.complete". See [stats::cov] for explanation of what each one does. Note that "pairwise.complete.obs" is not available for this complex method.
+#' @param method The method for calculating correlation coefficient. Only `"pearson"` is supported for complex variables, so this parameter is ignored.
+#' @param ... Other parameters, ignored.
 #' 
 #' @details For vector input, the sample variance is calculated as,\cr
 #'  \eqn{sum(Conj( mean(x) - x ) * ( mean(x) - x )) / (length(x) - 1)}\cr
@@ -192,7 +194,7 @@ wmedian <- function(x, w = rep(1, length(x)))
 #' foobar <- data.frame(foo, bar)
 #' cov(foobar)
 #' cor(foobar)
-cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use, ...)
+cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use = "everything", ...)
   {
   matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
   cll <- match.call()
@@ -231,11 +233,11 @@ cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use, ...)
         stop("Error, no complete cases (rows) of observations (input data).")
       }
     }
-    if (grepl("all")) {
+    if (grepl("all", use)) {
       if (!is.null(y)) nays <- any(is.na(y)) else nays <- FALSE
       if (any(is.na(x)) || nays) stop("Error. Missing values not accepted with use = \"all.obs\"")
     }
-    if (grepl("pairwise.complete.obs")) warning("use option pairwise.complete.obs is not available for complex input. Defaulting to use = everything.")
+    if (grepl("pairwise.complete.obs", use)) warning("use option pairwise.complete.obs is not available for complex input. Defaulting to use = everything.")
     # Now we actually calculate stuff. Since use = "everything" is default, we don't have an if statement for it.
     mns <- colMeans(x)
     x <- x - mns[col(x)]
@@ -261,7 +263,7 @@ cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use, ...)
 
 #' @describeIn cov Correlation coefficient of complex variables.
 #' @export
-cor <- function(x, y = NULL, na.rm = FALSE, use, method = "pearson", ...)
+cor <- function(x, y = NULL, na.rm = FALSE, use = "everything", method = "pearson", ...)
 {
   matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
   cll <- match.call()
@@ -302,23 +304,23 @@ cor <- function(x, y = NULL, na.rm = FALSE, use, method = "pearson", ...)
         stop("Error, no complete cases (rows) of observations (input data).")
       }
     }
-    if (grepl("all")) {
+    if (grepl("all", use)) {
       if (!is.null(y)) nays <- any(is.na(y)) else nays <- FALSE
       if (any(is.na(x)) || nays) stop("Error. Missing values not accepted with use = \"all.obs\"")
     }
-    if (grepl("pairwise.complete.obs")) warning("use = \"pairwise.complete.obs\" is not available for complex input. Defaulting to use = everything.")
+    if (grepl("pairwise.complete.obs", use)) warning("use = \"pairwise.complete.obs\" is not available for complex input. Defaulting to use = everything.")
     # Now we actually calculate stuff. Since use = "everything" is default, we don't have an if statement for it.
     mns <- colMeans(x)
     x <- x - mns[col(x)]
     sdx <- colSums(x * Conj(x)) / (length(x[,1] - 1))
-    sdmat <- outer(sdx, sdx)
     if (is.null(y)) {
-      covv <- Conj(t(x)) %*% x
-      sdy <- colSums(y * Conj(y)) / (length(x[,1] - 1))
-      sdmat <- outer(sdx, sdy)
+      covv <- (Conj(t(x)) %*% x) / (length(x[,1] - 1))
+      sdmat <- outer(sdx, sdx)
     return(covv / sdmat)
     }
     y <- y - colMeans(y)[col(y)]
+    sdy <- colSums(y * Conj(y)) / (length(x[,1] - 1))
+    sdmat <- outer(sdx, sdy)
     covv <- (Conj(t(x)) * y)  / (length(x[,1] - 1))
     return(covv / sdmat)
   }
@@ -326,7 +328,7 @@ cor <- function(x, y = NULL, na.rm = FALSE, use, method = "pearson", ...)
 
 #' @describeIn cov S3 Variance of complex variables, a synonym for [complexlm::cov].
 #' @export
-var <- function(x, y = NULL, na.rm = FALSE, use, ...)
+var <- function(x, y = NULL, na.rm = FALSE, use = "everything", ...)
 {
   matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
   cll <- match.call()

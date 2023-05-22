@@ -483,7 +483,6 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 #' 
 #' @export
 #' @export summary.zlm
-#' @alias summary.zlm
 #' 
 #' @note `print.summary.zlm` calls `print.summary.rzlm`
 #' 
@@ -640,8 +639,6 @@ print.summary.zlm <-
 #' @param merge logical. Should the covariance matrix and pseudo-covariance / relational matrix be merged into one matrix of twice the dimensions? Default is TRUE.
 #' @param aliased a logical vector typically identical to `is.na(coef(.))` indicating which coefficients are ‘aliased’.
 #' @param vca variance-covariance matrix, typically “incomplete”, i.e., with no rows and columns for aliased coefficients.
-
-
 #'
 #' @return
 #' If `merge` is false, a list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
@@ -696,17 +693,14 @@ vcov.zlm <- function (object, complete = TRUE, merge = TRUE, ...)
 #' A very simple adaptation of [stats::anova.lm] which can handle fits of complex variables. 
 #' The only change was to take the absolute value of squared residuals, and eliminate quantile based features.
 #'
-#' @usage
-#'
-#' @inherit stats::anova.lm params details return warning references
+#' @inherit stats::anova.lm params details return references
 #'
 #' @param object objects of class "zlm", usually produced by [complexlm::lm].
 #' @param ... Other arguments. 
 #'
 #' @return
 #' @export
-#' @aliases anova.zlm
-#' 
+#'
 #' @seealso [complexlm::lm], [anova]
 #'
 #' @examples
@@ -930,7 +924,6 @@ zhatvalues <- function(model, full = FALSE, ...)
 #'
 #' @return A complex vector of length equal to that of the residuals of `model`. Numeric for numeric input.
 #' @export
-#' @export rstandard.zlm
 #' 
 #' @seealso [stats::rstandard], [stats::rstandard.lm], 
 #'
@@ -985,7 +978,6 @@ rstandard.zlm <- function(model, lever = zhatvalues(model), ...)
 #'
 #' @return A numeric vector. The elements are the Cook's distances of each data point in `model`.
 #' @export
-#' @export cooks.distance.zlm
 #' 
 #' @seealso [stats::cooks.distance], [zhatvalues]
 #'
@@ -1023,7 +1015,7 @@ cooks.distance.zlm <- function(model, lever = zhatvalues(model), ...)
 #' linear models of complex variables. This documentation entry describes the complex version, focusing on the
 #' differences and changes from the numeric. For further explanation of the plots please see [stats::plot.lm].
 #'
-#' @inherit stats::plot.lm params references authors
+#' @inherit stats::plot.lm params references
 #' 
 #' @param x complex lm object ("zlm" or "rzlm"). Typically produced by [complexlm::lm] or [complexlm::rlm].
 #' @param which If a subset of the plots is required, specify a subset of the numbers 1:6, except 2. See caption below (and the ‘Details’) for the different kinds. Default is c(1,3,5).
