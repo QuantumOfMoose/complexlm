@@ -1,11 +1,11 @@
 Package: complexlm
-Version: 0.2
+Version: 0.3
 Date: 2022-12-09
-Depends: R (>= 3.3.0), stats, MASS
-Imports: methods, grDevices, utils, ggplot2, reshape2, pracma, graphics
+Depends: R (>= 3.3.0), MASS
+Imports: methods, grDevices, utils, ggplot2, reshape2, pracma, graphics, stats
 # Enhances: MASS
 Authors@R: c(person("Brian", "Ripley", role = c("aut", "cph"),
-                    email = "ripley@stats.ox.ac.uk"),
+                  comment = "Wrote MASS rlm code upon which complexlm rlm is based."),
 	     person("Bill", "Venables", role = "ctb"),
 	     person(c("Douglas", "M."), "Bates", role = "ctb"),
 	     person("Kurt", "Hornik", role = "trl",
@@ -14,7 +14,7 @@ Authors@R: c(person("Brian", "Ripley", role = c("aut", "cph"),
                      comment = "partial port ca 1998"),
 	     person("David", "Firth", role = "ctb"),
 	     person("William", "Ryan", role = c("aut", "cre", "cph"), email = "wryan1@binghamton.edu", 
-	                   comment = "Adapted MASS rlm and stats lm for complex variables then spun that off into this package"),
+	                   comment = "Adapted MASS rlm and stats lm for complex variables then spun that off into this package."),
 	     person("Bruce", "White", role = "ths"))
 Description: Tools for linear fitting with complex variables. Includes ordinary least-squares and robust methods. Originally adapted from the rlm functions of MASS and the lm functions of stats.
 Title: Linear fitting for complex valued data

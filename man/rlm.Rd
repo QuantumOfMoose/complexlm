@@ -3,8 +3,8 @@
 \name{rlm}
 \alias{rlm}
 \alias{rlm.formula}
-\alias{rlm.default}
-\alias{predict.rlm}
+\alias{rlm.complex}
+\alias{predict.rzlm}
 \title{Robust Fitting of Linear Models, Compatible with Complex Variables}
 \usage{
 rlm(x, ...)
@@ -24,7 +24,7 @@ rlm(x, ...)
   contrasts = NULL
 )
 
-\method{rlm}{default}(
+\method{rlm}{complex}(
   x,
   y,
   weights,
@@ -43,7 +43,7 @@ rlm(x, ...)
   interc = FALSE
 )
 
-\method{predict}{rlm}(object, newdata = NULL, scale = NULL, ...)
+\method{predict}{rzlm}(object, newdata = NULL, scale = NULL, ...)
 }
 \arguments{
 \item{x}{numeric or complex. A matrix, dataframe, or vector containing the explanatory / independent / predictor variables.}
@@ -90,7 +90,7 @@ rlm(x, ...)
 
 \item{test.vec}{the stopping criterion is based on changes in this vector.}
 
-\item{lqs.control}{An optional list of control values for \link{lqs}.}
+\item{lqs.control}{An optional list of control values for \link{lqs}, ignored.}
 
 \item{interc}{TRUE or FALSE, default is FALSE. Used with rlm.default when fitting complex valued data. If true, a y-intercept is calculated during fitting. Otherwise, the intercept is set to zero.}
 
@@ -101,39 +101,15 @@ rlm(x, ...)
 \item{scale}{this seems to be ignored. Default is NULL.}
 }
 \value{
-An object of class \code{"rlm"} inheriting from \code{"lm"}.
-  Note that the \code{df.residual} component is deliberately set to
-  \code{NA} to avoid inappropriate estimation of the residual scale from
-  the residual mean square by \code{"lm"} methods.
-  
-  The additional components not in an \code{lm} object are
-
-  \item{s}{
-    the robust scale estimate used
-  }
-  \item{w}{
-    the weights used in the IWLS process
-  }
-  \item{psi}{
-    the psi function with parameters substituted
-  }
-  \item{conv}{
-    the convergence criteria at each iteration
-  }
-  \item{converged}{
-    did the IWLS converge?
-  }
-  \item{wresid}{
-    a working residual, weighted for \code{"inv.var"} weights only.
-  }
+An object of class "rzlm" or "rlm", which inherits from "lm",
 }
 \description{
-Uses robust M-estimation to fit a linear model to numeric or complex data. Based on \code{\link[MASS:rlm]{MASS::rlm()}}.
+Uses robust M-estimation to fit a linear model to numeric or complex data. Based on \link[MASS:rlm]{MASS::rlm}.
 }
 \details{
 M-estimation works by finding the model coefficients that minimize the sum of a function of the residuals.
 This function, called the objective function rho(), is a kind of statistical distance (AKA divergence), and a semimetric.
-As a semimetric it is a function of the measured value \code{y} and the modeled value \code{Y} (residual r = y - Y) which maps from
+As a semimetric it is a function of the measured value \code{y} and the modeled value \code{Y} (residual \eqn{r = y - Y}) which maps from
 the space of the data to the positive real numbers. Semimetrics can be defined for domains of any dimensionality, including the
 two dimensional complex numbers, and thus so can M-estimation.
 What's more, all the standard algebraic operations used in the itteratively (re)weighted least-squares M-estimator robust regression
@@ -144,9 +120,9 @@ in M-estimation.
 \itemize{
 \item \code{formula}: S3 method for class 'formula'
 
-\item \code{default}: Default S3 method
+\item \code{complex}: Complex Default S3 method
 
-\item \code{rlm}: Predict new data based on the model in object. Invokes \code{predict.lm}.
+\item \code{rzlm}: Predict new data based on the model in object. Invokes \code{predict.lm}.
 }}
 
 \examples{

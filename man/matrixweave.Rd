@@ -29,3 +29,6 @@ matrixweave(mata, matb)
 \references{
 A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
 }
+\seealso{
+\link{mahalanobis}, \link{vcov.zlm}, \link{vcov.rzlm}
+}

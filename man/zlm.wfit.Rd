@@ -57,8 +57,8 @@ a \code{\link{list}} with components (for \code{lm.fit} and \code{lm.wfit})
 The function eventually called by \code{\link[=lm]{lm()}}, \code{\link[=lm.fit]{lm.fit()}}, and/or \code{\link[=lm.wfit]{lm.wfit()}} if fed complex data.
 Performs ordinary (least-squares) linear fitting on complex variable data.
 Like \code{\link[stats:lmfit]{stats::lm.wfit()}}, which it is based off of, it uses qr decomposition
-for the matrix algebra. Unlike `stats::lm.wfit()' it also handles un-weighted
-regression by setting the weights to 1 by default.
+for the matrix algebra. Unlike \code{stats::lm.wfit()} it also handles un-weighted
+regression, by setting the weights to 1 by default.
 }
 \examples{
 set.seed(4242)

@@ -27,7 +27,7 @@ mad(
 \item{high}{logical. If TRUE, compute the "hi-median", i.e., take the larger of the two middle values for even sample size. Not used if x is complex.}
 }
 \value{
-numeric or complex. The median absolute deviation (MAD) from center.
+numeric. The median absolute deviation (MAD) from center.
 }
 \description{
 Median absolute deviation, adapted to operate on complex data as well as numeric.
@@ -36,7 +36,7 @@ For complex x it uses the geometric median, \code{\link[pracma:geo_median]{pracm
 then returns the median absolute difference between center and each element of x, multiplied by \code{constant}.
 }
 \note{
-The concept of Quantile requires ordering to be defined, which the complex numbers lack.
+The concept of quantile requires ordering to be defined, which the complex numbers lack.
 The usefulness of multiplying by \code{constant} is thus called into question. However, for no more rigorous
 reason than consistency, the default behavior of this function is to do so.
 }
@@ -45,4 +45,7 @@ set.seed(4242)
 n <- 8
 foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 mad(foo)
+}
+\seealso{
+\link{median}, \link[stats:mad]{stats::mad}
 }

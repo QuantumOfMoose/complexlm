@@ -31,3 +31,6 @@ tframe <- data.frame(Xt=Xt, Yt= Xt * slop + interc + complex(real=rnorm(length(X
 testterms <- terms(Yt ~ Xt)
 zmodel.matrix(testterms, tframe)
 }
+\seealso{
+\link[stats:model.matrix]{stats::model.matrix}, \link{lm}
+}

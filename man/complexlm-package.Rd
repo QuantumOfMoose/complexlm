@@ -16,11 +16,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: William Ryan \email{wryan1@binghamton.edu} (Adapted MASS rlm and stats lm for complex variables then spun that off into this package) [copyright holder]
+\strong{Maintainer}: William Ryan \email{wryan1@binghamton.edu} (Adapted MASS rlm and stats lm for complex variables then spun that off into this package.) [copyright holder]
 
 Authors:
 \itemize{
-  \item Brian Ripley \email{ripley@stats.ox.ac.uk} [copyright holder]
+  \item Brian Ripley (Wrote MASS rlm code upon which complexlm rlm is based.) [copyright holder]
 }
 
 Other contributors:

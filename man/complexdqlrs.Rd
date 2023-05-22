@@ -32,3 +32,6 @@ x <- complex(real = rnorm(n), imaginary = rnorm(n))
 y <- slope * x + intercept
 complexdqlrs(x, y, 10^-4, 1.2)
 }
+\seealso{
+\link[base:qr]{base::qr}, \link{lm}, \link{zlm.wfit}, \link{rlm}
+}

@@ -32,3 +32,10 @@ ww <- runif(10)
 wmedian(xx, ww)
 
 }
+\references{
+F. Y. Edgeworth, XXII. On a New Method of Reducing Observations Relating to Several Quantities, (1888).
+Also see the Wikipedia article on weighted median for a very good explanation and a model algorithm.
+}
+\seealso{
+\link{median}
+}

@@ -20,18 +20,20 @@
 
 #' Robust Fitting of Linear Models, Compatible with Complex Variables
 #' 
-#' Uses robust M-estimation to fit a linear model to numeric or complex data. Based on [MASS::rlm()].
+#' Uses robust M-estimation to fit a linear model to numeric or complex data. Based on [MASS::rlm].
 #' 
-#' @inherit MASS::rlm details return references
+#' @inherit MASS::rlm details references methods usage
 #' 
 #' @details M-estimation works by finding the model coefficients that minimize the sum of a function of the residuals. 
 #' This function, called the objective function rho(), is a kind of statistical distance (AKA divergence), and a semimetric.
-#' As a semimetric it is a function of the measured value `y` and the modeled value `Y` (residual r = y - Y) which maps from 
+#' As a semimetric it is a function of the measured value `y` and the modeled value `Y` (residual \eqn{r = y - Y}) which maps from 
 #' the space of the data to the positive real numbers. Semimetrics can be defined for domains of any dimensionality, including the 
 #' two dimensional complex numbers, and thus so can M-estimation. 
 #' What's more, all the standard algebraic operations used in the itteratively (re)weighted least-squares M-estimator robust regression
 #' algorithm are defined over the set of complex numbers. While ordering is not defined for them, it is the output of rho(), a real number, that must be 
 #' in M-estimation.
+#' 
+#' @return An object of class "rzlm" or "rlm", which inherits from "lm", 
 #' 
 #' @export
 rlm <- function(x, ...) UseMethod("rlm")
@@ -41,7 +43,7 @@ rlm <- function(x, ...) UseMethod("rlm")
 #' @param formula a [formula] object of the form y ~ x1 + x2. Note that algebraic expressions in formula cannot currently be used with complex data.
 #' @param data a data frame containing the variables upon which a robust fit is to be applied.
 #' @param weights numeric. A vector of weights to apply to the residuals.
-#' @param ... additional arguments to be applied to called functions (rlm.default and the psi function).
+#' @param ... additional arguments to be applied to called functions (rlm.complex and the psi function).
 #' @param subset an index vector specifying the cases (rows of data or x and y) to be used for fitting.
 #' @param na.action a function that specifies what to do if NAs are found in the fitting data. The default is to omit them via [na.omit]. Can also be changed by [options] (na.action =).
 #' @param method string. What method of robust estimation should be used. Options are "M", "MM", or "model.frame". The default is M-estimation. MM-estimation has a high breakdown point but is not compatible with complex variables or case weights. model.frame just constructs the model frame, and only works with the formula method.
@@ -100,7 +102,7 @@ rlm.formula <-
       }
       weights <- model.weights(mf)
       if(!length(weights)) weights <- rep(1, nrow(x))
-      fit <- rlm.default(x, y, weights, method = method,
+      fit <- rlm.complex(x, y, weights, method = method,
                          wt.method = wt.method, ...)
       fit$terms <- mt
       ## fix up call to refer to the generic, but leave arg name as `formula'
@@ -116,11 +118,11 @@ rlm.formula <-
       ## change in 7.3-52 suggested by Andr\'e Gillibert
       fit$offset <- offset
       if (!is.null(offset)) fit$fitted.values <- fit$fitted.values + offset
-      fit
+      return(fit)
     }
 }
 
-#' @describeIn rlm Default S3 method
+#' @describeIn rlm Complex Default S3 method
 #'
 #' @param x numeric or complex. A matrix, dataframe, or vector containing the explanatory / independent / predictor variables.
 #' @param y numeric or complex. A vector containing the dependent / response variables, the same length as x.
@@ -133,7 +135,7 @@ rlm.formula <-
 #' @param maxit maximum number of IWLS iterations.
 #' @param acc the accuracy for the stopping criterion.
 #' @param test.vec the stopping criterion is based on changes in this vector.
-#' @param lqs.control An optional list of control values for [lqs].
+#' @param lqs.control An optional list of control values for [lqs], ignored.
 #' @param interc TRUE or FALSE, default is FALSE. Used with rlm.default when fitting complex valued data. If true, a y-intercept is calculated during fitting. Otherwise, the intercept is set to zero.
 #'
 #' @export
@@ -146,7 +148,7 @@ rlm.formula <-
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' y <- slope * x + intercept + e
 #' rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
-rlm.default <-
+rlm.complex <-
   function(x, y, weights, ..., w = rep(1, nrow(x)),
            init = "ls", psi = psi.huber,
            scale.est = c("MAD", "Huber", "proposal 2"), k2 = 1.345,
@@ -154,12 +156,7 @@ rlm.default <-
            maxit = 20, acc = 1e-4, test.vec = "resid", lqs.control=NULL, interc=FALSE)
     {
     thiscall <- match.call()
-    if (is.numeric(x)) 
-    {
-      thiscall[[1]] <- MASS::rlm.default
-      eval(thiscall, parent.frame())
-    }
-    else if (is.complex(x))
+    if (is.complex(x))
     {
     if (!is.matrix(x) && interc) {
       xx <- as.matrix(data.frame(rep(1, length(x)), x))
@@ -309,10 +306,10 @@ rlm.default <-
                 s = scale, psi = psi, k2 = k2,
                 weights = if(!missing(weights)) weights,
                 conv = conv, converged = done, x = xx, call = cl)
-    class(fit) <- c("rlm", "lm")
-    fit
+    class(fit) <- c("rzlm", "zlm", "rlm", "lm")
+    return(fit)
     }
-    else print("ERROR: data must be numeric or complex.")
+    else print("ERROR: data must be complex.")
 }
 
 ### I don't think I need a separate print.rlm function for complex variables...
@@ -338,7 +335,7 @@ rlm.default <-
 
 #' Summary Method for Robust Linear Models
 #' 
-#' Summary method for objects of class "rlm", capable of processing complex variable fits. 
+#' Summary method for objects of class "rzlm", capable of processing complex variable fits. 
 #' If the residuals in the passed object are numeric, this function just calls [MASS::summary.rlm()].
 #'
 #' @param object An object inheriting from the class rlm. That is, a fitted model that was generated by rlm. The fitted data can have been numeric or complex.
@@ -366,7 +363,7 @@ rlm.default <-
 #' \item{`terms`}{The terms object used in fitting this model.}
 #' @export
 #'
-#'@references
+#' @references
 #' W. N. Venables and B. D. Ripley, Modern Applied Statistics with S, 4th ed (Springer, New York, 2002).
 #' P. J. Huber and E. Ronchetti, Robust Statistics, 2nd ed (Wiley, Hoboken, N.J, 2009).
 #'
@@ -380,17 +377,9 @@ rlm.default <-
 #' y <- slope * x + intercept + e
 #' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 #' summary(robfit)
-summary.rlm <- function(object, method = c("XtX", "XtWX"),
+summary.rzlm <- function(object, method = c("XtX", "XtWX"),
                         correlation = FALSE, ...)
 {
-    cll <- match.call()
-    if (is.numeric(object$residuals))
-    {
-      cll[[1]] <- MASS::summary.rlm
-      eval(cll, parent.frame())
-    }
-    else
-    {
       method <- match.arg(method)
       s <- object$s
       coef <- object$coefficients
@@ -477,29 +466,20 @@ summary.rlm <- function(object, method = c("XtX", "XtWX"),
       object$correlation <- correl
       object$pseudocorrelation <- pcorrel
       object$terms <- NA
-      class(object) <- "summary.rlm"
+      class(object) <- c("summary.rzlm", "summary.rlm")
       object
-    }
 }
 
-#' @describeIn summary.rlm Print the summary of a (possibly complex) robust linear fit.
+#' @describeIn summary.rzlm Print the summary of a (possibly complex) robust linear fit.
 #' 
-#' @param x a rlm object or an rlm summary object. Used for `print.summary.rlm` 
+#' @param x a rzlm object or an rzlm summary object. Used for `print.summary.rlm` 
 #' @param digits the number of digits to include in the printed report, default is three. Used for `print.summary.rlm`
 #' 
 #' @note For complex fits the quantiles reported by this function are based on sorting the real parts of the residuals. They should not be considered reliable..
 #' 
 #' @export
-print.summary.rlm <- function(x, digits = max(3, .Options$digits - 3), ...)
+print.summary.rzlm <- function(x, digits = max(3, .Options$digits - 3), ...)
 {
-  cll <- match.call()
-  if (is.numeric(x$residuals))
-  {
-    cll[[1]] <- MASS::print.summary.rlm
-    eval(cll, parent.frame())
-  }
-  else
-  {
     cll <- match.call()
     cat("\nCall: ")
     dput(x$call, control=NULL)
@@ -543,7 +523,6 @@ print.summary.rlm <- function(x, digits = max(3, .Options$digits - 3), ...)
         }
     }
     invisible(x)
-  }
 }
 
 ### NOTE: These psi functions are actually weight functions, weight(u) = abs( influence(u) / u).
@@ -682,7 +661,7 @@ psi.bisquare <- function(u, c = 4.685, deriv=0)
 #' @param ... further arguments to be passed to NextMethod().
 #' 
 #' @export
-predict.rlm <- function (object, newdata = NULL, scale = NULL, ...)
+predict.rzlm <- function (object, newdata = NULL, scale = NULL, ...)
 {
     ## problems with using predict.lm are the scale and
     ## the QR decomp which has been done on down-weighted values.
@@ -720,16 +699,8 @@ predict.rlm <- function (object, newdata = NULL, scale = NULL, ...)
 #' y <- slope * x + intercept + e
 #' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
 #' vcov(robfit)
-vcov.rlm <- function (object, merge = TRUE, ...)
+vcov.rzlm <- function (object, merge = TRUE, ...)
 {
-  cll <- match.call()
-  if (is.numeric(object$residuals))
-  {
-    cll[[1]] <- MASS::vcov.rlm
-    eval(cll, parent.frame())
-  }
-  else
-  {
     so <- summary(object, corr = FALSE)
     varcovar <- so$stddev^2 * so$cov.unscaled
     pseudovarcovar <- so$pstddev^2 * so$pcov.unscaled
@@ -743,5 +714,4 @@ vcov.rlm <- function (object, merge = TRUE, ...)
       return(bigcovar)
     }
     else return(list(varcovar = as.numeric(varcovar), pseudovarcovar = pseudovarcovar))
-  }  
 }

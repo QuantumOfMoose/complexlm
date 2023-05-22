@@ -22,10 +22,8 @@ lm(
 )
 }
 \arguments{
-\item{formula}{an object of class \code{"\link[stats]{formula}"} (or one that
-    can be coerced to that class): a symbolic description of the
-    model to be fitted.  The details of model specification are given
-    under \sQuote{Details}.}
+\item{formula}{an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted.
+For complex variables there are restrictions on what kinds of formula can be comprehended. See \link{zmodel.matrix} for details.}
 
 \item{data}{an optional data frame, list or environment (or object
     coercible by \code{\link{as.data.frame}} to a data frame) containing
@@ -58,7 +56,7 @@ lm(
     response, the QR decomposition) are returned.
   }
 
-\item{x}{logical. If TRUE return the model matrix of the fit. Default is TRUE.}
+\item{x}{logical. If \code{TRUE} return the model matrix of the fit. Default is \code{TRUE}.}
 
 \item{y}{logicals.  If \code{TRUE} the corresponding
     components of the fit (the model frame, the model matrix, the
@@ -73,8 +71,7 @@ lm(
 \item{singular.ok}{logical. If \code{FALSE} (the default in S but
     not in \R) a singular fit is an error.}
 
-\item{contrasts}{an optional list. See the \code{contrasts.arg}
-    of \code{\link[stats]{model.matrix.default}}.}
+\item{contrasts}{Not implemented for complex variables. See \link{zmodel.matrix} for details. Default is \code{NULL}}
 
 \item{offset}{this can be used to specify an \emph{a priori} known
     component to be included in the linear predictor during fitting.
@@ -87,40 +84,31 @@ lm(
     regression fitting functions (see below).}
 }
 \value{
-\code{lm} returns an object of \code{\link{class}} \code{"lm"} or for
-  multiple responses of class \code{c("mlm", "lm")}.
+Returns an object of class \code{c("zlm", "lm")}, or for multiple responses \code{c("zlm", "mlm", "lm")}.
 
-  The functions \code{summary} and \code{\link[stats]{anova}} are used to
-  obtain and print a summary and analysis of variance table of the
-  results.  The generic accessor functions \code{coefficients},
-  \code{effects}, \code{fitted.values} and \code{residuals} extract
-  various useful features of the value returned by \code{lm}.
+The functions \link{summary} and \link{anova} are used to obtain and print a summary and analysis of variance table of the results.
+The generic functions \link{coefficients}, \link{effects}, \link{fitted.values} and \link{residuals} extract various useful features of the value returned by lm.
+Of course these things can also be accessed by simply using the get element symbol \code{$}.
 
-  An object of class \code{"lm"} is a list containing at least the
-  following components:
-
-  \item{coefficients}{a named vector of coefficients}
-  \item{residuals}{the residuals, that is response minus fitted values.}
-  \item{fitted.values}{the fitted mean values.}
-  \item{rank}{the numeric rank of the fitted linear model.}
-  \item{weights}{(only for weighted fits) the specified weights.}
-  \item{df.residual}{the residual degrees of freedom.}
-  \item{call}{the matched call.}
-  \item{terms}{the \code{\link[stats]{terms}} object used.}
-  \item{contrasts}{(only where relevant) the contrasts used.}
-  \item{xlevels}{(only where relevant) a record of the levels of the
-    factors used in fitting.}
-  \item{offset}{the offset used (missing if none were used).}
-  \item{y}{if requested, the response used.}
-  \item{x}{if requested, the model matrix used.}
-  \item{model}{if requested (the default), the model frame used.}
-  \item{na.action}{(where relevant) information returned by
-    \code{\link[stats]{model.frame}} on the special handling of \code{NA}s.}
-
-  In addition, non-null fits will have components \code{assign},
-  \code{effects} and (unless not requested) \code{qr} relating to the linear
-  fit, for use by extractor functions such as \code{summary} and
-  \code{\link[stats]{effects}}.
+Objects of class "zlm" are lists with the following components.
+\item{\code{coefficients}}{a named vector of coefficients.}
+\item{\code{residuals}}{the residuals, that is response minus fitted values.}
+\item{\code{fitted.values}}{The fitted values, which are response values obtained by feeding the predictors into the model.}
+\item{\code{rank}}{The numeric rank of the fitted linear model.}
+\item{\code{weights}}{Numeric. The user supplied weights for the linear fit. If none were given, a vector of \code{1}s of length equal to that of the input data.}
+\item{\code{df.residual}}{The residual degrees of freedom.}
+\item{\code{call}}{The matched call.}
+\item{\code{terms}}{the \link{terms} object used.}
+\item{\code{contrasts}}{The contrasts used, as these are not supported this component will probably be \code{NULL}.}
+\item{\code{xlevels}}{(only where relevant) a record of the levels of the factors used in fitting.}
+\item{\code{offset}}{the offset used (missing if none were used).}\
+\item{\code{y}}{if requested, the response used.}
+\item{\code{x}}{the model matrix used, unless requested to not return it.}
+\item{\code{model}}{if requested, the model frame used.}
+\item{\code{na.action}}{(where relevant) information returned by \link{model.frame} on the special handling of NAs.}
+\item{\code{assign}}{Used by extractor functions like \link{summary} and \link{effects} to understand variable names. Not included in null fits.}
+\item{\code{effects}}{Complex list. See \link{effects} for explanation. Not included in null fits.}
+\item{\code{qr}}{unless declined, the output of the \link{qr} object created in the process of fitting. Not included in null fits.}
 }
 \description{
 An adaptation of lm that is compatible with complex variables. If the response is not complex, it calls the standard \code{\link[stats:lm]{stats::lm()}}
@@ -191,4 +179,7 @@ e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 xx <- complex(real= rnorm(n), imaginary= rnorm(n))
 tframe <- data.frame(x= xx, y= slop*xx + interc + e)
 lm(y ~ x, data = tframe, weights = rep(1,n))
+}
+\seealso{
+\link{lm.fit}, \link{lm.wfit}, \link{zlm.wfit}, \link{zmodel.matrix}, \link{complexdqlrs}
 }

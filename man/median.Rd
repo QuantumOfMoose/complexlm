@@ -28,6 +28,9 @@ n <- 7
 foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 median(foo)
 }
+\references{
+See Wikipedia's entry on ``Geometric median''.
+}
 \seealso{
 \link[stats:median]{stats::median} and \link[pracma:geo_median]{pracma::geo_median}
 }

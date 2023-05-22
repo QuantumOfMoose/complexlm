@@ -26,6 +26,9 @@
 #' Extends [stats::median] to understand complex variable input. If x is complex, the geometric median
 #' is calculated by [pracma::geo_median], and returned as a complex number. Otherwise, [stats::median] is called.
 #'
+#' @inherit median references
+#' @inherit pracma::geo_median references
+#'
 #' @param x a numeric or complex vector, of which the median is to be calculated.
 #' @param na.rm logical. Should NA values be removed before finding the median?
 #' @param tol numeric. Relative tolerance to be passed to [pracma::geo_median]. Default is 1e-07.
@@ -74,12 +77,14 @@ median <- function(x, na.rm = FALSE, tol = 1e-07, maxiter = 200)
 #' @param low logical. If TRUE, compute the "lo-median", i.e., for even sample size, do not average the two middle values, but take the smaller one. Not used if x is complex.
 #' @param high logical. If TRUE, compute the "hi-median", i.e., take the larger of the two middle values for even sample size. Not used if x is complex.
 #'
-#' @note The concept of Quantile requires ordering to be defined, which the complex numbers lack. 
+#' @note The concept of quantile requires ordering to be defined, which the complex numbers lack. 
 #' The usefulness of multiplying by `constant` is thus called into question. However, for no more rigorous
 #' reason than consistency, the default behavior of this function is to do so.
 #'
-#' @return numeric or complex. The median absolute deviation (MAD) from center.
+#' @return numeric. The median absolute deviation (MAD) from center.
 #' @export
+#' 
+#' @seealso [median], [stats::mad]
 #'
 #' @examples
 #' set.seed(4242)
@@ -126,6 +131,11 @@ mad <- function(x, center = median(x), constant = 1.4826, na.rm = FALSE, low = F
 #'
 #' @return numeric. The weighted median of `x` using `w` as the weights.
 #' @export
+#' 
+#' @references F. Y. Edgeworth, XXII. On a New Method of Reducing Observations Relating to Several Quantities, (1888).
+#' Also see the Wikipedia article on weighted median for a very good explanation and a model algorithm.
+#' 
+#' @seealso [median]
 #'
 #' @examples
 #' xx <- rnorm(10, 4L, 1.5)
@@ -138,7 +148,7 @@ wmedian <- function(x, w = rep(1, length(x)))
     o <- sort.list(x); x <- x[o]; w <- w[o] # Removed abs() from around x, so that the function is more general.
     p <- cumsum(w)/sum(w)
     n <- sum(p < 0.5) ## Count how many of elements of p are greater than .5
-    if (p[n + 1L] > 0.5) x[n + 1L] else (x[n + 1L] + x[n + 2L])/2 ## For a normal distribution, the standard deviation about equals MAD/0.6745 #Removed the /0.6745, thus making this just a weighted median function.
+    if (p[n + 1L] > 0.5) return(x[n + 1L]) else return((x[n + 1L] + x[n + 2L])/2) ## For a normal distribution, the standard deviation about equals MAD/0.6745 #Removed the /0.6745, thus making this just a weighted median function.
   }
   else { ## Could be nice to have a weighted median function for complex variables, but not strictly necessary.
     ## Zxmatrix <- as.matrix(data.frame(re = Re(x), im = Im(x)))
@@ -153,19 +163,23 @@ wmedian <- function(x, w = rep(1, length(x)))
 ### var is used in summary.rlm to find variance of a set of complex numbers (psiprime).
 ### Perhaps add cor and cov functionality in the future.
 ####
-#' Variance for Complex Data
+#' Variance, Covariance, and Correlation for Complex Data
 #'
-#' A wrapper for [stats::var] that can handle complex variables.
+#'  Wrappers of [stats::var], [stats::cov], and [stats::cor] that are capable of handling complex input.
 #'
 #' @param x a numeric or complex vector, matrix, or dataframe.
-#' @param y NULL (default) or a numeric vector, matrix, or dataframe with dimensions compatible with x. For complex x,
-#' this parameter is not used as `cov()` and `cor()` are not implemented for complex variables.
-#' @param na.rm logical. Should missing values be removed?
-#' @param use character string giving the desired method of computing covariances in the presense of missing values. Not used.
+#' @param y NULL (default) or a numeric vector, matrix, or dataframe with dimensions compatible with x.
+#' @param na.rm logical. Should missing values be removed? Only considered when `x` is a vector.
+#' @param use character string giving the desired method of computing covariances in the presence of missing values. Options are "everything" (default),
+#' "all.obs", "complete.obs", or "na.or.complete". See [stats::cov] for explanation of what each one does. Note that "pairwise.complete.obs" is not available for this complex method.
 #' 
-#' @details The sample variance is calculated as `sum(Conj( mean(x) - x ) * ( mean(x) - x )) / (length(x) - 1)`.
+#' @details For vector input, the sample variance is calculated as,\cr
+#'  \eqn{sum(Conj( mean(x) - x ) * ( mean(x) - x )) / (length(x) - 1)}\cr
+#'  And the sample covariance is calculated as, \cr
+#'  \eqn{sum(Conj( mean(x) - x ) * ( mean(y) - y )) / (length(x) - 1)}\cr
+#'  The Pearson correlation coefficient, which is the only kind available for complex data, is the covariance divided by the product of the standard deviations of all variables.
 #'
-#' @return numeric, the sample variance of the input data.
+#' @return numeric or complex the sample variance, covariance, or correlation of the input data.
 #' @export
 #'
 #' @examples
@@ -173,18 +187,163 @@ wmedian <- function(x, w = rep(1, length(x)))
 #' n <- 9
 #' foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' var(foo)
-var <- function(x, y = NULL, na.rm = FALSE, use)
+#' bar <- complex(real = rnorm(n), imaginary = rnorm(n))
+#' var(x = foo, y = bar)
+#' foobar <- data.frame(foo, bar)
+#' cov(foobar)
+#' cor(foobar)
+cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use, ...)
   {
+  matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
   cll <- match.call()
+  if (matdf) {
+    cll[[1]] <- stats::cov
+    if (is.numeric(x[[1]])) eval(cll, parent.frame())
+  }
   cll[[1]] <- stats::var
   if (is.numeric(x)) eval(cll, parent.frame())
-  else 
+  else
   {
-    if (na.rm == TRUE) x <- x[!is.na(x)]
-    if (length(x) == 1) return(NA)
-    else return(vvar <- sum(as.numeric(Conj(mean(x) - x )*(mean(x) - x ))) / (length(x) - 1)) # as.numeric() needed to convert type to numeric.j
+    if (is.data.frame(x)) x <- as.matrix(x)
+    if (is.data.frame(y)) y <- as.matrix(y)
+    if (!is.matrix(x)) # Deal with the vector case first, it shares little with the matrix / dataframe code.
+    {
+      if (na.rm == TRUE) x <- x[!is.na(x)]
+      if (length(x) == 1) return(NA)
+      mn <- mean(x)
+      if (is.null(y)) return(sum(as.numeric(Conj(x - mn)*(x - mn))) / (length(x) - 1)) # as.numeric() needed to convert type to numeric.
+      if (na.rm == TRUE) {
+        y <- y[!is.na(x)]
+        x <- x[!is.na(y)]
+        y <- y[!is.na(y)]
+      }
+      mny <- mean(y)
+      return(sum((x - mn) * Conj(y - mny)) / (length(x) - 1))
+    }
+    # Code for dealing with dataframe or matrix input. Uses lots of if statements to comprehend the 'use' parameter.
+    if (grepl("complete", use)) {
+      drops <- is.na(rowSums(x)) # Clever way to find rows with NAs without explicitly using apply.
+      if (!is.null(y)) drops <- drops | is.na(rowSums(y))
+      x <- x[!drops,]
+      if (!is.null(y)) y <- y[!drops,]
+      if (length(x) == 0) {
+        if (grepl("na.or", use)) return(NA)
+        stop("Error, no complete cases (rows) of observations (input data).")
+      }
+    }
+    if (grepl("all")) {
+      if (!is.null(y)) nays <- any(is.na(y)) else nays <- FALSE
+      if (any(is.na(x)) || nays) stop("Error. Missing values not accepted with use = \"all.obs\"")
+    }
+    if (grepl("pairwise.complete.obs")) warning("use option pairwise.complete.obs is not available for complex input. Defaulting to use = everything.")
+    # Now we actually calculate stuff. Since use = "everything" is default, we don't have an if statement for it.
+    mns <- colMeans(x)
+    x <- x - mns[col(x)]
+    if (is.null(y)) return((Conj(t(x)) %*% x)  / (length(x[,1] - 1)))
+    y <- y - colMeans(y)[col(y)]
+    return((Conj(t(x)) * y)  / (length(x[,1] - 1)))
+  }
+  # matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
+  # cll <- match.call()
+  # cll[[1]] <- stats::var
+  # if (matdf) {
+  #   if (is.numeric(x[[1]])) eval(cll, parent.frame())
+  # }
+  # if (is.numeric(x)) eval(cll, parent.frame())
+  # else 
+  # {
+  #   if (na.rm == TRUE) x <- x[!is.na(x)]
+  #   mn <- mean(x)
+  #   if (length(x) == 1) return(NA)
+  #   else return(vvar <- sum(as.numeric(Conj(x - mn)*(x - mn))) / (length(x) - 1)) # as.numeric() needed to convert type to numeric.j
+  # }
+}
+
+#' @describeIn cov Correlation coefficient of complex variables.
+#' @export
+cor <- function(x, y = NULL, na.rm = FALSE, use, method = "pearson", ...)
+{
+  matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
+  cll <- match.call()
+  cll[[1]] <- stats::cor
+  if (matdf) {
+    if (is.numeric(x[[1]])) eval(cll, parent.frame())
+  }
+  if (is.numeric(x)) eval(cll, parent.frame())
+  else
+  {
+    if (is.data.frame(x)) x <- as.matrix(x)
+    if (is.data.frame(y)) y <- as.matrix(y)
+    if (!is.matrix(x)) # Deal with the vector case first, it shares little with the matrix / dataframe code.
+    {
+      if (na.rm == TRUE) x <- x[!is.na(x)]
+      if (length(x) == 1) return(NA)
+      mn <- mean(x)
+      sdx <- sqrt(sum((x - mn) * Conj(x - mn)) / (length(x) - 1))
+      if (is.null(y)) return(sum(as.numeric(Conj(x - mn)*(x - mn))) / (length(x) - 1)) # as.numeric() needed to convert type to numeric.
+      if (na.rm == TRUE) {
+        y <- y[!is.na(x)]
+        x <- x[!is.na(y)]
+        y <- y[!is.na(y)]
+      }
+      mny <- mean(y)
+      sdy <- sqrt(sum((y - mny) * Conj(y - mny)) / (length(y) - 1))
+      covv <- sum((x - mn) * Conj(y - mny)) / (length(x) - 1)
+      return(covv / (sdx * sdy))
+    }
+    # Code for dealing with dataframe or matrix input. Uses lots of if statements to comprehend the 'use' parameter.
+    if (grepl("complete", use)) {
+      drops <- is.na(rowSums(x)) # Clever way to find rows with NAs without explicitly using apply.
+      if (!is.null(y)) drops <- drops | is.na(rowSums(y))
+      x <- x[!drops,]
+      if (!is.null(y)) y <- y[!drops,]
+      if (length(x) == 0) {
+        if (grepl("na.or", use)) return(NA)
+        stop("Error, no complete cases (rows) of observations (input data).")
+      }
+    }
+    if (grepl("all")) {
+      if (!is.null(y)) nays <- any(is.na(y)) else nays <- FALSE
+      if (any(is.na(x)) || nays) stop("Error. Missing values not accepted with use = \"all.obs\"")
+    }
+    if (grepl("pairwise.complete.obs")) warning("use = \"pairwise.complete.obs\" is not available for complex input. Defaulting to use = everything.")
+    # Now we actually calculate stuff. Since use = "everything" is default, we don't have an if statement for it.
+    mns <- colMeans(x)
+    x <- x - mns[col(x)]
+    sdx <- colSums(x * Conj(x)) / (length(x[,1] - 1))
+    sdmat <- outer(sdx, sdx)
+    if (is.null(y)) {
+      covv <- Conj(t(x)) %*% x
+      sdy <- colSums(y * Conj(y)) / (length(x[,1] - 1))
+      sdmat <- outer(sdx, sdy)
+    return(covv / sdmat)
+    }
+    y <- y - colMeans(y)[col(y)]
+    covv <- (Conj(t(x)) * y)  / (length(x[,1] - 1))
+    return(covv / sdmat)
   }
 }
+
+#' @describeIn cov S3 Variance of complex variables, a synonym for [complexlm::cov].
+#' @export
+var <- function(x, y = NULL, na.rm = FALSE, use, ...)
+{
+  matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
+  cll <- match.call()
+  if (matdf) {
+    cll[[1]] <- stats::cov
+    if (is.numeric(x[[1]])) eval(cll, parent.frame())
+  }
+  cll[[1]] <- stats::var
+  if (is.numeric(x)) eval(cll, parent.frame())
+  else
+  {
+    cll <- match.call()
+    cll[[1]] <- cov
+    eval(cll, parent.frame())
+  }
+}
+
 
 ### A function for calculating the unbiased sample pseudo-variance of a vector of complex numbers.
 ### Can return a complex number.
@@ -223,6 +382,8 @@ pseuzvar <- function(x)
 #' @export
 #' 
 #' @references A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
+#' 
+#' @seealso [mahalanobis], [vcov.zlm], [vcov.rzlm]
 #'
 #' @examples
 #' set.seed(4242)
@@ -248,13 +409,15 @@ matrixweave <- function(cov, pcov)
 #' 
 #' The Mahalanobis distance function included in the `stats` package returns a complex number when given complex values of `x`.
 #' But a distance (and thus its square) is always positive real. This function calculates the Mahalanobis distance using
-#' the conjugate transpose if given complex data, otherwise it calls [stats::mahalanobis()].
+#' the conjugate transpose if given complex data, otherwise it calls [stats::mahalanobis].
 #'
 #' @inherit stats::mahalanobis return examples
 #' 
 #' @param x A length \eqn{p} vector or matrix with row length \eqn{p}. Or, a length \eqn{2p} vector or matrix with row length \eqn{2p}.
 #' @param center A vector of length equal to that of `x`.
-#' @param cov The covariance matrix \eqn{(p x p)} of the distribution. Or, the "double covariance matrix" of the distribution, which contains the information from `cov` and `pcov` in a single \eqn{(2p x 2p)} matrix. Can be generated by [matrixweave], [vcov.lm], or [vcov.rlm].
+#' @param cov The covariance matrix \eqn{(p x p)} of the distribution. Or, the "double covariance matrix" of the distribution, which contains the information from `cov` and `pcov` in a single \eqn{(2p x 2p)} matrix. 
+#' Can be generated by [matrixweave], [vcov.zlm], or [vcov.rzlm].
+#' vcov.rzlm].
 #' @param pcov The pseudo covariance matrix \eqn{(p x p)} of the distribution. Optional.
 #' @param inverted Boolean, if TRUE, `cov` and `pcov` are not taken to be the \emph{inverse} covariance and pseudo covariance matrices.
 #' @param ... Optional arguments to be passed to [solve], which is used for computing the inverse of `cov`. If `inverted = TRUE`, unused.
@@ -269,6 +432,8 @@ matrixweave <- function(cov, pcov)
 #' @references D. Dai and Y. Liang, High-Dimensional Mahalanobis Distances of Complex Random Vectors, Mathematics 9, 1877 (2021).
 #' 
 #' @export
+#' 
+#' @seealso [matrixweave]
 #'
 #' @examples
 #' set.seed(4242)
@@ -301,7 +466,7 @@ mahalanobis <- function(x, center, cov, pcov = NULL, inverted=FALSE, ...)
     
     if(!inverted)
       cov <- solve(cov, ...) # Returns inverse of cov.
-    setNames(rowSums(Conj(x) %*% cov * x), rownames(x))
+    return(setNames(rowSums(Conj(x) %*% cov * x), rownames(x)))
   }
 }
 
@@ -329,7 +494,7 @@ summary.complex <- function(object, ..., digits)
   if(!missing(digits)) value <- signif(value, digits)
   names(value) <- c("length", "median", "mean", "var.", "pvar.")
   class(value) <- c("summaryDefault", "table")
-  value
+  return(value)
 }
 
 #' Range For Complex Objects

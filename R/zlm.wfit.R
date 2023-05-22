@@ -32,6 +32,8 @@
 #'
 #' @return A model matrix, AKA a design matrix for a regression, containing the relevant information from `data`.
 #' @export
+#' 
+#' @seealso [stats::model.matrix], [complexlm::lm]
 #'
 #' @examples
 #' set.seed(4242)
@@ -84,6 +86,8 @@ zmodel.matrix <- function(trms, data, contrasts.arg = NULL)
 #' tolerance, and whether or not it was pivoted. This is the same output as `C_Cdqlrs`.
 #' @export
 #'
+#' @seealso  [base::qr], [complexlm::lm], [complexlm::zlm.wfit], [complexlm::rlm]
+#'
 #' @examples
 #' set.seed(4242)
 #' n <- 8
@@ -92,7 +96,8 @@ zmodel.matrix <- function(trms, data, contrasts.arg = NULL)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' y <- slope * x + intercept
 #' complexdqlrs(x, y, 10^-4, 1.2)
-complexdqlrs <- function (x, y, tol = 1E-07, chk) {
+complexdqlrs <- function(x, y, tol = 1E-07, chk)
+{
   thisqr <- qr(x, tol = tol)
   coefficients <- qr.coef(thisqr, y)
   resids <- y - as.matrix(x) %*% coefficients
@@ -119,14 +124,45 @@ complexdqlrs <- function (x, y, tol = 1E-07, chk) {
 #' The formula interpretation is also incapable of handling algebraic expressions in formula.
 #' model.frame needs to be changed to allow complex variables in order to enable these features.
 #'
-#' @inherit stats::lm description details params return
+#' @inherit stats::lm description details params
 #' 
-#' @param x logical. If TRUE return the model matrix of the fit. Default is TRUE.
+#' @param formula an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. 
+#' For complex variables there are restrictions on what kinds of formula can be comprehended. See [complexlm::zmodel.matrix] for details.
+#' @param x logical. If `TRUE` return the model matrix of the fit. Default is `TRUE`.
+#' @param contrasts Not implemented for complex variables. See [complexlm::zmodel.matrix] for details. Default is `NULL`
 #' 
 #' @note In `complexlm`, the `x` parameter defaults to `TRUE` so that followup
-#' methods such as [predict.lm] have access to the model matrix.
+#' methods such as [predict.lm] have access to the model matrix. 
 #'
+#' @return 
+#' Returns an object of class `c("zlm", "lm")`, or for multiple responses `c("zlm", "mlm", "lm")`.
+#' 
+#' The functions [summary] and [anova] are used to obtain and print a summary and analysis of variance table of the results. 
+#' The generic functions [coefficients], [effects], [fitted.values] and [residuals] extract various useful features of the value returned by lm.
+#' Of course these things can also be accessed by simply using the get element symbol `$`.
+#' 
+#' Objects of class "zlm" are lists with the following components.
+#' \item{`coefficients`}{a named vector of coefficients.}
+#' \item{`residuals`}{the residuals, that is response minus fitted values.}
+#' \item{`fitted.values`}{The fitted values, which are response values obtained by feeding the predictors into the model.}
+#' \item{`rank`}{The numeric rank of the fitted linear model.}
+#' \item{`weights`}{Numeric. The user supplied weights for the linear fit. If none were given, a vector of `1`s of length equal to that of the input data.}
+#' \item{`df.residual`}{The residual degrees of freedom.}
+#' \item{`call`}{The matched call.}
+#' \item{`terms`}{the [terms] object used.}
+#' \item{`contrasts`}{The contrasts used, as these are not supported this component will probably be `NULL`.}
+#' \item{`xlevels`}{(only where relevant) a record of the levels of the factors used in fitting.}
+#' \item{`offset`}{the offset used (missing if none were used).}\
+#' \item{`y`}{if requested, the response used.}
+#' \item{`x`}{the model matrix used, unless requested to not return it.}
+#' \item{`model`}{if requested, the model frame used.}
+#' \item{`na.action`}{(where relevant) information returned by [model.frame] on the special handling of NAs.}
+#' \item{`assign`}{Used by extractor functions like [summary] and [effects] to understand variable names. Not included in null fits.}
+#' \item{`effects`}{Complex list. See [effects] for explanation. Not included in null fits.}
+#' \item{`qr`}{unless declined, the output of the [qr] object created in the process of fitting. Not included in null fits.}
 #' @export
+#' 
+#' @seealso [complexlm::lm.fit], [complexlm::lm.wfit], [zlm.wfit], [zmodel.matrix], [complexdqlrs]
 #'
 #' @examples
 #' set.seed(4242)
@@ -137,7 +173,7 @@ complexdqlrs <- function (x, y, tol = 1E-07, chk) {
 #' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
 #' tframe <- data.frame(x= xx, y= slop*xx + interc + e)
 #' lm(y ~ x, data = tframe, weights = rep(1,n))
-lm <- function (formula, data, subset, weights, na.action,
+lm <- function(formula, data, subset, weights, na.action,
                 method = "qr", model = TRUE, x = TRUE, y = FALSE,
                 qr = TRUE, singular.ok = TRUE, contrasts = NULL,
                 offset, ...)
@@ -203,7 +239,7 @@ lm <- function (formula, data, subset, weights, na.action,
                                  singular.ok=singular.ok, ...)
       else lm.wfit(x, y, w, offset = offset, singular.ok=singular.ok, ...)
     }
-    class(z) <- c(if(mlm) "mlm", "lm")
+    class(z) <- c("zlm", if(mlm) "mlm", "lm")
     z$na.action <- attr(mf, "na.action")
     z$offset <- offset
     z$contrasts <- attr(x, "contrasts")
@@ -217,7 +253,7 @@ lm <- function (formula, data, subset, weights, na.action,
     if (ret.y)
       z$y <- y
     if (!qr) z$qr <- NULL
-    z
+    return(z)
   }
 }
 
@@ -277,8 +313,8 @@ lm.wfit <- function(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
 #' The function eventually called by [lm()], [lm.fit()], and/or [lm.wfit()] if fed complex data.
 #' Performs ordinary (least-squares) linear fitting on complex variable data.
 #' Like [stats::lm.wfit()], which it is based off of, it uses qr decomposition
-#' for the matrix algebra. Unlike `stats::lm.wfit()' it also handles un-weighted
-#' regression by setting the weights to 1 by default.
+#' for the matrix algebra. Unlike `stats::lm.wfit()` it also handles un-weighted
+#' regression, by setting the weights to 1 by default.
 #'
 #' @param x a complex design matrix, `n` rows by `p` columns.
 #' @param y a vector of observations/responses of length `n`, or a matrix with `n` rows.
@@ -290,7 +326,7 @@ lm.wfit <- function(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
 #' @param ... currently disregarded.
 #'
 #' @inherit stats::lm.wfit return
-#' @export
+#' @export zlm.wfit
 #'
 #' @inherit lm.wfit examples
 zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))), offset = NULL, method = "qr", tol = 1e-07, 
@@ -407,24 +443,27 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 }
 
 ####
-### A wrapper for summary.lm(). If the residuals are numeric, call summary.lm() from stats.
+### A wrapper for summary.lm(). If the residuals are numeric, call summary.lm() from stats. Not anymore, I had to make a new 'zlm' class :( Easier and faster than I thought :)
 #' Summarize Complex Linear Model Fits.
 #' 
-#' This extends summary.lm() to handle linear fits of complex variables.
-#' If the residuals of the fit object are numeric, [stats::summary.lm()] is called.
+#' Summary method for complex linear fits of class "zlm". 
+#' Based off of, and very similar to [stats::summary.lm]. However it does not delve into quantiles or 'significance stars', and includes the 'pseudo variance'.
 #'
-#' @param object An object of class 'lm'. Presumably returned by [lm]. May contain complex variables.
+#' @param object An object of class "zlm". Presumably returned by [complexlm::lm]. May contain complex variables.
+#' @param x An object of class "summary.zlm", usually generated by a call to `summary.zlm`.
+#' @param digits the number of significant digits to include when printing.
 #' @param correlation Logical. If TRUE, the correlation matrix of the estimated parameters is returned and printed.
 #' @param symbolic.cor Logical. If TRUE, print the correlations in a symbolic form (see [stats::symnum]) rather than as numbers. (This may not work.)
 #' @param ... Further arguments passed to or from other methods.
 #' 
 #' @details See [stats::summary.lm] for more information.
-#' In addition to the output information returned by `stats::summary.lm`, this complex variable compatible version also returns
+#' In addition to the information returned by `stats::summary.lm`, this complex variable compatible version also returns
 #' "pseudo standard error" or "relational standard error" which is the square root of the "pseudo-variance".
-#' This is a complex number that quantifies the covariance between the real and imaginary parts. Can also be thought of as the amount and direction of anisotropy in the 
-#' presumed (complex normal) probability distribution in the complex plane. The argument of this number gives the direction of the semi-major axis.
+#' This is a complex number that quantifies the covariance between the real and imaginary parts. Can also be thought of as the amount and direction of anisotropy of the
+#' (presumed complex normal) probability distribution of the residuals in the complex plane. The argument of this number gives the direction of the semi-major axis of an iso-probability-density ellipse
+#' centered on the mean, while its modulus is the length of the semi-major axis. The variance, meanwhile, gives the area of this ellipse, divided by pi. Together they fully describe it. 
 #'
-#' @return Returns a list containing the following elements.
+#' @return Returns an object of class "summary.zlm" and "summary.lm", that is a list containing the following elements.
 #' \item{`residuals`}{Complex or numeric. The weighted residuals, that is the measured value minus the fitted value, scaled by the square root of the weights given in the call to lm.}
 #' \item{`correlation`}{A complex matrix with real diagonal elements. The computed correlation coefficient matrix for the coefficients in the model.}
 #' \item{`pseudocorrelation`}{A complex matrix. The computed pseudo-correlation coefficient matrix for the coefficients in the model.}
@@ -443,6 +482,12 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 #' \item{`na.action`}{from `object`, if present there.}
 #' 
 #' @export
+#' @export summary.zlm
+#' @alias summary.zlm
+#' 
+#' @note `print.summary.zlm` calls `print.summary.rzlm`
+#' 
+#' @seealso [lm], [rlm]
 #'
 #' @examples
 #' set.seed(4242)
@@ -453,17 +498,10 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
 #' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
 #' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
 #' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
-#' summary(fit)
-summary.lm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
+#' summ <- summary(fit)
+#' print(summ)
+summary.zlm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
 {
-  cll <- match.call()
-  if (is.numeric(object$residuals)) 
-  {
-    cll[[1]] <- stats::summary.lm
-    eval(cll, parent.frame())
-  }
-  else
-  {
     z <- object
     p <- z$rank
     rdf <- z$df.residual
@@ -482,7 +520,7 @@ summary.lm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
       resvar <- rss/rdf # Variance of residuals.
       respvar <- prss / rdf # Pseudo-variance of residuals.
       ans <- z[c("call", "terms", if(!is.null(z$weights)) "weights")]
-      class(ans) <- "summary.lm"
+      class(ans) <- c("summary.zlm", "summary.lm")
       ans$aliased <- is.na(coef(object))  # used in print method
       ans$residuals <- r
       ans$df <- c(0L, n, length(ans$aliased))
@@ -572,59 +610,38 @@ summary.lm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
       ans$symbolic.cor <- symbolic.cor
     }
     if(!is.null(z$na.action)) ans$na.action <- z$na.action
-    class(ans) <- "summary.lm"
-    ans
-  }
+    class(ans) <- c("summary.zlm", "summary.lm")
+    return(ans)
 }
 
-#' @inherit stats::print.summary.lm title description details params return seealso
-#'
-#' @note This functions masks [stats::print.summary.lm] in order to give it compatibility with complex fits. If the residuals of the passed object are numeric, `stats::print.summary.lm` is called. If they are complex, [print.summary.rlm] is called. The later is much simpler, with no function calls that require numeric input.
+#' @describeIn summary.zlm S3 method for class 'summary.zlm'
 #'
 #' @export
-#' 
-#' @examples
-#' set.seed(4242)
-#' n <- 8
-#' slop <- complex(real = 4.23, imaginary = 2.323)
-#' interc <- complex(real = 1.4, imaginary = 1.804)
-#' e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
-#' xx <- complex(real= rnorm(n), imaginary= rnorm(n))
-#' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
-#' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
-#' summary <- summary(fit)
-#' print(summary)
-#'
-print.summary.lm <-
+print.summary.zlm <-
   function (x, digits = max(3L, getOption("digits") - 3L),
-            symbolic.cor = x$symbolic.cor,
-            signif.stars = getOption("show.signif.stars"),	...)
+            symbolic.cor = x$symbolic.cor, ...)
   {
     cll <- match.call()
-    if (!is.complex(x$residuals))
-    {
-      cll[[1]] <- stats::print.summary.lm
-      eval(cll, parent.frame())
-    }
-    else
-    {
-      cll[[1]] <- print.summary.rlm ## print.summary.lm() has many fancy features that call functions which don't play well with complex numbers, namely format.pval(). print.summary.rlm() is simpler, and will serve our purposes fine.
+      cll[[1]] <- print.summary.rzlm ## print.summary.lm() has many fancy features that call functions which don't play well with complex numbers, namely format.pval(). print.summary.rlm() is simpler, and will serve our purposes fine.
       # Computing and displaying the quantiles of the residuals would be possible using one of the definitions of multivariate quantile.
       eval(cll, parent.frame())
-    }  
   }
 
 #' Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
 #'
-#' A version of [stats::vcov()] that is compatible with complex linear models. In addition to variance-covariance matrix,
+#' A method for of [stats::vcov] that is compatible with complex linear models. In addition to variance-covariance matrix,
 #' the pseudo variance-covariance matrix, which is a measure of the covariance between real and imaginary components, is returned as well.
 #' Can also return the "double covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in (van den Bos 1995).
 #' While not as compact as two separate smaller matrices, the double covariance matrix simplifies calculations such as the [mahalanobis] distance.
 #' 
-#' @param object a fitted model object, typically. Sometimes also a summary() object of such a fitted model.
+#' @param object Typically a fitted model object of class "zlm" and/or "rzlm". Sometimes also a summary() object of such a fitted model.
 #' @param ... Additional parameters, not currently used for anything.
 #' @param complete logical. Indicates if the full covariance and pseudo-covariance matrices should be returned even in the case of an over-determined system, meaning that some coefficients are undefined.
 #' @param merge logical. Should the covariance matrix and pseudo-covariance / relational matrix be merged into one matrix of twice the dimensions? Default is TRUE.
+#' @param aliased a logical vector typically identical to `is.na(coef(.))` indicating which coefficients are ‘aliased’.
+#' @param vca variance-covariance matrix, typically “incomplete”, i.e., with no rows and columns for aliased coefficients.
+
+
 #'
 #' @return
 #' If `merge` is false, a list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
@@ -642,19 +659,10 @@ print.summary.lm <-
 #' tframe <- data.frame(x= x <- complex(real=rnorm(n), imaginary= rnorm(n)), y=slop*x + interc+err)
 #' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
 #' vcov(fit)
-vcov.lm <- function (object, complete = TRUE, merge = TRUE, ...)
-  
-{
-cll <- match.call()
-if (is.numeric(object$residuals))
-{
-  cll[[1]] <- stats::vcov.lm
-  eval(cll, parent.frame())
-}
-else
+vcov.zlm <- function (object, complete = TRUE, merge = TRUE, ...)
 {
     ## Copied from stats::vcov , modified to used NA_complex_ instead of NA_real_.
-    complex.vcov.aliased <- function(aliased, vc, ccomplete = TRUE) {
+    .complex.vcov.aliased <- function(aliased, vc, ccomplete = TRUE) {
       ## Checking for "NA coef": "same" code as in print.summary.lm() in ./lm.R :
       if(ccomplete && NROW(vc) < (P <- length(aliased)) && any(aliased)) {
         ## add NA rows and columns in vcov
@@ -667,8 +675,8 @@ else
         vc
     }
     so <- summary(object, corr = FALSE)
-    varcovar <- complex.vcov.aliased(aliased = so$aliased, vc = so$sigma^2 * so$cov.unscaled, ccomplete = complete)
-    pseudovarcovar <- complex.vcov.aliased(aliased = so$aliased, vc = so$psigma^2 * so$pcov.unscaled, ccomplete  = complete)
+    varcovar <- .complex.vcov.aliased(aliased = so$aliased, vc = so$sigma^2 * so$cov.unscaled, ccomplete = complete)
+    pseudovarcovar <- .complex.vcov.aliased(aliased = so$aliased, vc = so$psigma^2 * so$pcov.unscaled, ccomplete  = complete)
     if (merge == TRUE)
     {
       #bigcovar <- diag(rep(diag(varcovar), each = 2)) # Start by making a square diagonal matrix with two adjacent diagonal elements for each variance.
@@ -677,33 +685,199 @@ else
       bigcovar <- matrix(0, ncol = 2*n, nrow = 2*n) #Start by making an empty matrix with dimensions twice those of the small covariance matrix.
       bigcovar[,seq(1, 2*n, 2)] <- matrix(as.vector(rbind(as.vector(varcovar), as.vector(Conj(pseudovarcovar)))), nrow = 2*n) # Fill the odd indexed columns of bigcovar with the entries from varcovar interleaved with the entries from pseudovarcovar conjugated.
       bigcovar[,seq(2, 2*n, 2)] <- matrix(as.vector(rbind(as.vector(pseudovarcovar), as.vector(varcovar))), nrow = 2*n) # Fill the even indexed columns of bigcovar with the entries from varcovar interleaved with the entries from pseudovarcovar, this time the later first.
+      ## The lines above could be replaced with a call to matrixweave.
       return(bigcovar)
     }
     else return(list(varcovar = as.numeric(varcovar), pseudovarcovar = pseudovarcovar))
-  }  
 }
+
+#' ANOVA for Complex Linear Fits
+#' 
+#' A very simple adaptation of [stats::anova.lm] which can handle fits of complex variables. 
+#' The only change was to take the absolute value of squared residuals, and eliminate quantile based features.
+#'
+#' @usage
+#'
+#' @inherit stats::anova.lm params details return warning references
+#'
+#' @param object objects of class "zlm", usually produced by [complexlm::lm].
+#' @param ... Other arguments. 
+#'
+#' @return
+#' @export
+#' @aliases anova.zlm
+#' 
+#' @seealso [complexlm::lm], [anova]
+#'
+#' @examples
+#' set.seed(4242)
+#' n <- 8
+#' slop <- complex(real = 4.23, imaginary = 2.323)
+#' interc <- complex(real = 1.4, imaginary = 1.804)
+#' err <- complex(real = rnorm(n)/16, imaginary = rnorm(n)/16)
+#' tframe <- data.frame(x= x <- complex(real=rnorm(n), imaginary= rnorm(n)), y=slop*x + interc+err)
+#' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
+#' anova(fit)
+#' robfit <- rlm(y ~ x, data = tframe)
+#' anova(fit, robfit)
+anova.zlm <- function(object, ...)
+{
+  ## Do not copy this: anova.lmlist is not an exported object.
+  ## See anova.glm for further comments.
+  if(length(list(object, ...)) > 1L) return(anova.zlmlist(object, ...))
+  
+  if(!inherits(object, "lm"))
+    warning("calling anova.lm(<fake-lm-object>) ...")
+  w <- object$weights
+  ssr <- sum(if(is.null(w)) abs(object$residuals^2) else w*abs(object$residuals^2))
+  mss <- sum(if(is.null(w)) abs(object$fitted.values^2) else w*abs(object$fitted.values^2))
+  if(ssr < 1e-10*mss)
+    warning("ANOVA F-tests on an essentially perfect fit are unreliable")
+  dfr <- df.residual(object)
+  p <- object$rank
+  if(p > 0L) {
+    p1 <- 1L:p
+    comp <- object$effects[p1]
+    # asgn <- object$assign[qr.lm(object)$pivot][p1]
+    try(asgn <- object$assign[object$qr$pivot][p1], stop("lm object does not have a proper 'qr' component. Rank zero or should not have used lm(.., qr=FALSE).")) # Replicates the behavior of the line above without calling a unexported function.
+    nmeffects <- c("(Intercept)", attr(object$terms, "term.labels"))
+    tlabels <- nmeffects[1 + unique(asgn)]
+    ss <- c(vapply( split(abs(Conj(comp)*comp),asgn), sum, 1.0), ssr)
+    df <- c(lengths(split(asgn,  asgn)),           dfr)
+  } else {
+    ss <- ssr
+    df <- dfr
+    tlabels <- character()
+  }
+  ms <- ss/df
+  f <- ms/(ssr/dfr)
+  #P <- pf(f, df, dfr, lower.tail = FALSE)
+  table <- data.frame(df, ss, ms, f)
+  table[length(df), 4:4] <- NA
+  dimnames(table) <- list(c(tlabels, "Residuals"),
+                          c("Df","Sum Sq", "Mean Sq", "F value"))
+  if(attr(object$terms,"intercept")) table <- table[-1, ]
+  structure(table, heading = c("Analysis of Variance Table\n",
+                               paste("Response:", deparse(formula(object)[[2L]]))),
+            class = c("anova", "data.frame"))# was "tabular"
+}
+
+#' @describeIn anova.zlm s3 method for class 'lmlist'
+anova.zlmlist <- function (object, ..., scale = 0, test = "F")
+{
+  objects <- list(object, ...)
+  responses <- as.character(lapply(objects,
+                                   function(x) deparse(x$terms[[2L]])))
+  sameresp <- responses == responses[1L]
+  if (!all(sameresp)) {
+    objects <- objects[sameresp]
+    warning(gettextf("models with response %s removed because response differs from model 1",
+                     sQuote(deparse(responses[!sameresp]))),
+            domain = NA)
+  }
+  
+  ns <- sapply(objects, function(x) length(x$residuals))
+  if(any(ns != ns[1L]))
+    stop("models were not all fitted to the same size of dataset")
+  
+  ## calculate the number of models
+  nmodels <- length(objects)
+  if (nmodels == 1)
+    return(anova.zlm(object))
+  
+  ## extract statistics
+  
+  resdf  <- as.numeric(lapply(objects, df.residual))
+  resdev <- as.numeric(lapply(objects, function(x) abs(deviance(x))))
+  
+  ## construct table and title
+  
+  table <- data.frame(resdf, resdev, c(NA, -diff(resdf)),
+                      c(NA, -diff(resdev)) )
+  variables <- lapply(objects, function(x)
+    paste(deparse(formula(x)), collapse="\n") )
+  dimnames(table) <- list(1L:nmodels,
+                          c("Res.Df", "RSS", "Df", "Sum of Sq"))
+  
+  title <- "Analysis of Variance Table\n"
+  topnote <- paste0("Model ", format(1L:nmodels), ": ", variables,
+                    collapse = "\n")
+  
+  ## calculate test statistic if needed
+  
+  if(!is.null(test)) {
+    bigmodel <- order(resdf)[1L]
+    scale <- if(scale > 0) scale else resdev[bigmodel]/resdf[bigmodel]
+    table <- stat.anova(table = table, test = test,
+                        scale = scale,
+                        df.scale = resdf[bigmodel],
+                        n = length(objects[[bigmodel]]$residuals))
+  }
+  structure(table, heading = c(title, topnote),
+            class = c("anova", "data.frame"))
+}
+
+# Thankfully unnecessary.
+# stat.anova.z <- function(table, test=c("Rao","LRT","Chisq", "F", "Cp"), scale, df.scale, n)
+#   {
+#     test <- match.arg(test)
+#     dev.col <- match("Deviance", colnames(table))
+#     if (test == "Rao") dev.col <- match("Rao", colnames(table))
+#     if (is.na(dev.col)) dev.col <- match("Sum of Sq", colnames(table))
+#     switch(test,
+#            "Rao" = ,"LRT" = ,"Chisq" = {
+#              dfs <- table[, "Df"]
+#              vals <- table[, dev.col]/scale * sign(dfs)
+#              vals[dfs %in% 0] <- NA
+#              vals[!is.na(vals) & vals < 0] <- NA # rather than p = 0
+#              cbind(table,
+#                    "Pr(>Chi)" = pchisq(vals, abs(dfs), lower.tail = FALSE)
+#              )
+#            },
+#            "F" = {
+#              dfs <- table[, "Df"]
+#              Fvalue <- (table[, dev.col]/dfs)/scale
+#              Fvalue[dfs %in% 0] <- NA
+#              Fvalue[!is.na(Fvalue) & Fvalue < 0] <- NA # rather than p = 0
+#              cbind(table,
+#                    F = Fvalue,
+#                    "Pr(>F)" = pf(Fvalue, abs(dfs), df.scale, lower.tail = FALSE)
+#              )
+#            },
+#            "Cp" = { # depends on the type of object.
+#              if ("RSS" %in% names(table)) { # an lm object
+#                cbind(table, Cp = table[, "RSS"] +
+#                        2*scale*(n - table[, "Res.Df"]))
+#              } else { # a glm object
+#                cbind(table, Cp = table[, "Resid. Dev"] +
+#                        2*scale*(n - table[, "Resid. Df"]))
+#              }
+#            })
+#   }
 
 #' Generate the Hat Matrix or Leverage Scores of a Complex Linear Model
 #' 
 #' This function returns either the full hat matrix (AKA the projection matrix) of a complex "lm" or "rlm" object. 
 #' It performs the same basic role as [stats::hat] and [stats::hatvalues] do for numeric fits, but is quite a bit simpler
-#' and less versatile. 
+#' and rather less versatile. 
 #' 
 #'
-#' @param model A complex linear fit object, of class "lm" or "rlm". An object with numeric residuals will produce a warning and NULL output.
+#' @param model A complex linear fit object, of class "zlm" or "rzlm". An object with numeric residuals will produce a warning and NULL output.
 #' @param full Logical. If TRUE, return the entire hat matrix. If FALSE, return a vector of the diagonal elements of the hat matrix. These are the influence scores. Default is FALSE.
 #' @param ... Additional arguments. Not used.
 #' 
-#' @details For unweighted least-squares fits the hat matrix is calculated from the model matrix, `X = model$x`, as
-#' \eqn{H = X (X^\dagger X)^{-1} X^\dagger}
-#' For rlm or weighted least-squares fits the hat matrix is calculated as
-#' \eqn{H = X (X^\dagger W X)^{-1} X^\dagger W}
-#' Where \eqn{W} is the identity matrix times the user provided weights and the final IWLS weights if present.
-#' Note that this function requires that the model matrix be returned when calling [lm] or [rlm].
+#' @details For unweighted least-squares fits the hat matrix is calculated from the model matrix, \eqn{X = }`model$x`, as \n
+#' \deqn{H = X (X^t X)^{-1} X^t}\n
+#' For rlm or weighted least-squares fits the hat matrix is calculated as\n
+#' \deqn{H = X (X^t W X)^{-1} X^t W}
+#' Where \eqn{^t} represents conjugate transpose, and \eqn{W} is the identity matrix times the user provided weights and the final IWLS weights if present. \n
+#' Note that this function requires that the model matrix be returned when calling [lm] or [rlm].\n
 #' The diagonals will be purely real, and are converted to numeric if `full == FALSE`.
 #'
 #' @return Either a \eqn{(n x n)} complex matrix or a length \eqn{n} numeric vector.
 #' @export
+#'
+#' @seealso [stats::hatvalues], [stats::hat], [cooks.distance]
 #'
 #' @examples
 #' set.seed(4242)
@@ -742,20 +916,23 @@ zhatvalues <- function(model, full = FALSE, ...)
 #' Generates a vector of residuals from the given complex linear model that are normalized to have unit variance.
 #' Similar to [stats::rstandard], which this function calls if given numeric input.
 #'
-#' @param model An object of class "lm" or "rlm". Can be complex or numeric.
+#' @param model An object of class "zlm", "rzlm", "lm", or "rlm". Can be complex or numeric.
 #' @param lever A list of leverage scores with the same length as `model$residuals`. By default [zhatvalues] is called on `model`.
 #' @param ... Other parameters. Only used if `model` is numeric; in which case they are passed to `stats::rstandard`.
 #'
-#' @details The standardized residuals are calculated as,
-#' \eqn{r' = r / ( s sqrt(1 - lever) )}
-#' Where \eqn{r} is the residual vector and \eqn{s} is the residual standard error for "lm" objects
-#' and the robust scale estimate for "rlm" objects.
+#' @details The standardized residuals are calculated as,\n
+#' \deqn{r' = r / ( s \sqrt(1 - lever) )}\n
+#' Where \eqn{r} is the residual vector and \eqn{s} is the residual standard error for "zlm" objects
+#' or the robust scale estimate for "rzlm" objects.
 #' 
 #' @note This is a much simpler function than [stats::rstandard]. 
 #' It cannot perform leave-one-out cross validation residuals, or anything else not mentioned here.
 #'
 #' @return A complex vector of length equal to that of the residuals of `model`. Numeric for numeric input.
 #' @export
+#' @export rstandard.zlm
+#' 
+#' @seealso [stats::rstandard], [stats::rstandard.lm], 
 #'
 #' @examples
 #' set.seed(4242)
@@ -767,7 +944,7 @@ zhatvalues <- function(model, full = FALSE, ...)
 #' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
 #' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
 #' rstandard(fit)
-rstandard <- function(model, lever = zhatvalues(model), ...)
+rstandard.zlm <- function(model, lever = zhatvalues(model), ...)
 {
   cll <- match.call()
   if (is.numeric(model$residuals))
@@ -796,18 +973,21 @@ rstandard <- function(model, lever = zhatvalues(model), ...)
 #' @details Consider a linear model relating a response vector `y` to a predictor vector `x`, both of length `n`. Using the model and predictor vector we can
 #' calculate a vector of predicted values `yh`. `y` and `yh` are points in a `n` dimensional output space. If we drop the `i`-th element of `x` and `y`, then fit another
 #' model using the "dropped `i`" vectors, we can get another point in output space, `yhi`. The squared Euclidean distance between `yh` and `yhi`, divided by the 
-#' rank of the model times its mean squared error, is the `i`-th Cook's distance.
-#' \eqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}
-#' A more elegent way to calculate it, which this function uses, is with the influence scores, `hii`.
-#' \eqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}
+#' rank of the model times its mean squared error, is the `i`-th Cook's distance.\n
+#' \deqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}\n
+#' A more elegent way to calculate it, which this function uses, is with the influence scores, `hii`.\n
+#' \deqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\n
 #' Where `r_i` is the `i`-th residual. 
 #' 
-#' @note `complexlm::cooks.distance` is a simpler function than [stats::cooks.distance], and does not understand any additional parameters not listed in this entry.
+#' @note This is a simpler function than [stats::cooks.distance], and does not understand any additional parameters not listed in this entry.
 #' 
 #' @references R. D. Cook, Influential Observations in Linear Regression, Journal of the American Statistical Association 74, 169 (1979).
 #'
 #' @return A numeric vector. The elements are the Cook's distances of each data point in `model`.
 #' @export
+#' @export cooks.distance.zlm
+#' 
+#' @seealso [stats::cooks.distance], [zhatvalues]
 #'
 #' @examples
 #' set.seed(4242)
@@ -819,11 +999,12 @@ rstandard <- function(model, lever = zhatvalues(model), ...)
 #' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
 #' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
 #' cooks.distance(fit)
-cooks.distance <- function(model, lever = zhatvalues(model), ...)
+cooks.distance.zlm <- function(model, lever = zhatvalues(model), ...)
 {
   cll <- match.call()
   if (is.numeric(model$residuals))
   {
+    #print("theuano")
     cll[[1]] <- stats::cooks.distance
     eval(cll, parent.frame())
   }
@@ -836,14 +1017,16 @@ cooks.distance <- function(model, lever = zhatvalues(model), ...)
   }
 }
 
-#' Plot Diagnostics for a Complex lm Object
+#' Plot Diagnostics for a Complex Linear Model Objects
 #' 
-#' A modified version of [stats::plot.lm] which is capable of visualizing ordinary ("lm") and robust ("rlm")
+#' A modified version of [stats::plot.lm] used for visualizing ordinary ("zlm") and robust ("rzlm")
 #' linear models of complex variables. This documentation entry describes the complex version, focusing on the
-#' differences and changes from the numeric. For a more thorough explanation of the plots please see [stats::plot.lm].
-#' If given a numeric linear model, this function calls [stats::plot.lm].
+#' differences and changes from the numeric. For further explanation of the plots please see [stats::plot.lm].
 #'
-#' @inherit stats::plot.lm params
+#' @inherit stats::plot.lm params references authors
+#' 
+#' @param x complex lm object ("zlm" or "rzlm"). Typically produced by [complexlm::lm] or [complexlm::rlm].
+#' @param which If a subset of the plots is required, specify a subset of the numbers 1:6, except 2. See caption below (and the ‘Details’) for the different kinds. Default is c(1,3,5).
 #' 
 #' @details Five of the six plots generated by [stats::plot.lm] can be produced by this function:
 #' The residuals vs. fitted values plot, the scale-location plot, the plot of Cook's distances vs. row labels,
@@ -855,6 +1038,8 @@ cooks.distance <- function(model, lever = zhatvalues(model), ...)
 #' @return Several diagnostic plots.
 #' @export
 #'
+#' @seealso [zhatvalues], [cooks.distance], [complexlm::lm], [complexlm::rlm]
+#'
 #' @examples
 #' set.seed(4242)
 #' n <- 8
@@ -865,7 +1050,7 @@ cooks.distance <- function(model, lever = zhatvalues(model), ...)
 #' tframe <- data.frame(x = xx, y= slop*xx + interc + e)
 #' fit <- lm(y ~ x, data = tframe, weights = rep(1,n))
 #' plot(fit)
-plot.lm <- function(x, which = c(1,3,5), ## was which = 1L:4L,
+plot.zlm <- function(x, which = c(1,3,5), ## was which = 1L:4L,
                     caption = list("Residuals vs Fitted",
                                    "Scale-Location", "Cook's distance",
                                    "Residuals vs Leverage",
@@ -875,27 +1060,12 @@ plot.lm <- function(x, which = c(1,3,5), ## was which = 1L:4L,
                     sub.caption = NULL, main = "",
                     ask = prod(par("mfcol")) < length(which) && dev.interactive(), ...,
                     id.n = 3, labels.id = names(residuals(x)), cex.id = 0.75,
-                    qqline = TRUE, cook.levels = c(0.5, 1.0),
+                    cook.levels = c(0.5, 1.0),
                     add.smooth = getOption("add.smooth"),
                     iter.smooth = if(isGlm # && binomialLike
                     ) 0 else 3,
                     label.pos = c(4,2), cex.caption = 1, cex.oma.main = 1.25) ## Looks like I can do the leverage, the scale-location, and the residuaals vs fitted.
 {
-  # Note: It's not very efficient to perform all these calculations even if the user only wants some of the plots.
-  # plotdf <- data.frame("Real Residuals" = Re(x$residuals), "Imaginary Residuals" = Im(x$residuals), "Real Fitted Values" = Re(x$fitted.values), "Imaginary Fitted Values" = Im(x$fitted.values))
-  # plotdf$leverage <- zhatvalues(x)
-  # standerr <- summary(x)$sigma
-  # plotdf$standresid <- x$residuals / (standerr * sqrt(1 - plotdf$leverage))
-  # plotdf$Real.Standardized.Residuals <- Re(plotdf$standresid)
-  # plotdf$Imaginary.Standardized.Residuals <- Im(plotdf$standresid)
-  # # Cook's distance.
-  # p <- x$rank
-  # plotdf$CooksDistance <- ((Conj(t(x$residuals)) * x$residuals) / (p * standerr^2)) * (plotdf$leverage / (1 - leverage)^2)
-  # 
-  # # Now for the plotting.
-  # # Start with the Residuals vs. Fitted plot(s).
-  # plot(subset(plotdf, select = c(Real.Residuals, Imaginary.Residuals, Real.Fitted.Values, Imaginary.Fitted.Values)))
-  # 
   dropInf <- function(x, h) {
     if(any(isInf <- h >= 1.0)) {
       warning(gettextf("not plotting observations with leverage one:\n  %s",
@@ -1011,7 +1181,7 @@ else {
     #panel(yh, r, ...)
     if (one.fig)
       title(sub = sub.caption, ...)
-    mtext(getCaption(1), 3, 0.25, cex = cex.caption)
+    mtext(getCaption(1), side = 3, line = 2.8, cex = cex.caption)
     # if(id.n > 0) { # This won't look right with the pairs scatterplot matrix.
     #   y.id <- r[show.r] # arrange r decreasing distance from median.
     #   y.id[y.id < 0] <- y.id[y.id < 0] - strheight(" ")/3
@@ -1046,7 +1216,7 @@ else {
     #panel(yhn0, sqrtabsr, ...)
     if (one.fig)
       title(sub = sub.caption, ...)
-    mtext(getCaption(3), 3, 0.25, cex = cex.caption)
+    mtext(getCaption(2), side = 3, line = 2.8, cex = cex.caption)
     if(id.n > 0)
       text.id(yhn0[show.rs], sqrtabsr[show.rs], show.rs)
     dev.flush()
@@ -1061,7 +1231,7 @@ else {
          xlab = "Obs. number", ylab = "Cook's distance", ...) # What is the x axis here..? Oh, just an index.
     if (one.fig)
       title(sub = sub.caption, ...)
-    mtext(getCaption(4), 3, 0.25, cex = cex.caption)
+    mtext(getCaption(3), side = 3, line = 0.25, cex = cex.caption)
     if(id.n > 0)
       text.id(show.r, cook[show.r], show.r, adj.x=FALSE)
     dev.flush()
@@ -1082,7 +1252,7 @@ else {
     do.plot <- TRUE
     if(isConst.hat) { ## leverages are all the same
       if(missing(caption)) # set different default
-        caption[[5L]] <- "Constant Leverage:\n Residuals vs Factor Levels"
+        caption[[4L]] <- "Constant Leverage:\n Residuals vs Factor Levels"
       ## plot against factor-level combinations instead
       aterms <- attributes(terms(x))
       ## classes w/o response
@@ -1097,15 +1267,17 @@ else {
         facval <- (dm-1) %*% ff
         xx <- facval # for use in do.plot section.
         dev.hold()
-        plot(facval, rsp, xlim = c(-1/2, sum((nlev-1) * ff) + 1/2),
+        plot(facval, Re(rsp), xlim = c(-1/2, sum((nlev-1) * ff) + 1/2),
              ylim = ylim, xaxt = "n",
              main = main, xlab = "Factor Level Combinations",
              ylab = ylab5, type = "n", ...)
+        points(facval, Im(rsp), type = 'n', pch = 5)
         axis(1, at = ff[1L]*(1L:nlev[1L] - 1/2) - 1/2,
              labels = x$xlevels[[1L]])
         mtext(paste(facvars[1L],":"), side = 1, line = 0.25, adj=-.05)
         abline(v = ff[1L]*(0:nlev[1L]) - 1/2, col="gray", lty="F4")
-        panel(facval, rsp, ...)
+        panel(facval, Re(rsp), ...)
+        panel(facval, Im(rsp), ...)
         abline(h = 0, lty = 3, col = "gray")
         dev.flush()
       }
@@ -1155,7 +1327,7 @@ else {
       dev.flush()
     } # if(const h_ii) .. else ..
     if (do.plot) {
-      mtext(getCaption(5), 3, 0.25, cex = cex.caption)
+      mtext(getCaption(4), side = 3, line = 0.25, cex = cex.caption)
       if (id.n > 0) {
         y.id <- rsp[show.rsp]
         y.id[(Re(y.id) < 0 | Im(y.id) < 0)] <- y.id[(Re(y.id) < 0 | Im(y.id) < 0)] - strheight(" ")/3
@@ -1202,7 +1374,7 @@ else {
     
     ## axis(4, at=p*cook.levels, labels=paste(c(rev(cook.levels), cook.levels)),
     ##	mgp=c(.25,.25,0), las=2, tck=0, cex.axis=cex.id)
-    mtext(getCaption(6), 3, 0.25, cex = cex.caption)
+    mtext(getCaption(5), side = 3, line = 0.25, cex = cex.caption)
     if (id.n > 0) {
       show.r <- order(-cook)[iid]
       text.id(g[show.r], cook[show.r], show.r)
