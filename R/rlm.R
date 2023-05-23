@@ -396,7 +396,7 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
       if(length(object$call$wt.method) && object$call$wt.method == "case") {
         rdf <- sum(wts) - p ## 'residual degrees of freedom'
         w <- object$psi(wresid/s)
-        S <- sum(wts * (wresid*w)*Conj(wresid*w))/rdf # The estimated variance of the residuals is analogous to the area of a circle around the estimated parameters, so it is a real number.
+        S <- sum(as.numeric(wts * (wresid*w)*Conj(wresid*w)))/rdf # The estimated variance of the residuals is analogous to the area of a circle around the estimated parameters, so it is a real number.
         pS <- sum(wts * (wresid*w)*(wresid*w))/rdf # The estimated pseudo-variance is a complex number that describes the anisotropy of the distribution or set.
         # Distributions that are less circularly symmetric and more bilaterally symmetric have higher pseudovariance.
         # The direction of the pseudovariance indicates the orientation of the anisotropy; bilateral symmetry axis angle from 
@@ -420,7 +420,7 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
         psiprime <- object$psi(wresid/s, deriv=1) # The derivative of the influence function.
         mn <- mean(psiprime)
         pvarpsi <- sum((psiprime - mn)^2)/(n-1)
-        kappa <- 1 + p*var(psiprime)/(n*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think.
+        kappa <- 1 + p*as.numeric(var(psiprime))/(n*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think.
         #print(var(psiprime))
         pkappa <- 1 + p*pvarpsi/(n*mn^2)
         stddev <- sqrt(S)*(kappa/abs(mn)) ## Would it be useful to do something similar with pseudo-variance? Probably.
@@ -457,6 +457,8 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
       object$residuals <- res
       object$coefficients <- coef
       object$sigma <- s
+      print(var(psiprime))
+      print(stddev)
       object$stddev <- stddev
       object$pstdev <- pstddev
       object$df <- c(p, rdf, ptotal)
@@ -466,8 +468,8 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
       object$correlation <- correl
       object$pseudocorrelation <- pcorrel
       object$terms <- NA
-      class(object) <- c("summary.rzlm", "summary.rlm")
-      object
+      class(object) <- c("summary.rzlm", "summary.rlm", "summary.zlm")
+      return(object)
 }
 
 #' @describeIn summary.rzlm Print the summary of a (possibly complex) robust linear fit.
@@ -698,10 +700,13 @@ predict.rzlm <- function (object, newdata = NULL, scale = NULL, ...)
 #' x <- complex(real = rnorm(n), imaginary = rnorm(n))
 #' y <- slope * x + intercept + e
 #' robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
+#' summary(robfit)$stddev
 #' vcov(robfit)
-vcov.rzlm <- function (object, merge = TRUE, ...)
+vcov.rzlm <- function(object, merge = TRUE, ...)
 {
     so <- summary(object, corr = FALSE)
+    print(dim(so$stddev^2))
+    print(dim(so$cov.unscaled))
     varcovar <- so$stddev^2 * so$cov.unscaled
     pseudovarcovar <- so$pstddev^2 * so$pcov.unscaled
     if (merge == TRUE)

@@ -9,3 +9,4 @@
 #' @importFrom grDevices as.graphicsAnnot dev.flush dev.hold dev.interactive devAskNewPage extendrange
 ## usethis namespace: end
 NULL
+

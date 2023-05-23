@@ -633,16 +633,17 @@ print.summary.zlm <-
 #' Can also return the "double covariance" matrix, which combines the information of the covariance matrix and the pseudo-covariance matrix, as described in (van den Bos 1995).
 #' While not as compact as two separate smaller matrices, the double covariance matrix simplifies calculations such as the [mahalanobis] distance.
 #' 
+#' 
 #' @param object Typically a fitted model object of class "zlm" and/or "rzlm". Sometimes also a summary() object of such a fitted model.
-#' @param ... Additional parameters, not currently used for anything.
 #' @param complete logical. Indicates if the full covariance and pseudo-covariance matrices should be returned even in the case of an over-determined system, meaning that some coefficients are undefined.
 #' @param merge logical. Should the covariance matrix and pseudo-covariance / relational matrix be merged into one matrix of twice the dimensions? Default is TRUE.
-#' @param aliased a logical vector typically identical to `is.na(coef(.))` indicating which coefficients are ‘aliased’.
-#' @param vca variance-covariance matrix, typically “incomplete”, i.e., with no rows and columns for aliased coefficients.
+#' @param ... Additional parameters, not currently used for anything.
 #'
 #' @return
 #' If `merge` is false, a list containing both the numeric variance-covariance matrix, and the complex pseudo variance-covariance matrix.
 #' If `merge` is true, a large matrix (both dimensions being twice the number of coefficients) containing both the variance-covariance matrix and the pseudo variance-covariance matrix, merged together.
+#' @exportS3Method vcov zlm
+#' @export vcov.zlm
 #' @export
 #' 
 #' @references A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).
@@ -658,22 +659,9 @@ print.summary.zlm <-
 #' vcov(fit)
 vcov.zlm <- function (object, complete = TRUE, merge = TRUE, ...)
 {
-    ## Copied from stats::vcov , modified to used NA_complex_ instead of NA_real_.
-    .complex.vcov.aliased <- function(aliased, vc, ccomplete = TRUE) {
-      ## Checking for "NA coef": "same" code as in print.summary.lm() in ./lm.R :
-      if(ccomplete && NROW(vc) < (P <- length(aliased)) && any(aliased)) {
-        ## add NA rows and columns in vcov
-        cn <- names(aliased)
-        VC <- matrix(NA_complex_, P, P, dimnames = list(cn,cn))
-        j <- which(!aliased)
-        VC[j,j] <- vc
-        VC
-      } else  # default
-        vc
-    }
     so <- summary(object, corr = FALSE)
-    varcovar <- .complex.vcov.aliased(aliased = so$aliased, vc = so$sigma^2 * so$cov.unscaled, ccomplete = complete)
-    pseudovarcovar <- .complex.vcov.aliased(aliased = so$aliased, vc = so$psigma^2 * so$pcov.unscaled, ccomplete  = complete)
+    varcovar <- .vcov.aliased.complex(aliased = so$aliased, vc = so$sigma^2 * so$cov.unscaled, complete = complete)
+    pseudovarcovar <- .vcov.aliased.complex(aliased = so$aliased, vc = so$psigma^2 * so$pcov.unscaled, complete  = complete)
     if (merge == TRUE)
     {
       #bigcovar <- diag(rep(diag(varcovar), each = 2)) # Start by making a square diagonal matrix with two adjacent diagonal elements for each variance.
@@ -688,6 +676,28 @@ vcov.zlm <- function (object, complete = TRUE, merge = TRUE, ...)
     else return(list(varcovar = as.numeric(varcovar), pseudovarcovar = pseudovarcovar))
 }
 
+## Copied from stats::vcov , modified to used NA_complex_ instead of NA_real_.
+#' @describeIn vcov.zlm auxiliary function for dealing with singular model fits. See [stats::vcov].
+#'
+#' @param aliased a logical vector typically identical to `is.na(coef(.))` indicating which coefficients are 'aliased'.
+#' @param vc a variance-covariance matrix, typically "incomplete", i.e., with no rows and columns for aliased coefficients.
+#' @param complete logical. Indicates if the full covariance and pseudo-covariance matrices should be returned even in the case of an over-determined system, meaning that some coefficients are undefined.
+#'
+#' @export
+.vcov.aliased.complex <- function(aliased, vc, complete = TRUE) {
+  ## Checking for "NA coef": "same" code as in print.summary.lm() in ./lm.R :
+  if(complete && NROW(vc) < (P <- length(aliased)) && any(aliased)) {
+    ## add NA rows and columns in vcov
+    cn <- names(aliased)
+    VC <- matrix(NA_complex_, P, P, dimnames = list(cn,cn))
+    j <- which(!aliased)
+    VC[j,j] <- vc
+    VC
+  } else  # default
+    vc
+}
+
+#' @title anova.zlm
 #' ANOVA for Complex Linear Fits
 #' 
 #' A very simple adaptation of [stats::anova.lm] which can handle fits of complex variables. 
@@ -698,8 +708,10 @@ vcov.zlm <- function (object, complete = TRUE, merge = TRUE, ...)
 #' @param object objects of class "zlm", usually produced by [complexlm::lm].
 #' @param ... Other arguments. 
 #'
-#' @return
+#' @return An object of class "anova", which inherits from class "data.frame". Contains a analysis of variance table, except for those components that rely on quantiles.
 #' @export
+#' @export anova.zlm
+#' @exportS3Method anova zlm
 #'
 #' @seealso [complexlm::lm], [anova]
 #'
@@ -716,12 +728,9 @@ vcov.zlm <- function (object, complete = TRUE, merge = TRUE, ...)
 #' anova(fit, robfit)
 anova.zlm <- function(object, ...)
 {
-  ## Do not copy this: anova.lmlist is not an exported object.
-  ## See anova.glm for further comments.
   if(length(list(object, ...)) > 1L) return(anova.zlmlist(object, ...))
   
-  if(!inherits(object, "lm"))
-    warning("calling anova.lm(<fake-lm-object>) ...")
+  if(!inherits(object, "lm")) warning("calling anova.lm(<fake-lm-object>) ...")
   w <- object$weights
   ssr <- sum(if(is.null(w)) abs(object$residuals^2) else w*abs(object$residuals^2))
   mss <- sum(if(is.null(w)) abs(object$fitted.values^2) else w*abs(object$fitted.values^2))
@@ -753,12 +762,13 @@ anova.zlm <- function(object, ...)
   if(attr(object$terms,"intercept")) table <- table[-1, ]
   structure(table, heading = c("Analysis of Variance Table\n",
                                paste("Response:", deparse(formula(object)[[2L]]))),
-            class = c("anova", "data.frame"))# was "tabular"
+            class = c("anova", "data.frame"))# was tabular
 }
 
-#' @describeIn anova.zlm s3 method for class 'lmlist'
+#' @describeIn anova.zlm s3 method for class 'zlmlist'
+#' @export
 anova.zlmlist <- function (object, ..., scale = 0, test = "F")
-{
+  {
   objects <- list(object, ...)
   responses <- as.character(lapply(objects,
                                    function(x) deparse(x$terms[[2L]])))
@@ -809,45 +819,7 @@ anova.zlmlist <- function (object, ..., scale = 0, test = "F")
   }
   structure(table, heading = c(title, topnote),
             class = c("anova", "data.frame"))
-}
-
-# Thankfully unnecessary.
-# stat.anova.z <- function(table, test=c("Rao","LRT","Chisq", "F", "Cp"), scale, df.scale, n)
-#   {
-#     test <- match.arg(test)
-#     dev.col <- match("Deviance", colnames(table))
-#     if (test == "Rao") dev.col <- match("Rao", colnames(table))
-#     if (is.na(dev.col)) dev.col <- match("Sum of Sq", colnames(table))
-#     switch(test,
-#            "Rao" = ,"LRT" = ,"Chisq" = {
-#              dfs <- table[, "Df"]
-#              vals <- table[, dev.col]/scale * sign(dfs)
-#              vals[dfs %in% 0] <- NA
-#              vals[!is.na(vals) & vals < 0] <- NA # rather than p = 0
-#              cbind(table,
-#                    "Pr(>Chi)" = pchisq(vals, abs(dfs), lower.tail = FALSE)
-#              )
-#            },
-#            "F" = {
-#              dfs <- table[, "Df"]
-#              Fvalue <- (table[, dev.col]/dfs)/scale
-#              Fvalue[dfs %in% 0] <- NA
-#              Fvalue[!is.na(Fvalue) & Fvalue < 0] <- NA # rather than p = 0
-#              cbind(table,
-#                    F = Fvalue,
-#                    "Pr(>F)" = pf(Fvalue, abs(dfs), df.scale, lower.tail = FALSE)
-#              )
-#            },
-#            "Cp" = { # depends on the type of object.
-#              if ("RSS" %in% names(table)) { # an lm object
-#                cbind(table, Cp = table[, "RSS"] +
-#                        2*scale*(n - table[, "Res.Df"]))
-#              } else { # a glm object
-#                cbind(table, Cp = table[, "Resid. Dev"] +
-#                        2*scale*(n - table[, "Resid. Df"]))
-#              }
-#            })
-#   }
+  }
 
 #' Generate the Hat Matrix or Leverage Scores of a Complex Linear Model
 #' 
@@ -860,12 +832,12 @@ anova.zlmlist <- function (object, ..., scale = 0, test = "F")
 #' @param full Logical. If TRUE, return the entire hat matrix. If FALSE, return a vector of the diagonal elements of the hat matrix. These are the influence scores. Default is FALSE.
 #' @param ... Additional arguments. Not used.
 #' 
-#' @details For unweighted least-squares fits the hat matrix is calculated from the model matrix, \eqn{X = }`model$x`, as \n
-#' \deqn{H = X (X^t X)^{-1} X^t}\n
-#' For rlm or weighted least-squares fits the hat matrix is calculated as\n
+#' @details For unweighted least-squares fits the hat matrix is calculated from the model matrix, \eqn{X = }`model$x`, as \cr
+#' \deqn{H = X (X^t X)^{-1} X^t}\cr
+#' For rlm or weighted least-squares fits the hat matrix is calculated as\cr
 #' \deqn{H = X (X^t W X)^{-1} X^t W}
-#' Where \eqn{^t} represents conjugate transpose, and \eqn{W} is the identity matrix times the user provided weights and the final IWLS weights if present. \n
-#' Note that this function requires that the model matrix be returned when calling [lm] or [rlm].\n
+#' Where \eqn{^t} represents conjugate transpose, and \eqn{W} is the identity matrix times the user provided weights and the final IWLS weights if present. \cr
+#' Note that this function requires that the model matrix be returned when calling [lm] or [rlm].\cr
 #' The diagonals will be purely real, and are converted to numeric if `full == FALSE`.
 #'
 #' @return Either a \eqn{(n x n)} complex matrix or a length \eqn{n} numeric vector.
@@ -914,8 +886,8 @@ zhatvalues <- function(model, full = FALSE, ...)
 #' @param lever A list of leverage scores with the same length as `model$residuals`. By default [zhatvalues] is called on `model`.
 #' @param ... Other parameters. Only used if `model` is numeric; in which case they are passed to `stats::rstandard`.
 #'
-#' @details The standardized residuals are calculated as,\n
-#' \deqn{r' = r / ( s \sqrt(1 - lever) )}\n
+#' @details The standardized residuals are calculated as,\cr
+#' \deqn{r' = r / ( s \sqrt(1 - lever) )}\cr
 #' Where \eqn{r} is the residual vector and \eqn{s} is the residual standard error for "zlm" objects
 #' or the robust scale estimate for "rzlm" objects.
 #' 
@@ -966,10 +938,10 @@ rstandard.zlm <- function(model, lever = zhatvalues(model), ...)
 #' @details Consider a linear model relating a response vector `y` to a predictor vector `x`, both of length `n`. Using the model and predictor vector we can
 #' calculate a vector of predicted values `yh`. `y` and `yh` are points in a `n` dimensional output space. If we drop the `i`-th element of `x` and `y`, then fit another
 #' model using the "dropped `i`" vectors, we can get another point in output space, `yhi`. The squared Euclidean distance between `yh` and `yhi`, divided by the 
-#' rank of the model times its mean squared error, is the `i`-th Cook's distance.\n
-#' \deqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}\n
-#' A more elegent way to calculate it, which this function uses, is with the influence scores, `hii`.\n
-#' \deqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\n
+#' rank of the model times its mean squared error, is the `i`-th Cook's distance.\cr
+#' \deqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}\cr
+#' A more elegent way to calculate it, which this function uses, is with the influence scores, `hii`.\cr
+#' \deqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\cr
 #' Where `r_i` is the `i`-th residual. 
 #' 
 #' @note This is a simpler function than [stats::cooks.distance], and does not understand any additional parameters not listed in this entry.
@@ -1015,10 +987,10 @@ cooks.distance.zlm <- function(model, lever = zhatvalues(model), ...)
 #' linear models of complex variables. This documentation entry describes the complex version, focusing on the
 #' differences and changes from the numeric. For further explanation of the plots please see [stats::plot.lm].
 #'
-#' @inherit stats::plot.lm params references
+#' @inherit stats::plot.lm params
 #' 
 #' @param x complex lm object ("zlm" or "rzlm"). Typically produced by [complexlm::lm] or [complexlm::rlm].
-#' @param which If a subset of the plots is required, specify a subset of the numbers 1:6, except 2. See caption below (and the ‘Details’) for the different kinds. Default is c(1,3,5).
+#' @param which If a subset of the plots is required, specify a subset of the numbers 1:6, except 2. See [stats::plot.lm], and below, for the different kinds. Default is c(1,3,5).
 #' 
 #' @details Five of the six plots generated by [stats::plot.lm] can be produced by this function:
 #' The residuals vs. fitted values plot, the scale-location plot, the plot of Cook's distances vs. row labels,
@@ -1029,6 +1001,17 @@ cooks.distance.zlm <- function(model, lever = zhatvalues(model), ...)
 #'
 #' @return Several diagnostic plots.
 #' @export
+#' 
+#' @references
+#' Belsley, D. A., Kuh, E. and Welsch, R. E. (1980). Regression Diagnostics. New York: Wiley.
+#'
+#' Cook, R. D. and Weisberg, S. (1982). Residuals and Influence in Regression. London: Chapman and Hall.
+#'
+#' Firth, D. (1991) Generalized Linear Models. In Hinkley, D. V. and Reid, N. and Snell, E. J., eds: Pp. 55-82 in Statistical Theory and Modelling. In Honour of Sir David Cox, FRS. London: Chapman and Hall.
+#' 
+#' Hinkley, D. V. (1975). On power transformations to symmetry. Biometrika, 62, 101–111. doi: 10.2307/2334491.
+#'
+#' McCullagh, P. and Nelder, J. A. (1989). Generalized Linear Models. London: Chapman and Hall.
 #'
 #' @seealso [zhatvalues], [cooks.distance], [complexlm::lm], [complexlm::rlm]
 #'

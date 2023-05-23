@@ -32,6 +32,7 @@ e <- complex(real=rnorm(n)/6, imaginary=rnorm(n)/6)
 x <- complex(real = rnorm(n), imaginary = rnorm(n))
 y <- slope * x + intercept + e
 robfit <- rlm(x = x, y = y, weights = rep(1,n), interc = TRUE)
+summary(robfit)$stddev
 vcov(robfit)
 }
 \references{

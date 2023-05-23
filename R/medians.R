@@ -342,7 +342,9 @@ var <- function(x, y = NULL, na.rm = FALSE, use = "everything", ...)
   {
     cll <- match.call()
     cll[[1]] <- cov
-    eval(cll, parent.frame())
+    vard <- eval(cll, parent.frame())
+    if (!is.null(y)) return(vard)
+    return(as.numeric(vard))
   }
 }
 
