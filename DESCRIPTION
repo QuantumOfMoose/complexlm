@@ -1,22 +1,22 @@
 Package: complexlm
-Version: 0.3
+Version: 1.0
 Date: 2022-12-09
 Depends: R (>= 3.3.0), MASS
 Imports: methods, grDevices, utils, ggplot2, reshape2, pracma, graphics, stats
 # Enhances: MASS
-Authors@R: c(person("Brian", "Ripley", role = c("aut", "cph"),
+Authors@R: c(person("William", "Ryan", role = c("aut", "cre", "cph"), email = "wryan1@binghamton.edu", 
+	                comment = "Adapted MASS rlm and stats lm for complex variables then spun that off into this package."),
+	     person("Bruce", "White", role = "ths")),
+       person("Brian", "Ripley", role = c("ctb", "cph"),
                   comment = "Wrote MASS rlm code upon which complexlm rlm is based."),
 	     person("Bill", "Venables", role = "ctb"),
-	     person(c("Douglas", "M."), "Bates", role = "ctb"),
-	     person("Kurt", "Hornik", role = "trl",
-                     comment = "partial port ca 1998"),
-	     person("Albrecht", "Gebhardt", role = "trl",
-                     comment = "partial port ca 1998"),
-	     person("David", "Firth", role = "ctb"),
-	     person("William", "Ryan", role = c("aut", "cre", "cph"), email = "wryan1@binghamton.edu", 
-	                   comment = "Adapted MASS rlm and stats lm for complex variables then spun that off into this package."),
-	     person("Bruce", "White", role = "ths"))
-Description: Tools for linear fitting with complex variables. Includes ordinary least-squares and robust methods. Originally adapted from the rlm functions of MASS and the lm functions of stats.
+       person("John", "Maindonald", role = "ctb",
+                  comment = "Wrote plot.lm on which plot.zlm is based."),
+       person("Martin", "Maechler", role = "ctb",
+                  comment = "Wrote plot.lm on which plot.zlm is based.")
+       person("R Core", "Team", role = c("ctb", "cph"),
+                  comment = "Several functions in complexlm are based on similar functions in base or stats")
+Description: Tools for linear fitting with complex variables. Includes ordinary least-squares (zlm) and robust M-estimation (rzlm). Originally adapted from the rlm functions of MASS and the lm functions of stats.
 Title: Linear fitting for complex valued data
 LazyData: yes
 ByteCompile: yes
@@ -25,14 +25,13 @@ URL: https://github.com/QuantumOfMoose/complexlm
 Contact: <wryan1@binghamton.edu>
 NeedsCompilation: yes
 Packaged: 2022-12-09 08:31:21 UTC; ryan
-Author: Brian Ripley [aut, cph],
-  Bill Venables [ctb],
-  Douglas M. Bates [ctb],
-  Kurt Hornik [trl] (partial port ca 1998),
-  Albrecht Gebhardt [trl] (partial port ca 1998),
-  David Firth [ctb],
-  William Ryan [aut, crt, cph],
+Author: William Ryan [aut, crt, cph],
   Bruce White [ths]
+  Brian Ripley [ctb, cph],
+  Bill Venables [ctb],
+  John Maindonald [ctb],
+  Martin Maechler [ctb],
+  R Core Team [ctb, cph]
 Maintainer: William Ryan <wryan1@binghamton.edu>
 Repository: github
 Date/Publication: 2021-05-03 09:03:50 UTC
