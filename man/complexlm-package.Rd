@@ -6,7 +6,7 @@
 \alias{complexlm-package}
 \title{complexlm: Linear fitting for complex valued data}
 \description{
-Tools for linear fitting with complex variables. Includes ordinary least-squares and robust methods. Originally adapted from the rlm functions of MASS and the lm functions of stats.
+Tools for linear fitting with complex variables. Includes ordinary least-squares (zlm) and robust M-estimation (rzlm). Originally adapted from the rlm functions of MASS and the lm functions of stats.
 }
 \seealso{
 Useful links:
@@ -16,21 +16,16 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: William Ryan \email{wryan1@binghamton.edu} (Adapted MASS rlm and stats lm for complex variables then spun that off into this package.) [copyright holder]
-
-Authors:
-\itemize{
-  \item Brian Ripley (Wrote MASS rlm code upon which complexlm rlm is based.) [copyright holder]
-}
+\strong{Maintainer}: William Ryan \email{wryan1@binghamton.edu} [copyright holder]
 
 Other contributors:
 \itemize{
-  \item Bill Venables [contributor]
-  \item Douglas M. Bates [contributor]
-  \item Kurt Hornik (partial port ca 1998) [translator]
-  \item Albrecht Gebhardt (partial port ca 1998) [translator]
-  \item David Firth [contributor]
   \item Bruce White [thesis advisor]
+  \item Brian Ripley (Wrote MASS rlm code upon which complexlm rlm is based) [contributor, copyright holder]
+  \item Bill Venables [contributor]
+  \item John Maindonald (Wrote plot.lm on which plot.zlm is based) [contributor]
+  \item Martin Maechler (Wrote plot.lm on which plot.zlm is based) [contributor]
+  \item R Core Team (Several functions in complexlm are based on similar functions in base or stats) [contributor, copyright holder]
 }
 
 }

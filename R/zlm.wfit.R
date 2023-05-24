@@ -697,7 +697,6 @@ vcov.zlm <- function (object, complete = TRUE, merge = TRUE, ...)
     vc
 }
 
-#' @title anova.zlm
 #' ANOVA for Complex Linear Fits
 #' 
 #' A very simple adaptation of [stats::anova.lm] which can handle fits of complex variables. 
@@ -1009,7 +1008,7 @@ cooks.distance.zlm <- function(model, lever = zhatvalues(model), ...)
 #'
 #' Firth, D. (1991) Generalized Linear Models. In Hinkley, D. V. and Reid, N. and Snell, E. J., eds: Pp. 55-82 in Statistical Theory and Modelling. In Honour of Sir David Cox, FRS. London: Chapman and Hall.
 #' 
-#' Hinkley, D. V. (1975). On power transformations to symmetry. Biometrika, 62, 101–111. doi: 10.2307/2334491.
+#' Hinkley, D. V. (1975). On power transformations to symmetry. Biometrika, 62, 101-111. doi: 10.2307/2334491.
 #'
 #' McCullagh, P. and Nelder, J. A. (1989). Generalized Linear Models. London: Chapman and Hall.
 #'

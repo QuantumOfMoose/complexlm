@@ -173,13 +173,17 @@ wmedian <- function(x, w = rep(1, length(x)))
 #' @param use character string giving the desired method of computing covariances in the presence of missing values. Options are "everything" (default),
 #' "all.obs", "complete.obs", or "na.or.complete". See [stats::cov] for explanation of what each one does. Note that "pairwise.complete.obs" is not available for this complex method.
 #' @param method The method for calculating correlation coefficient. Only `"pearson"` is supported for complex variables, so this parameter is ignored.
+#' @param pseudo logical, if `TRUE` the pseudo variance, covariance, or correlation is calculated. i.e. no complex conjugation is performed.
 #' @param ... Other parameters, ignored.
 #' 
 #' @details For vector input, the sample variance is calculated as,\cr
 #'  \eqn{sum(Conj( mean(x) - x ) * ( mean(x) - x )) / (length(x) - 1)}\cr
 #'  And the sample covariance is calculated as, \cr
 #'  \eqn{sum(Conj( mean(x) - x ) * ( mean(y) - y )) / (length(x) - 1)}\cr
-#'  The Pearson correlation coefficient, which is the only kind available for complex data, is the covariance divided by the product of the standard deviations of all variables.
+#'  The Pearson correlation coefficient, which is the only kind available for complex data,
+#'   is the covariance divided by the product of the standard deviations of all variables.
+#'   If `pseudo = TRUE`, these same expressions, sans `Conj()`, are used to calculate the pseudo, AKA relational,
+#'   versions of variance, covariance, or correlation.
 #'
 #' @return numeric or complex the sample variance, covariance, or correlation of the input data.
 #' @export
@@ -194,7 +198,7 @@ wmedian <- function(x, w = rep(1, length(x)))
 #' foobar <- data.frame(foo, bar)
 #' cov(foobar)
 #' cor(foobar)
-cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use = "everything", ...)
+cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use = "everything", pseudo = FALSE, ...)
   {
   matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
   cll <- match.call()
@@ -213,14 +217,18 @@ cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use = "everythin
       if (na.rm == TRUE) x <- x[!is.na(x)]
       if (length(x) == 1) return(NA)
       mn <- mean(x)
-      if (is.null(y)) return(sum(as.numeric(Conj(x - mn)*(x - mn))) / (length(x) - 1)) # as.numeric() needed to convert type to numeric.
+      if (is.null(y)) {
+        if (pseudo) return(sum(Conj(x - mn)*(x - mn)) / (length(x) - 1)) # This is pseudo-variance. It is complex.
+        return(sum(as.numeric(Conj(x - mn)*(x - mn))) / (length(x) - 1)) # as.numeric() needed to convert type to numeric. This is variance
+      }
       if (na.rm == TRUE) {
         y <- y[!is.na(x)]
         x <- x[!is.na(y)]
         y <- y[!is.na(y)]
       }
       mny <- mean(y)
-      return(sum((x - mn) * Conj(y - mny)) / (length(x) - 1))
+      if (pseudo) return(sum((x - mn) * (y - mny)) / (length(x) - 1)) #pseudo-covariance
+      return(sum((x - mn) * Conj(y - mny)) / (length(x) - 1)) #covariance
     }
     # Code for dealing with dataframe or matrix input. Uses lots of if statements to comprehend the 'use' parameter.
     if (grepl("complete", use)) {
@@ -241,9 +249,13 @@ cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use = "everythin
     # Now we actually calculate stuff. Since use = "everything" is default, we don't have an if statement for it.
     mns <- colMeans(x)
     x <- x - mns[col(x)]
-    if (is.null(y)) return((Conj(t(x)) %*% x)  / (length(x[,1] - 1)))
+    if (is.null(y)) {
+      if (pseudo) return((t(x) %*% x)  / (length(x[,1] - 1))) # pseudo-covariance
+      return((Conj(t(x)) %*% x)  / (length(x[,1] - 1))) # covariance
+    }
     y <- y - colMeans(y)[col(y)]
-    return((Conj(t(x)) * y)  / (length(x[,1] - 1)))
+    if (pseudo) return((t(x) %*% y)  / (length(x[,1] - 1))) # pseudo-covariance
+    return((Conj(t(x)) * y)  / (length(x[,1] - 1))) # covariance
   }
   # matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
   # cll <- match.call()
@@ -263,7 +275,7 @@ cov <- function(x, y = NULL, na.rm = FALSE, method = "pearson", use = "everythin
 
 #' @describeIn cov Correlation coefficient of complex variables.
 #' @export
-cor <- function(x, y = NULL, na.rm = FALSE, use = "everything", method = "pearson", ...)
+cor <- function(x, y = NULL, na.rm = FALSE, use = "everything", method = "pearson", pseudo = FALSE, ...)
 {
   matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
   cll <- match.call()
@@ -282,7 +294,10 @@ cor <- function(x, y = NULL, na.rm = FALSE, use = "everything", method = "pearso
       if (length(x) == 1) return(NA)
       mn <- mean(x)
       sdx <- sqrt(sum((x - mn) * Conj(x - mn)) / (length(x) - 1))
-      if (is.null(y)) return(sum(as.numeric(Conj(x - mn)*(x - mn))) / (length(x) - 1)) # as.numeric() needed to convert type to numeric.
+      if (is.null(y)) {
+        if (pseudo) return(sum((x - mn)*(x - mn)) / (sdx^2 * (length(x) - 1))) # pseudo variance
+        return(sum(as.numeric(Conj(x - mn)*(x - mn))) / (as.numeric(sdx)^2 * (length(x) - 1))) # variance as.numeric() needed to convert type to numeric.
+      }
       if (na.rm == TRUE) {
         y <- y[!is.na(x)]
         x <- x[!is.na(y)]
@@ -290,7 +305,7 @@ cor <- function(x, y = NULL, na.rm = FALSE, use = "everything", method = "pearso
       }
       mny <- mean(y)
       sdy <- sqrt(sum((y - mny) * Conj(y - mny)) / (length(y) - 1))
-      covv <- sum((x - mn) * Conj(y - mny)) / (length(x) - 1)
+      covv <- if (pseudo) sum((x - mn) * (y - mny)) / (length(x) - 1) else sum((x - mn) * Conj(y - mny)) / (length(x) - 1) # pseudo covariance else covariance
       return(covv / (sdx * sdy))
     }
     # Code for dealing with dataframe or matrix input. Uses lots of if statements to comprehend the 'use' parameter.
@@ -314,21 +329,21 @@ cor <- function(x, y = NULL, na.rm = FALSE, use = "everything", method = "pearso
     x <- x - mns[col(x)]
     sdx <- colSums(x * Conj(x)) / (length(x[,1] - 1))
     if (is.null(y)) {
-      covv <- (Conj(t(x)) %*% x) / (length(x[,1] - 1))
+      covv <- if (pseudo) (t(x) %*% x) / (length(x[,1] - 1)) else (Conj(t(x)) %*% x) / (length(x[,1] - 1)) # pseudo-covariance else covariance
       sdmat <- outer(sdx, sdx)
     return(covv / sdmat)
     }
     y <- y - colMeans(y)[col(y)]
     sdy <- colSums(y * Conj(y)) / (length(x[,1] - 1))
     sdmat <- outer(sdx, sdy)
-    covv <- (Conj(t(x)) * y)  / (length(x[,1] - 1))
+    covv <- if (pseudo) (t(x) %*% y) / (length(x[,1] - 1)) else (Conj(t(x)) * y)  / (length(x[,1] - 1)) # pseudo-covariance else covariance
     return(covv / sdmat)
   }
 }
 
-#' @describeIn cov S3 Variance of complex variables, a synonym for [complexlm::cov].
+#' @describeIn cov S3 Variance or Pseudo Variance of Complex Variables, a synonym for [complexlm::cov].
 #' @export
-var <- function(x, y = NULL, na.rm = FALSE, use = "everything", ...)
+var <- function(x, y = NULL, na.rm = FALSE, use = "everything", pseudo = FALSE, ...)
 {
   matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
   cll <- match.call()
@@ -346,30 +361,6 @@ var <- function(x, y = NULL, na.rm = FALSE, use = "everything", ...)
     if (!is.null(y)) return(vard)
     return(as.numeric(vard))
   }
-}
-
-
-### A function for calculating the unbiased sample pseudo-variance of a vector of complex numbers.
-### Can return a complex number.
-### Not used in anything else at the moment.
-#' Pseudo-Variance of Complex Variables
-#' 
-#' Calculates the pseudo-variance, also called the relational variance of a vector of complex numbers.
-#' This describes the degree of covariance between the real and imaginary components.
-#'
-#' @param x a vector of complex numbers.
-#'
-#' @return complex. The pseudo-variance of `x`. If `x` is numeric, this is just the variance.
-#' @export
-#'
-#' @examples
-#' n = 6
-#' z <- complex(real = rnorm(n), imaginary = rnorm(n))
-#' pseuzvar(z)
-pseuzvar <- function(x)
-{
-  sampmean <- mean(x, trim = 0)
-  return((1 / (length(x) - 1)) * sum((x - sampmean) * (x - sampmean)))
 }
 
 #' Combine covariance matrix and pseudo covariance matrix into a "double covariance matrix"

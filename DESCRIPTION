@@ -4,18 +4,17 @@ Date: 2022-12-09
 Depends: R (>= 3.3.0), MASS
 Imports: methods, grDevices, utils, ggplot2, reshape2, pracma, graphics, stats
 # Enhances: MASS
-Authors@R: c(person("William", "Ryan", role = c("aut", "cre", "cph"), email = "wryan1@binghamton.edu", 
-	                comment = "Adapted MASS rlm and stats lm for complex variables then spun that off into this package."),
-	     person("Bruce", "White", role = "ths")),
+Authors@R: c(person("William", "Ryan", role = c("aut", "cre", "cph"), email = "wryan1@binghamton.edu"),
+	     person("Bruce", "White", role = "ths"),
        person("Brian", "Ripley", role = c("ctb", "cph"),
-                  comment = "Wrote MASS rlm code upon which complexlm rlm is based."),
+                  comment = "Wrote MASS rlm code upon which complexlm rlm is based"),
 	     person("Bill", "Venables", role = "ctb"),
        person("John", "Maindonald", role = "ctb",
-                  comment = "Wrote plot.lm on which plot.zlm is based."),
+                  comment = "Wrote plot.lm on which plot.zlm is based"),
        person("Martin", "Maechler", role = "ctb",
-                  comment = "Wrote plot.lm on which plot.zlm is based.")
+                  comment = "Wrote plot.lm on which plot.zlm is based"),
        person("R Core", "Team", role = c("ctb", "cph"),
-                  comment = "Several functions in complexlm are based on similar functions in base or stats")
+                  comment = "Several functions in complexlm are based on similar functions in base or stats"))
 Description: Tools for linear fitting with complex variables. Includes ordinary least-squares (zlm) and robust M-estimation (rzlm). Originally adapted from the rlm functions of MASS and the lm functions of stats.
 Title: Linear fitting for complex valued data
 LazyData: yes
