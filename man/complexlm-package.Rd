@@ -6,7 +6,7 @@
 \alias{complexlm-package}
 \title{complexlm: Linear fitting for complex valued data}
 \description{
-Tools for linear fitting with complex variables. Includes ordinary least-squares (zlm) and robust M-estimation (rzlm). Originally adapted from the rlm functions of MASS and the lm functions of stats.
+Tools for linear fitting with complex variables. Includes ordinary least-squares (zlm) and robust M-estimation (rzlm), and complex methods for oft used generics. Originally adapted from the rlm functions of MASS and the lm functions of stats.
 }
 \seealso{
 Useful links:

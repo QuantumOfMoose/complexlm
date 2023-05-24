@@ -6,11 +6,27 @@
 \alias{var}
 \title{Variance, Covariance, and Correlation for Complex Data}
 \usage{
-cov(x, y = NULL, na.rm = FALSE, method = "pearson", use = "everything", ...)
+cov(
+  x,
+  y = NULL,
+  na.rm = FALSE,
+  method = "pearson",
+  use = "everything",
+  pseudo = FALSE,
+  ...
+)
 
-cor(x, y = NULL, na.rm = FALSE, use = "everything", method = "pearson", ...)
+cor(
+  x,
+  y = NULL,
+  na.rm = FALSE,
+  use = "everything",
+  method = "pearson",
+  pseudo = FALSE,
+  ...
+)
 
-var(x, y = NULL, na.rm = FALSE, use = "everything", ...)
+var(x, y = NULL, na.rm = FALSE, use = "everything", pseudo = FALSE, ...)
 }
 \arguments{
 \item{x}{a numeric or complex vector, matrix, or dataframe.}
@@ -23,6 +39,8 @@ var(x, y = NULL, na.rm = FALSE, use = "everything", ...)
 
 \item{use}{character string giving the desired method of computing covariances in the presence of missing values. Options are "everything" (default),
 "all.obs", "complete.obs", or "na.or.complete". See \link[stats:cor]{stats::cov} for explanation of what each one does. Note that "pairwise.complete.obs" is not available for this complex method.}
+
+\item{pseudo}{logical, if \code{TRUE} the pseudo variance, covariance, or correlation is calculated. i.e. no complex conjugation is performed.}
 
 \item{...}{Other parameters, ignored.}
 }
@@ -37,13 +55,16 @@ For vector input, the sample variance is calculated as,\cr
 \eqn{sum(Conj( mean(x) - x ) * ( mean(x) - x )) / (length(x) - 1)}\cr
 And the sample covariance is calculated as, \cr
 \eqn{sum(Conj( mean(x) - x ) * ( mean(y) - y )) / (length(x) - 1)}\cr
-The Pearson correlation coefficient, which is the only kind available for complex data, is the covariance divided by the product of the standard deviations of all variables.
+The Pearson correlation coefficient, which is the only kind available for complex data,
+is the covariance divided by the product of the standard deviations of all variables.
+If \code{pseudo = TRUE}, these same expressions, sans \code{Conj()}, are used to calculate the pseudo, AKA relational,
+versions of variance, covariance, or correlation.
 }
 \section{Functions}{
 \itemize{
 \item \code{cor}: Correlation coefficient of complex variables.
 
-\item \code{var}: S3 Variance of complex variables, a synonym for \link{cov}.
+\item \code{var}: S3 Variance or Pseudo Variance of Complex Variables, a synonym for \link{cov}.
 }}
 
 \examples{

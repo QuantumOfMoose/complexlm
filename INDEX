@@ -1,8 +1,14 @@
 Functions:
 =========
 
+
+.vcov.aliased.complex	  Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
+anova.zlm	              ANOVA for Complex Linear Fits
+anova.zlmlist         	ANOVA for Complex Linear Fits
 complexdqlrs            Complex QR Decomposition for Linear Fitting
-cooks.distance          Cook's Distance for Complex Linear Models
+cooks.distance.zlm      Cook's Distance for Complex Linear Models
+cor	                    Variance, Covariance, and Correlation for Complex Data
+cov	                    Variance, Covariance, and Correlation for Complex Data
 lm                      Least Squares Fitting of Linear Models with Complex Variables
 lm.fit	                Complex Variable Compatible Wrappers for 'stats::lm.fit()' and 'stats::lm.wfit()'
 lm.wfit                 Complex Variable Compatible Wrappers for 'stats::lm.fit()' and 'stats::lm.wfit()'
@@ -19,10 +25,16 @@ psi.bisquare            Weight Function of Tukey's Bisquare Influence Function
 psi.hampel              Weight Function of Hampel Influence Function
 psi.huber               Weight Function of Huber Loss Influence Functio
 rlm                     Robust Fitting of Linear Models with Complex Variables
-rlm.complex	Robust Fitting of Linear Models, Compatible with Complex Variables
-rlm.formula	Robust Fitting of Linear Models, Compatible with Complex Variables
-summary.lm              Summary Method for Complex Linear Models
-summary.rlm             Summary Method for Robust Complex Linear Models
+rlm.complex	            Robust Fitting of Linear Models, Compatible with Complex Variables
+rlm.formula	            Robust Fitting of Linear Models, Compatible with Complex Variables
+summary.complex       	summary method for complex objects
+summary.zlm             Summary Method for Complex Linear Models
+summary.rzlm            Summary Method for Robust Complex Linear Models
 var                     Variance of Complex Vectors
+vcov.rzlm	              Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
+vcov.zlm	              Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
 wmedian                 Weighted Median
+zhatvalues	            Generate the Hat Matrix or Leverage Scores of a Complex Linear Model
+zlm.wfit	              Least-Squares Linear Fitting for Complex Variables
+zmodel.matrix	          Generate a Model Matrix (Design Matrix) Using Complex Variables
 zmodel.matrix           Generate a Complex Model Matrix

@@ -15,7 +15,7 @@ Authors@R: c(person("William", "Ryan", role = c("aut", "cre", "cph"), email = "w
                   comment = "Wrote plot.lm on which plot.zlm is based"),
        person("R Core", "Team", role = c("ctb", "cph"),
                   comment = "Several functions in complexlm are based on similar functions in base or stats"))
-Description: Tools for linear fitting with complex variables. Includes ordinary least-squares (zlm) and robust M-estimation (rzlm). Originally adapted from the rlm functions of MASS and the lm functions of stats.
+Description: Tools for linear fitting with complex variables. Includes ordinary least-squares (zlm) and robust M-estimation (rzlm), and complex methods for oft used generics. Originally adapted from the rlm functions of MASS and the lm functions of stats.
 Title: Linear fitting for complex valued data
 LazyData: yes
 ByteCompile: yes

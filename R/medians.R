@@ -485,7 +485,7 @@ mahalanobis <- function(x, center, cov, pcov = NULL, inverted=FALSE, ...)
 #' summary(foo)
 summary.complex <- function(object, ..., digits)
 {
-  value <- c(length(object), median(object), mean(object), var(object), pseuzvar(object))
+  value <- c(length(object), median(object), mean(object), var(object), var(object, pseudo = TRUE))
   if(!missing(digits)) value <- signif(value, digits)
   names(value) <- c("length", "median", "mean", "var.", "pvar.")
   class(value) <- c("summaryDefault", "table")

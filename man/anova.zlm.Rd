@@ -3,11 +3,7 @@
 \name{anova.zlm}
 \alias{anova.zlm}
 \alias{anova.zlmlist}
-\title{anova.zlm
-ANOVA for Complex Linear Fits
-
-A very simple adaptation of \link[stats:anova.lm]{stats::anova.lm} which can handle fits of complex variables.
-The only change was to take the absolute value of squared residuals, and eliminate quantile based features.}
+\title{ANOVA for Complex Linear Fits}
 \usage{
 \method{anova}{zlm}(object, ...)
 
@@ -31,9 +27,6 @@ The only change was to take the absolute value of squared residuals, and elimina
 An object of class "anova", which inherits from class "data.frame". Contains a analysis of variance table, except for those components that rely on quantiles.
 }
 \description{
-anova.zlm
-ANOVA for Complex Linear Fits
-
 A very simple adaptation of \link[stats:anova.lm]{stats::anova.lm} which can handle fits of complex variables.
 The only change was to take the absolute value of squared residuals, and eliminate quantile based features.
 }
