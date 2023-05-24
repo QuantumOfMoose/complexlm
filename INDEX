@@ -1,20 +1,26 @@
 Functions:
 =========
 
-Complexdqlrs            Complex QR Decomposition for Linear Fitting
+complexdqlrs            Complex QR Decomposition for Linear Fitting
+cooks.distance          Cook's Distance for Complex Linear Models
 lm                      Least Squares Fitting of Linear Models with Complex Variables
+lm.fit	                Complex Variable Compatible Wrappers for 'stats::lm.fit()' and 'stats::lm.wfit()'
+lm.wfit                 Complex Variable Compatible Wrappers for 'stats::lm.fit()' and 'stats::lm.wfit()'
 mad                     Median Absolute Deviation of Complex Data
 mahalanobis             Mahalanobis Distance of Complex Vectors and Distributions
 matrixweave             Interleave the Elements of Two Equal Dimension Square Matrices 
 median                  Median of Complex Valued Data
+plot.zlm	              Plot Diagnostics for a Complex lm Object
 predict.rlm             Predict Method for Robust Complex Linear Models
-print.summary.lm        Print a Summary of a Complex Linear Model
-print.summary.rlm       Print a Summary of a Robust Complex Linear Model
+print.summary.zlm       Print a Summary of a Complex Linear Model
+print.summary.rzlm      Print a Summary of a Robust Complex Linear Model
 pseuzvar                Pseudo or Relational Variance of Complex Vectors
 psi.bisquare            Weight Function of Tukey's Bisquare Influence Function
 psi.hampel              Weight Function of Hampel Influence Function
 psi.huber               Weight Function of Huber Loss Influence Functio
 rlm                     Robust Fitting of Linear Models with Complex Variables
+rlm.complex	Robust Fitting of Linear Models, Compatible with Complex Variables
+rlm.formula	Robust Fitting of Linear Models, Compatible with Complex Variables
 summary.lm              Summary Method for Complex Linear Models
 summary.rlm             Summary Method for Robust Complex Linear Models
 var                     Variance of Complex Vectors
