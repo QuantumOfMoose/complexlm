@@ -405,8 +405,6 @@ matrixweave <- function(cov, pcov)
 #' The Mahalanobis distance function included in the `stats` package returns a complex number when given complex values of `x`.
 #' But a distance (and thus its square) is always positive real. This function calculates the Mahalanobis distance using
 #' the conjugate transpose if given complex data, otherwise it calls [stats::mahalanobis].
-#'
-#' @inherit stats::mahalanobis return examples
 #' 
 #' @param x A length \eqn{p} vector or matrix with row length \eqn{p}. Or, a length \eqn{2p} vector or matrix with row length \eqn{2p}.
 #' @param center A vector of length equal to that of `x`.
@@ -426,6 +424,7 @@ matrixweave <- function(cov, pcov)
 #' 
 #' @references D. Dai and Y. Liang, High-Dimensional Mahalanobis Distances of Complex Random Vectors, Mathematics 9, 1877 (2021).
 #' 
+#' @return numeric. The squared Mahalanobis distance (divergence) between `x` and `center`.
 #' @export
 #' 
 #' @seealso [matrixweave]

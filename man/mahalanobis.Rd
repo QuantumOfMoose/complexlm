@@ -21,6 +21,9 @@ vcov.rzlm].}
 
 \item{...}{Optional arguments to be passed to \link{solve}, which is used for computing the inverse of \code{cov}. If \code{inverted = TRUE}, unused.}
 }
+\value{
+numeric. The squared Mahalanobis distance (divergence) between \code{x} and \code{center}.
+}
 \description{
 The Mahalanobis distance function included in the \code{stats} package returns a complex number when given complex values of \code{x}.
 But a distance (and thus its square) is always positive real. This function calculates the Mahalanobis distance using

@@ -822,7 +822,8 @@ anova.zlmlist <- function (object, ..., scale = 0, test = "F")
 
 #' Generate the Hat Matrix or Leverage Scores of a Complex Linear Model
 #' 
-#' This function returns either the full hat matrix (AKA the projection matrix) of a complex "lm" or "rlm" object. 
+#' This function returns either the full hat matrix (AKA the projection matrix) of a complex "lm" or "rlm" object, or the diagonal elements of same.
+#' The later are also known as the influence scores. 
 #' It performs the same basic role as [stats::hat] and [stats::hatvalues] do for numeric fits, but is quite a bit simpler
 #' and rather less versatile. 
 #' 
@@ -1151,7 +1152,7 @@ else {
     dev.hold()
     #plot(yh, r, xlab = l.fit, ylab = "Residuals", main = main,
     #     ylim = ylim, type = "n", ...)
-    plot(resfitdf, labels = c("Re(Residuals)", "Im(Residuals", "Re(Fitted Values)", "Im(Fitted Values)"), panel = panel) # Uses pairs to draw a matrix of scatterplots.
+    plot(resfitdf, labels = c("Re(Residuals)", "Im(Residuals)", "Re(Fitted Values)", "Im(Fitted Values)"), panel = panel) # Uses pairs to draw a matrix of scatterplots.
     #panel(yh, r, ...)
     if (one.fig)
       title(sub = sub.caption, ...)
@@ -1272,7 +1273,7 @@ else {
       plot(xx, Re(rsp), xlim = c(0, max(xx, na.rm = TRUE)), ylim = ylim,
            main = main, xlab = "Leverage", ylab = ylab5, type = "n",
            ...)
-      points(xx, Im(rsp), type = 'n', pch = 5)
+      points(xx, Im(rsp), type = 'n', pch = 5, col = "blue")
       panel(xx, Re(rsp), ...)
       panel(xx, Im(rsp), col = "blue", ...)
       abline(h = 0, v = 0, lty = 3, col = "gray")
@@ -1289,7 +1290,7 @@ else {
           lines(hh,-cl.h, lty = 2, col = 2)
         }
         legend("bottomleft", legend = c("Cook's distance", "Real", "Imaginary"),
-               lty = c(2,1,1), col = c(2, 2, 3), pch = c(99, 1, 5) , bty = "n")
+               lty = c(2,1,1), col = c("red", "black", "blue"), pch = c(NA_integer_, 1, 5) , bty = "n")
         xmax <- min(0.99, usr[2L])
         ymult <- sqrt(p*(1-xmax)/xmax)
         aty <- sqrt(cook.levels)*ymult
