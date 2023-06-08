@@ -54,4 +54,6 @@ rstandard(fitone.clean.ols)
 zhatvalues(fitone.clean.ols)
 cooks.distance(fitone.clean.ols)
 ### These three things are used to generate the traditional diagnostic plots for linear models. We can draw them like so,
-plot(fitone.clean.ols)
+plot(fitone.clean.ols, which = c(1,3,4,5,6))
+
+# Now we'll make a nicer plot that should 

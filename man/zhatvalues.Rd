@@ -17,7 +17,8 @@ zhatvalues(model, full = FALSE, ...)
 Either a \eqn{(n x n)} complex matrix or a length \eqn{n} numeric vector.
 }
 \description{
-This function returns either the full hat matrix (AKA the projection matrix) of a complex "lm" or "rlm" object.
+This function returns either the full hat matrix (AKA the projection matrix) of a complex "lm" or "rlm" object, or the diagonal elements of same.
+The later are also known as the influence scores.
 It performs the same basic role as \link[stats:influence.measures]{stats::hat} and \link[stats:influence.measures]{stats::hatvalues} do for numeric fits, but is quite a bit simpler
 and rather less versatile.
 }

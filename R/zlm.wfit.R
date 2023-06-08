@@ -1186,14 +1186,11 @@ else {
     dev.hold()
     scalocdf <- data.frame(sqrtabsr, reyhn0 = Re(yhn0), imyhn0 = Im(yhn0))
     plot(scalocdf, labels = c(yl, "Re(Fitted Values)", "Im(Fitted Values)"), panel = panel)
-    #plot(yhn0, sqrtabsr, xlab = l.fit, ylab = yl, main = main,
-    #     ylim = ylim, type = "n", ...)
-    #panel(yhn0, sqrtabsr, ...)
     if (one.fig)
       title(sub = sub.caption, ...)
     mtext(getCaption(2), side = 3, line = 2.8, cex = cex.caption)
-    if(id.n > 0)
-      text.id(yhn0[show.rs], sqrtabsr[show.rs], show.rs)
+    #if(id.n > 0)
+    #  text.id(yhn0[show.rs], sqrtabsr[show.rs], show.rs) # I don't think this would work well in pairs().
     dev.flush()
   }
   if (show[4L]) { ## Cook's Distances
@@ -1246,14 +1243,16 @@ else {
              ylim = ylim, xaxt = "n",
              main = main, xlab = "Factor Level Combinations",
              ylab = ylab5, type = "n", ...)
-        points(facval, Im(rsp), type = 'n', pch = 5)
+        #points(facval, Im(rsp), type = 'n', pch = 5) # Redundant.
         axis(1, at = ff[1L]*(1L:nlev[1L] - 1/2) - 1/2,
              labels = x$xlevels[[1L]])
         mtext(paste(facvars[1L],":"), side = 1, line = 0.25, adj=-.05)
         abline(v = ff[1L]*(0:nlev[1L]) - 1/2, col="gray", lty="F4")
-        panel(facval, Re(rsp), ...)
-        panel(facval, Im(rsp), ...)
+        panel(facval, Re(rsp), col.smooth = "black", ...)
+        panel(facval, Im(rsp), col = "blue", pch = 5, col.smooth = "blue", ...)
         abline(h = 0, lty = 3, col = "gray")
+        legend("bottomleft", legend = c("Real", "Imaginary"),
+               lty = c(1,1), col = c("black", "blue"), pch = c(1, 5) , bty = "n")
         dev.flush()
       }
       else { # no factors
@@ -1273,9 +1272,9 @@ else {
       plot(xx, Re(rsp), xlim = c(0, max(xx, na.rm = TRUE)), ylim = ylim,
            main = main, xlab = "Leverage", ylab = ylab5, type = "n",
            ...)
-      points(xx, Im(rsp), type = 'n', pch = 5, col = "blue")
-      panel(xx, Re(rsp), ...)
-      panel(xx, Im(rsp), col = "blue", ...)
+      #points(xx, Im(rsp), type = 'n', pch = 5, col = "blue") # Extraneous?
+      panel(xx, Re(rsp), col.smooth = "black", ...)
+      panel(xx, Im(rsp), col = "blue", pch = 5, col.smooth = "blue", ...)
       abline(h = 0, v = 0, lty = 3, col = "gray")
       if (one.fig)
         title(sub = sub.caption, ...)
