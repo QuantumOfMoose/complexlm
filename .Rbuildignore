@@ -4,4 +4,5 @@
 ^.*src\.no.*$
 ^.*todo\.txt$
 ^.*notNAMESPACE$
-^.*Illustrations*$
+^.*Illustrations\.R$
+^.*Illustrations2\.R$
