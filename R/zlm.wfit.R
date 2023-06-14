@@ -577,7 +577,7 @@ summary.zlm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
     R <- R[1L:p, 1L:p, drop = FALSE] # Trim the bottom of R, making it a square p by p matrix.
     R[lower.tri(R)] <- 0 # Remove the lower triangular matrix, the Q from the QR decomposition. Now we just have R, the upper triangular matrix.
     rinv <- solve(R) # This is efficient, we only need the diagonal matrix diag(p) to get rinv, so just set rinv <- diag(p) ahead of time. Now rinv is a different p by p matrix.
-  se <- sqrt( abs(Conj(rinv)*rinv) %*% rep(1,p) * resvar) #### Do I need diag(R) to be squared now? Or someting different?
+    se <- sqrt( abs(Conj(rinv)*rinv) %*% rep(1,p) * resvar) #### Do I need diag(R) to be squared now? Or something different?
     pse <- sqrt(rinv^2 %*% rep(1,p) * respvar)
     est <- z$coefficients[Qr$pivot[p1]]
     tval <- est/se
@@ -585,7 +585,7 @@ summary.zlm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
     ans$residuals <- r
     ans$coefficients <-
       cbind("Estimate" = est, "Std. Error" = se, "Pseudo Std. Error" = pse, "t value" = tval,
-            "Pr(>|t|)" = 2*pt(abs(tval), rdf, lower.tail = FALSE)) # Only "Estimate" shows up as a column heading upon print..?
+            "Pr(>|t|)" = 2*pt(abs(tval), rdf, lower.tail = FALSE)) 
     dimnames(ans$coefficients)[[2]] <- c("Estimate", "Std. Error", "Pseudo Std. Error", "t value", "Pr(>|t|)")
     ans$aliased <- is.na(z$coefficients)  # used in print method
     ans$sigma <- sqrt(resvar)

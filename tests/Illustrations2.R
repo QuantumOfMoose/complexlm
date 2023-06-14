@@ -213,3 +213,18 @@ ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value),
 ### Notice that the rlm() calls that used redescending influence functions achieved estimates of beta closer to the true value. 
 ### This is because the algorithm downweighted them into oblivion, so that they have no influence upon the final estimate. Thus they 
 ### are exceedingly powerful tools of discrimination, but care must be taken when using them as they can end up ignoring useful data as well.
+
+### Finally, we will draw the estimated coefficients from each of these fits, along with the true relationship and the outlier relationship, on the complex plane.
+fitnames <- paste('fitone.outl', c('ols', 'hub', 'ham', 'bis'), sep = '.')
+coefgetter <- function(name) { # A function that collects the coefficients and their variances and pseudo-variances of a fit with name name, and puts them in a named vector.
+  fit <- as.name(name)
+  fitsum <- summary(eval(fit))
+  xstuf <- fitsum$coefficients[1,][0:3] # We don't need the t value.
+  interstuf <- fitsum$coefficients[2,][0:3]
+  names(xstuf) <- paste("x", names(xstuf)) # Add "x" to front of element names, to differentiate them from the values corresponding to the intercept when we combine the vectors.
+  names(interstuf) <- paste('interc', names(interstuf)) # Same here, add prefix to names to disambiguate them.
+  return(c(xstuf, interstuf)) # combine and return the vectors of values and errors.
+}
+coefframe <- do.call(rbind, lapply(fitnames, coefgetter))
+coefframe <- as.data.frame(coefframe)
+coefframe$variable <- fitnames
