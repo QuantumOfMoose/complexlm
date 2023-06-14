@@ -164,8 +164,9 @@ rlm.complex <-
       attr(xx, "assign") <- c(0,1)
       x <- xx
     }
-  irls.delta <- function(old, new)
+  irls.delta <- function(old, new) {
     as.numeric(sqrt(sum(Conj(old - new)*(old - new))/max(1e-20, as.numeric(sum(Conj(old)*old)))))
+  }
     irls.rrxwr <- function(x, w, r)
     {
         w <- sqrt(w)
@@ -266,7 +267,7 @@ rlm.complex <-
         if(!is.null(test.vec)) testpv <- get(test.vec)
         if(scale.est != "MM") {
             scale <- if(scale.est == "MAD")
-                if(is.null(wt)) median(abs(resid))/0.6745 else wmedian(abs(resid), wt)/0.6745 ## wmad does not actually find the weighted MAD!!!! It just finds the weighted median!
+                if(is.null(wt)) median(abs(resid))/0.6745 else wmedian(abs(resid), wt)/0.6745 # This is the median absolute deviation from the last fit, not the more standard median absolute deviation from the median.
             #else if(is.null(wt)) ## The two lines below are the Huber proposal 2 scale estimate. Why they didn't use the Huber function included in the package elsewhere is beyond me...
             #    sqrt(sum(pmin(Conj(resid)*resid, Conj(k2 * scale)*(k2 * scale)))/(n1*gamma))
             #else sqrt(sum(wt*pmin(Conj(resid)*resid, Conj(k2 * scale)*(k2 * scale)))/(n1*gamma))
@@ -457,8 +458,8 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
       object$residuals <- res
       object$coefficients <- coef
       object$sigma <- s
-      print(var(psiprime))
-      print(stddev)
+      #print(var(psiprime))
+      #print(stddev)
       object$stddev <- stddev
       object$pstdev <- pstddev
       object$df <- c(p, rdf, ptotal)

@@ -20,7 +20,7 @@ library(ggforce)
 library(complexlm)
 
 ### Now begin the first example problem. Consider n = m^2 points arranged in a square grid on the complex plane, centered on the origin. These are our predictor variables, x.
-m <- 7
+m <- 5
 boundary <- m %/% 2
 x <- expand.grid(c(-boundary:boundary), c(-boundary:boundary)) # Create a 7 by 7 grid of regular points.
 x <- complex(real = x[[1]], imaginary = x[[2]]) # Make complex numbers
@@ -63,12 +63,21 @@ exonedf$y.fit <- fitted(fitone.clean.ols)
 exonedf$r <- residuals(fitone.clean.ols)
 ### Convert to long form data frame
 melt.exonedf <- melt(exonedf, id = "x")
-labels <- c('y' = 'measured response', 'y.clean' = 'relationship without noise', 'y.fit' = 'fitted response', 'r' = 'residuals')
+labels <- c('y' = 'measured response', 'y.clean' = 'relationship without noise', 'y.fit' = 'fitted response', 'r' = 'residuals') # Nice labels for plots.
+### Define some consistent colors to make the plots more aesthetically pleasing.
+clreen <- 'darkgreen'
+brout <- 'brown'
+respring <- 'springgreen2'
+olsalmon <- 'salmon'
+hubsky <- 'deepskyblue2'
+hampurp <- 'mediumorchid3'
+bislate <- 'slateblue2'
+
 ### Then make the plot.
 ggplot(melt.exonedf[grepl('y', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), color = as.factor(variable), shape = as.factor(variable))) +
   geom_point(size = 3) +
   scale_shape_manual(values = c('y'=19, 'y.clean'=0, 'y.fit'=18), labels = labels) +
-  scale_color_manual(values = c('y'="cyan3", 'y.clean'='forestgreen', 'y.fit'='red'), labels = labels) +
+  scale_color_manual(values = c('y'= respring, 'y.clean'= clreen, 'y.fit'= olsalmon), labels = labels) +
   geom_line(data = melt.exonedf[melt.exonedf$variable == "y" | melt.exonedf$variable == "y.fit",], aes(group = x, lty = "residual"), size = 0.4, color = "lightcoral") +
   scale_linetype_manual("Residuals", values = 'solid', guide=guide_legend(override.aes = list(size = 0.5, color = "lightcoral"))) +
   labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated and OLS Fit Values Without Outliers") 
@@ -78,39 +87,129 @@ ggplot(melt.exonedf[grepl('y', melt.exonedf$variable),], aes(x = Re(value), y = 
 ### the predictor and response variables in this case.
 
 ### We can also plot the residuals in the complex plane.
+ssrlab <- function(name){ # A function that calculates the sum of the squared elements of a vector-like object named 'name', then formats it into a string.
+  paste("Sum of Squared Residuals:\n", round(sum(Mod(name)^2), digits = 4)) # A string too write on the residual plot that gives the sum of squared residuals.
+} 
 ggplot(melt.exonedf[grepl('r', melt.exonedf$variable),], aes(x = Re(value), y = Im(value))) +
   geom_point(aes(xend = 0, yend = 0)) +
-labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit Without Outliers") +
-  coord_fixed()
+  labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit Without Outliers") +
+  coord_fixed() +
+  geom_label(x = 20, y = -10, label = ssrlab(value)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0)
 
-### That worked quite well, but what if we add some outliiers?
+### That worked quite well, but what if we add some outliers?
 ### Say that there is a probability theta < 0.5 that each element of the data was not transformed by beta, but by betap.
 ### We will arbitrarily set,
 set.seed(4242)
-theta <- 0.3
+theta <- 0.2
 isoutl <- as.logical(rbinom(nn, 1, theta)) # Logical vector that decides which elements of y should be replaced with an outlier.
 sum(isoutl) / nn # Check the actual proportion of outliers.
 ### Now we will arbitrarily choose a value for betap.
-betap <- c(complex(real = 27, imaginary = 29), complex(real = -5, imaginary = 2))
+betap <- c(complex(real = 42, imaginary = 31), complex(real = .5, imaginary = .82))
 err.outl <- mvrnorm(n = nn, mu = c(0,0), Sigma = sigma) # Generate realizations of a symmetrical two dimensional normal random variable, to represent the uncertainty / error in the outliers.
 err.outl <- complex(real = err.outl[,1], imaginary = err.outl[,2])
 ### Now add another column to exonedf populated with x * beta or x * betap, depending on the value of isoutl.
 exonedf <- exonedf %>% mutate(y.outl = if_else(isoutl, betap[1] + x * betap[2] + err.outl, y))
+### And add a column that represents the phenomenon responsible for the outliers. i.e. the predictor variables transformed by betap, without noise.
+exonedf$clout <- exonedf$x * betap[2] + betap[1]
 
 ### Let's see how well complex least squares does with these outliers.
 fitone.outl.ols <- lm(y.outl ~ x, exonedf)
 summary(fitone.outl.ols)
 plot(fitone.outl.ols)
 ### Repeat the same proceedure as before to plot the response data.
-exonedf$y.fit.outl.ols <- fitted(fitone.clean.ols)
-exonedf$r.outl.ols <- residuals(fitone.clean.ols)
-labels <- c(labels, 'y.outl' = 'measured reesponse with outliers', 'y.fit.outl.ols' = 'OLS fitted response', 'r.outl.ols' = 'OLS residuals')
+exonedf$y.fit.outl.ols <- fitted(fitone.outl.ols)
+exonedf$r.outl.ols <- residuals(fitone.outl.ols)
+labels <- c(labels, 'y.outl' = 'measured reesponse with outliers', 'y.fit.outl.ols' = 'OLS fitted response', 'r.outl.ols' = 'OLS residuals', 'clout' = 'outlier relationship')
 melt.exonedf <- melt(exonedf, id = 'x')
 
-ggplot(melt.exonedf[grepl('y|outl|y.clean', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), color = as.factor(variable), shape = as.factor(variable))) +
+ggplot(melt.exonedf[grepl('y|outl|y.clean|clout', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), color = as.factor(variable), shape = as.factor(variable))) +
   geom_point(size = 3) +
-  scale_shape_manual(values = c('y.outl'=19, 'y.clean'=0, 'y.fit.outl.ols'=18), labels = labels) +
-  scale_color_manual(values = c('y.outl'="cyan3", 'y.clean'='forestgreen', 'y.fit.outl'='red'), labels = labels) +
+  scale_shape_manual(values = c('y.outl'=19, 'y.clean'=0, 'y.fit.outl.ols'=18, 'clout' = 5), labels = labels) +
+  scale_color_manual(values = c('y.outl' = respring, 'y.clean' = clreen, 'y.fit.outl.ols' = olsalmon, 'clout' = brout), labels = labels) +
   geom_line(data = melt.exonedf[melt.exonedf$variable == "y.outl" | melt.exonedf$variable == "y.fit.outl.ols",], aes(group = x, lty = "residual"), size = 0.4, color = "lightcoral") +
-  scale_linetype_manual("Residuals", values = 'solid', guide=guide_legend(override.aes = list(size = 0.5, color = "lightcoral"))) +
-  labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated and OLS Fit Values With Outliers") 
+  #scale_linetype_manual("Residuals", values = 'dashed', guide=guide_legend(override.aes = list(size = 0.5, color = "lightcoral"))) +
+  labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated and OLS Fit Values With Outliers") +
+  coord_fixed()
+### And plot the residuals.
+ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value), y = Im(value))) +
+  geom_point(color = olsalmon) +
+  labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit With Outliers") +
+  coord_fixed() +
+  geom_label(x = 20, y = -10, label = ssrlab(value)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0)
+
+### That didn't work very well. While the sum of the squared residuals was minimized, the fit coefficients are very far from the actual relationship between predictor and response.
+### Now let's try the complex robust M-estimator. We'll try the Huber loss objective function, which is the default.
+### But first we need to establish some parameters for the IWLS algorithm.
+accept = 1e-20 # Shared acceptance criterion
+iterations = 70 # Shared max iterations
+fitone.outl.hub <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept)
+summary(fitone.outl.hub)
+plot(fitone.outl.hub)
+### Repeat the same procedure as before to plot the response data.
+exonedf$y.fit.outl.hub <- fitted(fitone.outl.hub)
+exonedf$r.outl.hub <- residuals(fitone.outl.hub)
+labels <- c(labels, 'y.fit.outl.hub' = 'Huber rlm fitted response', 'r.outl.hub' = 'Huber rlm residuals')
+melt.exonedf <- melt(exonedf, id = 'x')
+
+ggplot(melt.exonedf[grepl('y|outl|y.clean|clout', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), color = as.factor(variable), shape = as.factor(variable))) +
+  geom_point(size = 3) +
+  scale_shape_manual(values = c('y.outl'=19, 'y.clean'=0, 'y.fit.outl.ols'=18, 'y.fit.outl.hub' = 13, 'clout' = 5), labels = labels) +
+  scale_color_manual(values = c('y.outl'= respring, 'y.clean'= clreen, 'y.fit.outl.ols'= olsalmon, 'y.fit.outl.hub' = hubsky, 'clout' = brout), labels = labels) +
+  #geom_line(data = melt.exonedf[melt.exonedf$variable == "y.outl" | melt.exonedf$variable == "y.fit.outl.ols",], aes(group = x, lty = "residual"), size = 0.4, color = "lightcoral") +
+  #scale_linetype_manual("Residuals", values = 'dashed', guide=guide_legend(override.aes = list(size = 0.5, color = "lightcoral"))) +
+  labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated, OLS Fit, and Huber Robust Fit Values With Outliers") +
+  coord_fixed()
+### And plot the residuals.
+ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value), y = Im(value))) +
+  #geom_point(aes(color = variable)) +
+  geom_segment(aes(x = 0, y = 0, xend = Re(value), yend = Im(value), color = variable)) +
+  labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit With Outliers") +
+  scale_color_manual("Residuals", values = c('r.outl.ols' = olsalmon, 'r.outl.hub' = hubsky)) +
+  coord_fixed() +
+  geom_label(x = 20, y = -10, label = ssrlab(value)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0)
+### It's not perfect, but significantly better than what the ordinary least squares fit found. While the overall sum of squared residuals for the Huber M-estimation 
+### is larger than that of the ols fit, the residuals due to the non-outliers are much smaller.
+
+### Now let's try some re-descending M-estimators. First with the Hampel objective function.
+fitone.outl.ham <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept/100, psi = psi.hampel, a = 1.345)
+exonedf$y.fit.outl.ham <- fitted(fitone.outl.ham)
+exonedf$r.outl.ham <- residuals(fitone.outl.ham)
+### Then with Tukey's bisquare
+fitone.outl.bis <- rlm(y.outl ~ x, exonedf, maxit = iterations + 90, acc = 10000 * accept, psi = psi.bisquare)
+exonedf$y.fit.outl.bis <- fitted(fitone.outl.bis)
+exonedf$r.outl.bis <- residuals(fitone.outl.bis)
+### Update the labels.
+labels <- c(labels, 'y.fit.outl.ham' = 'Hampel rlm fitted response', 'r.outl.ham' = 'Hampel rlm residuals', 'y.fit.outl.bis' = 'Tukey Bisquare rlm fitted response', 'r.outl.bis' = 'Tukey Bisquare rlm residuals')
+melt.exonedf <- melt(exonedf, id = 'x')
+
+ggplot(melt.exonedf[grepl('y|outl|y.clean|clout', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), color = as.factor(variable), shape = as.factor(variable))) +
+  geom_point(size = 3) +
+  scale_shape_manual(values = c('y.outl'=19, 'y.clean'=0, 'y.fit.outl.ols'=18, 'y.fit.outl.hub' = 13, 'y.fit.outl.ham' = 2, 'y.fit.outl.bis' = 8, 'clout' = 5), labels = labels) +
+  scale_color_manual(values = c('y.outl'= respring, 'y.clean'= clreen, 'y.fit.outl.ols'= olsalmon, 'y.fit.outl.hub' = hubsky, 'y.fit.outl.ham' = hampurp, 'y.fit.outl.bis' = bislate, 'clout' = brout), labels = labels) +
+  #geom_line(data = melt.exonedf[melt.exonedf$variable == "y.outl" | melt.exonedf$variable == "y.fit.outl.ols",], aes(group = x, lty = "residual"), size = 0.4, color = "lightcoral") +
+  #scale_linetype_manual("Residuals", values = 'dashed', guide=guide_legend(override.aes = list(size = 0.5, color = "lightcoral"))) +
+  labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated, OLS Fit, and Huber Robust Fit Values With Outliers") +
+  coord_fixed()
+### And plot the residuals.
+rlablframe <- melt.exonedf[grepl('r.outl', melt.exonedf$variable),] %>% group_by(variable) %>% summarize(label = ssrlab(value))
+ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value), y = Im(value))) +
+  #geom_point(aes(color = variable)) +
+  geom_segment(aes(x = 0, y = 0, xend = Re(value), yend = Im(value), color = variable)) +
+  facet_wrap(vars(variable), nrow = 3, ncol = 2, labeller = as_labeller(labels)) +
+  labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit With Outliers") +
+  scale_color_manual("Residuals", values = c('r.outl.ols' = olsalmon, 'r.outl.hub' = hubsky, 'r.outl.ham' = hampurp, 'r.outl.bis' = bislate), labels = labels) +
+  coord_fixed() +
+  #geom_label(data = x = 20, y = -10, aes(label = ssrlab(value))) + # Unfortunately, this doesn't work with the facets. :(
+  geom_label(data = rlablframe, x = 27, y = -10, aes(label = label)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0)
+
+### Notice that the rlm() calls that used redescending influence functions achieved estimates of beta closer to the true value. 
+### This is because the algorithm downweighted them into oblivion, so that they have no influence upon the final estimate. Thus they 
+### are exceedingly powerful tools of discrimination, but care must be taken when using them as they can end up ignoring useful data as well.
