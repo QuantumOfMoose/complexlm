@@ -6,3 +6,5 @@
 ^.*notNAMESPACE$
 ^.*Illustrations\.R$
 ^.*Illustrations2\.R$
+^.*\.csv
+^.*\.PNG

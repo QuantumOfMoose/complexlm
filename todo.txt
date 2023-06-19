@@ -31,6 +31,6 @@ DONE add examples to documentation.
 
 DONE make a complex version of Mahalanobis distance function.
 
-SKIP add complex compatible cov, cor, and cov2cor functions.
+DONE add complex compatible cov, cor, and cov2cor functions.
 
 clean up example file.

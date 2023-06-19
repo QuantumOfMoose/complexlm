@@ -1,0 +1,8 @@
+Created by:	William Ryan
+Composition:	100 nm copper on thermal SiO2 on Si
+Creation Date,27 March 2022
+Thickness (nm),1E-5
+Width (nm),0.8
+Current Control:,Smart Sweep
+Temperature (K),Ra (Ohm),Rb (Ohm),Zi (Square/Ohm),Sheet Resistance (Ohm/square),Resistivity (Ohm cm),Conductivity (S/cm),Consistency Problem? (0=no; 1=warning; 2=error),R34,R43,R41,R14,R12,R21,R23,R32,Rc,Rd,Re,Rf
+291.708094,0.056182,0.056183,3.927144,0.254638,2.54638E-6,392714.419953,0,0.070079,0.042286,0.070076,0.042287

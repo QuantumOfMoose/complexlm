@@ -221,10 +221,40 @@ coefgetter <- function(name) { # A function that collects the coefficients and t
   fitsum <- summary(eval(fit))
   xstuf <- fitsum$coefficients[1,][0:3] # We don't need the t value.
   interstuf <- fitsum$coefficients[2,][0:3]
-  names(xstuf) <- paste("x", names(xstuf)) # Add "x" to front of element names, to differentiate them from the values corresponding to the intercept when we combine the vectors.
-  names(interstuf) <- paste('interc', names(interstuf)) # Same here, add prefix to names to disambiguate them.
+  names(xstuf) <- make.names(paste("x", names(xstuf))) # Add "x" to front of element names, to differentiate them from the values corresponding to the intercept when we combine the vectors.
+  names(interstuf) <- make.names(paste('interc', names(interstuf))) # Same here, add prefix to names to disambiguate them.
   return(c(xstuf, interstuf)) # combine and return the vectors of values and errors.
 }
 coefframe <- do.call(rbind, lapply(fitnames, coefgetter))
 coefframe <- as.data.frame(coefframe)
-coefframe$variable <- fitnames
+coefframe <- rbind(coefframe, c(beta[2], NA_complex_, NA_complex_, beta[1], NA_complex_, NA_complex_)) # Add the true coefficient values.
+coefframe <- rbind(coefframe, c(betap[2], NA_complex_, NA_complex_, betap[1], NA_complex_, NA_complex_)) # Add the true outlier coefficient values.
+coefframe$variable <- c(fitnames, "true", "true.outlll")
+
+### Plot the scale rotation (slope) estimates
+ggplot(coefframe, aes(color = variable)) +
+  geom_point(aes(x = Re(x.Estimate), y = Im(x.Estimate))) +
+  geom_ellipse(aes(x0 = Re(x.Estimate), y0 = Im(x.Estimate), a = Mod(x.Pseudo.Std..Error), b = Re(x.Std..Error)^2 / Mod(x.Pseudo.Std..Error), angle = Arg(x.Pseudo.Std..Error))) +
+  scale_color_manual(values = c('true'= clreen, 'fitone.outl.ols'= olsalmon, 'fitone.outl.hub' = hubsky, 'fitone.outl.ham' = hampurp, 'fitone.outl.bis' = bislate, 'true.outlll' = brout), labels = c('true'= "True Value", 'fitone.outl.ols'= "Least-Squares", 'fitone.outl.hub' = "M-Estimation w/ Huber Objective", 'fitone.outl.ham' = 'M-Estimation w/ Hampel Objective', 'fitone.outl.bis' = 'M-Estimation w/ Bisquare Objective', 'true.outlll' = 'Outlier Value')) +
+  labs(title = "Scale Rotation Coefficient Estimates", color = 'Regression', x = 'Real', y = 'Imaginary')
+### This plot shows that the M-estimator regressions using Tukey's bisquare objective function and Hampel's objective function produce estimates of the scale rotation coefficient that are very close to the true value,
+### despite the presence of outliers pulling them toward the marroon dot. The bisquare regression results in a markedly lower variance though. The Huber M-estimator, on the other hand, did not fair much better than the least-squares fit.
+
+### Now we plot the translation (intercept) coefficient estimates.
+ggplot(coefframe, aes(color = variable)) +
+  geom_point(aes(x = Re(interc.Estimate), y = Im(interc.Estimate))) +
+  geom_ellipse(aes(x0 = Re(interc.Estimate), y0 = Im(interc.Estimate), a = Mod(interc.Pseudo.Std..Error), b = Re(interc.Std..Error)^2 / Mod(interc.Pseudo.Std..Error), angle = Arg(interc.Pseudo.Std..Error))) +
+  scale_color_manual(values = c('true'= clreen, 'fitone.outl.ols'= olsalmon, 'fitone.outl.hub' = hubsky, 'fitone.outl.ham' = hampurp, 'fitone.outl.bis' = bislate, 'true.outlll' = brout), labels = c('true'= "True Value", 'fitone.outl.ols'= "Least-Squares", 'fitone.outl.hub' = "M-Estimation w/ Huber Objective", 'fitone.outl.ham' = 'M-Estimation w/ Hampel Objective', 'fitone.outl.bis' = 'M-Estimation w/ Bisquare Objective', 'true.outlll' = 'Outlier Value')) +
+  labs(title = "Scale Rotation Coefficient Estimates", color = 'Regression', x = 'Real', y = 'Imaginary')
+### In estimating the translation, the robust M-estimators all outperformed the least-squares estiimate by a considerable degree. The true value is well within the first standard deviation ellipse of all three of them.
+
+###
+### This concludes the first example of ordinary and robust fitting using 'complexlm'.
+### Next we will take on some actual, measured data.
+###
+
+###
+### Example 2
+### AC Hall Effect Data
+###
+
