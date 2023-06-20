@@ -258,3 +258,20 @@ ggplot(coefframe, aes(color = variable)) +
 ### AC Hall Effect Data
 ###
 
+### In this example we will analyze the results of a room temperature Hall effect measurement of a copper sample,
+### with the goal of extracting its carrier mobility and concentration.
+### Since the complex voltage output of an AC Hall measurement is proportional to the current input, the core of this task is complex linear fitting.
+
+### First we must load the Hall effect data contained within CuHallData.rda, which is included with 'complexlm'.
+data(CuHallData)
+summary(CuHallData)
+### Notice that the current columns are all real numbers, but 'complexlm' requires that both the response and predictors be complex. Luckily, the reals are a subset
+### of the complex numbers, so we can convert our currents to complex representation by adding 0*i to them.
+CuHallData$zCurrent <- complex(real = CuHallData$Curent.Set.A., imaginary = 0) # Use the set current.
+#CuHallData$zCurrent <- (CuHallData$Curent.In.meas.A. - CuHallData$Curent.Out.meas.A.)/2 # We take the average of the measured input and output in an attempt to neutralize the effect of current leaks
+
+### Now we can apply the linear fitting routines of 'complexlm'. We should note that this dataframe contains information from multiple different current-voltage measurements. 
+### They are differentiated by the contact orientation used ("D" or "F"), and the frequency of the magnetic field (0.17Hz, 0.37Hz, or 0.57 Hz) (since the maximum magnetic field depends on the frequency, they also vary in magnetic field amplitude).
+### This gives us six different sets of I-V curves.
+### We can use summarize from 'dplyr' to efficiently find the linear relationship between current and voltage for each of these. (I think)
+Halltibble <- CuHallData %>% group_by(Contact.Arangement, Magnet.Field.Frequency.Hz.)

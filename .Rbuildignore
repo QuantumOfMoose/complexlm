@@ -6,5 +6,7 @@
 ^.*notNAMESPACE$
 ^.*Illustrations\.R$
 ^.*Illustrations2\.R$
-^.*\.csv
-^.*\.PNG
+^.*\.csv$
+^.*\.PNG$
+^.*datahelper\.R$
+^.*rawdata$

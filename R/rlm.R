@@ -73,7 +73,7 @@ rlm.formula <-
     trms <- terms(formula)
     respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
     cl <- match.call()
-    if (is.complex(data[,respname]) == FALSE)
+    if (is.complex(data[[1,respname]]) == FALSE) # Now compatible with tibble input.
     {
       cl[[1]] <- MASS::rlm
       eval(cl, parent.frame())
