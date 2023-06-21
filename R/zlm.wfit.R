@@ -579,7 +579,7 @@ summary.zlm <- function(object, correlation = FALSE, symbolic.cor = FALSE, ...)
     rinv <- solve(R) # This is efficient, we only need the diagonal matrix diag(p) to get rinv, so just set rinv <- diag(p) ahead of time. Now rinv is a different p by p matrix.
     se <- sqrt( abs(Conj(rinv)*rinv) %*% rep(1,p) * resvar) #### Do I need diag(R) to be squared now? Or something different?
     pse <- sqrt(rinv^2 %*% rep(1,p) * respvar)
-    est <- z$coefficients[Qr$pivot[p1]]
+    est <- z$coefficients[Qr$pivot[p1]] # Account for pivot in the QR decomposition
     tval <- est/se
     ans <- z[c("call", "terms", if(!is.null(z$weights)) "weights")]
     ans$residuals <- r

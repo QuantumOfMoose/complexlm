@@ -383,14 +383,15 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
 {
       method <- match.arg(method)
       s <- object$s
-      coef <- object$coefficients
+      p <- object$rank
+      coef <- object$coefficients[object$qr$pivot[1L:p]] # Pivot coefficients to account for pivoting in qr.
       ptotal <- length(coef)
       wresid <- object$wresid
       res <- object$residuals
       n <- length(wresid)
       if(any(na <- is.na(coef))) coef <- coef[!na]
       cnames <- names(coef)
-      p <- length(coef)
+      #p <- length(coef)
       rinv <- diag(p)
       dimnames(rinv) <- list(cnames, cnames)
       wts <- if(length(object$weights)) object$weights else rep(1, n)
@@ -449,7 +450,8 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
         pcorrel <- NULL
       }
       coef <- array(coef, c(p, 4L)) # Make an array with 4 columns and p rows. put the coefficients into the first column.
-      dimnames(coef) <- list(rev(cnames), c("Value", "Std. Error", "Pseudo Std. Error", "t value")) # The way that list() orders cnames seems to be opposite that of matrix algebra, so we need rev() to assign them properly.
+      #dimnames(coef) <- list(rev(cnames), c("Value", "Std. Error", "Pseudo Std. Error", "t value")) # The way that list() orders cnames seems to be opposite that of matrix algebra, so we need rev() to assign them properly.
+      dimnames(coef) <- list(cnames, c("Value", "Std. Error", "Pseudo Std. Error", "t value"))
       #print(rinv)
       coef[, 2] <- rowlen %o% stddev # Fill the 2nd column of the coef array. These should be real numbers. Isn't stddev a single number? What is the point of the outer product? It transposes the vector into a column while multiplying all elements by stddev.
       coef[, 3] <- rowlen %o% pstddev # The 'pseudo - standard error', these things need better names...

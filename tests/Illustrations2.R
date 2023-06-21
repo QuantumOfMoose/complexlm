@@ -267,11 +267,44 @@ data(CuHallData)
 summary(CuHallData)
 ### Notice that the current columns are all real numbers, but 'complexlm' requires that both the response and predictors be complex. Luckily, the reals are a subset
 ### of the complex numbers, so we can convert our currents to complex representation by adding 0*i to them.
-CuHallData$zCurrent <- complex(real = CuHallData$Curent.Set.A., imaginary = 0) # Use the set current.
+CuHallData$zCurrent <- complex(real = CuHallData$Curent.In.meas.A., imaginary = 0) # Use the input current.
 #CuHallData$zCurrent <- (CuHallData$Curent.In.meas.A. - CuHallData$Curent.Out.meas.A.)/2 # We take the average of the measured input and output in an attempt to neutralize the effect of current leaks
 
+### First we'll have a look at all the output voltage data in the complex plane. Since the input currents are a arranged in a simple line along the real axis
+### We would expect the output voltages to be arranged in rough lines as well, though not just on the real axis.
+### Since the data in CuHallData is from several different current-voltage measurements, taken at different magnetic field frequencies and one of two possible contact arrangements,
+### we will group the data by the corresponding columns. We'll use 'dplyr' and tibble for convenience.
+Halltibble <- CuHallData %>% group_by(Contact.Arangement, Magnet.Field.Frequency.Hz.) # First group by the contact arrangement and frequency.
+### And now we can draw our plot.
+ggplot(Halltibble, aes(x = Re(OutputV), y = Im(OutputV), shape = Contact.Arangement, color = as.factor(Magnet.Field.Frequency.Hz.))) +
+  geom_point() 
+### Well that looks like a mess.
+### Let's see how it looks when we plot real and imaginary output voltage vs input current.
+ggplot(Halltibble, aes(x = Re(zCurrent), y = Re(OutputV))) +
+  geom_point(aes(color = 'real')) +
+  geom_point(aes(y = Im(OutputV), color = 'imaginary')) +
+  scale_color_manual(values = c('real' = "forestgreen", 'imaginary' = "coral")) +
+  facet_grid(rows = vars(Contact.Arangement), cols = vars(Magnet.Field.Frequency.Hz.)) +
+  labs(y = "Current", x = "Output Voltage", color = "Voltage Component")
+### Here we have organized the data into a grid based on the magnetic field frequency and contact orientation with which they were taken.
+### The label at the top of each column gives the frequency in Hertz, and the label at the right of the rows give the contact orientation.
+### These plots are certainly neater, but they also show that the slopes we need to extract are exceedingly small. 
+### And, especially for the measurement taken with f_B = 0.57 Hz and contact orientation "D", filled with outliers.
+### This is exactly what we should expect for a metal.
+  
 ### Now we can apply the linear fitting routines of 'complexlm'. We should note that this dataframe contains information from multiple different current-voltage measurements. 
-### They are differentiated by the contact orientation used ("D" or "F"), and the frequency of the magnetic field (0.17Hz, 0.37Hz, or 0.57 Hz) (since the maximum magnetic field depends on the frequency, they also vary in magnetic field amplitude).
-### This gives us six different sets of I-V curves.
-### We can use summarize from 'dplyr' to efficiently find the linear relationship between current and voltage for each of these. (I think)
-Halltibble <- CuHallData %>% group_by(Contact.Arangement, Magnet.Field.Frequency.Hz.)
+### We can use summarize from 'dplyr' to efficiently find the linear relationship between current and voltage for each of these. 
+fitter <- function(data, formula, ...) { # A function that will perform the fits then collect the coefficients and uncertainties into a tibble.
+  thisfit <- rlm(formula, data, ...)
+  thissumary <- summary(thisfit)
+  as_tibble(thissumary$coefficients[1:2,1:3], rownames = "coefficient")
+}
+Hallcoeftibble <- Halltibble %>% summarize(fitter(OutputV ~ zCurrent, data = .))
+
+fitterlm <- function(data, formula, ...) { # A function that will perform ols fits then collect the coefficients and uncertainties into a tibble.
+  thisfit <- lm(formula, data, ...)
+  thissumary <- summary(thisfit)
+  as_tibble(thissumary$coefficients[1:2,1:3], rownames = "coefficient")
+}
+lmHallcoeftibble <- Halltibble %>% summarize(fitterlm(OutputV ~ zCurrent, data = .))
+
