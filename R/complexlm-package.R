@@ -40,6 +40,7 @@ NULL
 #'    \item{OutputV}{The complex voltage measured across the sample. Ideally proportional to the current and magnetic field. Units of Volts.}
 #'    \item{Current.leak}{The difference between the input and output currents. Units of Amperes.}
 #'    \item{Resistivity.Ohm.cm}{The resistivity of the sample as calculated by the Van Der Pauw method from previous DC current-voltage sweeps. Units of Ohm*centimeter.}
+#'    \item{thickness.cm.}{The thickness of the copper film in centimeters.}
 #' }
 #' 
 #' @keywords datasets

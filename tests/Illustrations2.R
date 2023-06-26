@@ -49,10 +49,10 @@ class(fitone.clean.ols) # 'zlm' and 'lm'
 summary.fitone.clean.ols <- summary(fitone.clean.ols)
 print(summary.fitone.clean.ols)
 ### Then generate an analysis of variance (ANOVA)
-anova.lm(fitone.clean.ols)
+anova.zlm(fitone.clean.ols)
 ### We can also calculate the standardized residuals, hat matrix or influence scores, and the Cook's distances.
 rstandard(fitone.clean.ols)
-zhatvalues(fitone.clean.ols)
+exonedf$hats.clean.ols <- zhatvalues(fitone.clean.ols)
 cooks.distance(fitone.clean.ols)
 ### These three things are used to generate the traditional diagnostic plots for linear models. We can draw them like so,
 plot(fitone.clean.ols, which = c(1,3,4,5,6))
@@ -62,7 +62,7 @@ plot(fitone.clean.ols, which = c(1,3,4,5,6))
 exonedf$y.fit <- fitted(fitone.clean.ols)
 exonedf$r <- residuals(fitone.clean.ols)
 ### Convert to long form data frame
-melt.exonedf <- melt(exonedf, id = "x")
+melt.exonedf <- melt(exonedf, id = c("x", "hats.clean.ols"))
 labels <- c('y' = 'measured response', 'y.clean' = 'relationship without noise', 'y.fit' = 'fitted response', 'r' = 'residuals') # Nice labels for plots.
 ### Define some consistent colors to make the plots more aesthetically pleasing.
 clreen <- 'darkgreen'
@@ -82,19 +82,19 @@ ggplot(melt.exonedf[grepl('y', melt.exonedf$variable),], aes(x = Re(value), y = 
   scale_linetype_manual("Residuals", values = 'solid', guide=guide_legend(override.aes = list(size = 0.5, color = "lightcoral"))) +
   labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated and OLS Fit Values Without Outliers") 
 ### In this plot the measured (simulated) responses are represented by cyan circles, the noiseless responses are shown as empty green squares, 
-### and the fitted responses are red diamonds. Fitted values are connected to thier corresponding measured points by solid coral lines, which represent the residuals.
+### and the fitted responses are red diamonds. Fitted values are connected to their corresponding measured points by solid coral lines, which represent the residuals.
 ### All red diamonds lie mostly within green squares, which indicates that the complex ordinary least squares fit successfully extracted the relationship between the
 ### the predictor and response variables in this case.
 
 ### We can also plot the residuals in the complex plane.
 ssrlab <- function(name){ # A function that calculates the sum of the squared elements of a vector-like object named 'name', then formats it into a string.
-  paste("Sum of Squared Residuals:\n", round(sum(Mod(name)^2), digits = 4)) # A string too write on the residual plot that gives the sum of squared residuals.
+  paste("Sum of Squared Residuals:\n", round(sum(Mod(name)^2), digits = 4)) # A string to write on the residual plot that gives the sum of squared residuals.
 } 
-ggplot(melt.exonedf[grepl('r', melt.exonedf$variable),], aes(x = Re(value), y = Im(value))) +
-  geom_point(aes(xend = 0, yend = 0)) +
-  labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit Without Outliers") +
+ggplot(melt.exonedf[grepl('r', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), alpha = hats.clean.ols)) +
+  geom_segment(aes(xend = 0, yend = 0)) +
+  labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit Without Outliers", alpha = "Influence Score") +
   coord_fixed() +
-  geom_label(x = 20, y = -10, label = ssrlab(value)) +
+  #geom_label(x = 20, y = -10, label = ssrlab(value)) +
   geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0)
 
@@ -117,12 +117,13 @@ exonedf$clout <- exonedf$x * betap[2] + betap[1]
 ### Let's see how well complex least squares does with these outliers.
 fitone.outl.ols <- lm(y.outl ~ x, exonedf)
 summary(fitone.outl.ols)
-plot(fitone.outl.ols)
-### Repeat the same proceedure as before to plot the response data.
+plot(fitone.outl.ols, which = c(1,3,4,5,6))
+### Repeat the same procedure as before to plot the response data.
 exonedf$y.fit.outl.ols <- fitted(fitone.outl.ols)
 exonedf$r.outl.ols <- residuals(fitone.outl.ols)
-labels <- c(labels, 'y.outl' = 'measured reesponse with outliers', 'y.fit.outl.ols' = 'OLS fitted response', 'r.outl.ols' = 'OLS residuals', 'clout' = 'outlier relationship')
-melt.exonedf <- melt(exonedf, id = 'x')
+exonedf$hats.outl.ols <- zhatvalues(fitone.outl.ols)
+labels <- c(labels, 'y.outl' = 'measured response with outliers', 'y.fit.outl.ols' = 'OLS fitted response', 'r.outl.ols' = 'OLS residuals', 'clout' = 'outlier relationship')
+melt.exonedf <- melt(exonedf, id = c('x', 'hats.outl.ols'))
 
 ggplot(melt.exonedf[grepl('y|outl|y.clean|clout', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), color = as.factor(variable), shape = as.factor(variable))) +
   geom_point(size = 3) +
@@ -133,11 +134,11 @@ ggplot(melt.exonedf[grepl('y|outl|y.clean|clout', melt.exonedf$variable),], aes(
   labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated and OLS Fit Values With Outliers") +
   coord_fixed()
 ### And plot the residuals.
-ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value), y = Im(value))) +
+ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), size = hats.outl.ols)) +
   geom_point(color = olsalmon) +
-  labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit With Outliers") +
+  geom_label(aes(x = 20, y = -10, label = ssrlab(value)), size = 3.5) +
+  labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit With Outliers", size = "Influence Score") +
   coord_fixed() +
-  geom_label(x = 20, y = -10, label = ssrlab(value)) +
   geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0)
 
@@ -152,8 +153,9 @@ plot(fitone.outl.hub)
 ### Repeat the same procedure as before to plot the response data.
 exonedf$y.fit.outl.hub <- fitted(fitone.outl.hub)
 exonedf$r.outl.hub <- residuals(fitone.outl.hub)
+exonedf$hats.outl.hub <- zhatvalues(fitone.outl.hub)
 labels <- c(labels, 'y.fit.outl.hub' = 'Huber rlm fitted response', 'r.outl.hub' = 'Huber rlm residuals')
-melt.exonedf <- melt(exonedf, id = 'x')
+melt.exonedf <- melt(exonedf, id = c('x', 'hats.outl.hub'))
 
 ggplot(melt.exonedf[grepl('y|outl|y.clean|clout', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), color = as.factor(variable), shape = as.factor(variable))) +
   geom_point(size = 3) +
@@ -164,7 +166,7 @@ ggplot(melt.exonedf[grepl('y|outl|y.clean|clout', melt.exonedf$variable),], aes(
   labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated, OLS Fit, and Huber Robust Fit Values With Outliers") +
   coord_fixed()
 ### And plot the residuals.
-ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value), y = Im(value))) +
+ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), size = )) +
   #geom_point(aes(color = variable)) +
   geom_segment(aes(x = 0, y = 0, xend = Re(value), yend = Im(value), color = variable)) +
   labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit With Outliers") +
@@ -180,10 +182,12 @@ ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value),
 fitone.outl.ham <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept/100, psi = psi.hampel, a = 1.345)
 exonedf$y.fit.outl.ham <- fitted(fitone.outl.ham)
 exonedf$r.outl.ham <- residuals(fitone.outl.ham)
+exonedf$hats.outl.ham <- zhatvalues(fitone.outl.ham)
 ### Then with Tukey's bisquare
 fitone.outl.bis <- rlm(y.outl ~ x, exonedf, maxit = iterations + 90, acc = 10000 * accept, psi = psi.bisquare)
 exonedf$y.fit.outl.bis <- fitted(fitone.outl.bis)
 exonedf$r.outl.bis <- residuals(fitone.outl.bis)
+exonedf$hats.outl.bis <- zhatvalues(fitone.outl.bis)
 ### Update the labels.
 labels <- c(labels, 'y.fit.outl.ham' = 'Hampel rlm fitted response', 'r.outl.ham' = 'Hampel rlm residuals', 'y.fit.outl.bis' = 'Tukey Bisquare rlm fitted response', 'r.outl.bis' = 'Tukey Bisquare rlm residuals')
 melt.exonedf <- melt(exonedf, id = 'x')
@@ -285,7 +289,7 @@ ggplot(Halltibble, aes(x = Re(zCurrent), y = Re(OutputV))) +
   geom_point(aes(y = Im(OutputV), color = 'imaginary')) +
   scale_color_manual(values = c('real' = "forestgreen", 'imaginary' = "coral")) +
   facet_grid(rows = vars(Contact.Arangement), cols = vars(Magnet.Field.Frequency.Hz.)) +
-  labs(y = "Current", x = "Output Voltage", color = "Voltage Component")
+  labs(x = "Current", y = "Output Voltage", color = "Voltage Component")
 ### Here we have organized the data into a grid based on the magnetic field frequency and contact orientation with which they were taken.
 ### The label at the top of each column gives the frequency in Hertz, and the label at the right of the rows give the contact orientation.
 ### These plots are certainly neater, but they also show that the slopes we need to extract are exceedingly small. 
@@ -308,3 +312,20 @@ fitterlm <- function(data, formula, ...) { # A function that will perform ols fi
 }
 lmHallcoeftibble <- Halltibble %>% summarize(fitterlm(OutputV ~ zCurrent, data = .))
 
+### Add a column for the average magnetic field amplitudes for I-V sweep, and columns for the resitivity and thickness.
+otherdf <- Halltibble %>% summarize(Magnet.Field.T = mean(Magnetic.Field.T), Resistivity.Ohm.cm = mean(Resistivity.Ohm.cm), thickness.cm. = mean(thickness.cm.))
+Hallcoeftibble <- inner_join(x = Hallcoeftibble, y = otherdf, by = c("Contact.Arangement", "Magnet.Field.Frequency.Hz."))
+lmHallcoeftibble <- inner_join(x = lmHallcoeftibble, y = otherdf, by = c("Contact.Arangement", "Magnet.Field.Frequency.Hz."))
+
+### The mobility in cm^2/(V s) can be calculated (absent phase shift correction) from the slope (zCurrent) coefficients [which are the Hall resistances] of the fits like so,
+### mobility mu = Mod([slope coefficient]) * [thickness] / [Magnet.Field.T] * [10^-4]
+### First filter the coefficient tibbles to remove the (intercept) rows, then add a column of mobility values.
+
+mobilitytibble <- Hallcoeftibble %>% filter(coefficient == "zCurrent") %>% mutate(mobility = (Mod(Value) * thickness.cm.) / (Magnet.Field.T * 10^-4 * Resistivity.Ohm.cm))
+lmmobilitytibble <- lmHallcoeftibble %>% filter(coefficient == "zCurrent") %>% mutate(mobility = (Mod(Estimate) * thickness.cm.) / (Magnet.Field.T * 10^-4 * Resistivity.Ohm.cm))
+summary(mobilitytibble$mobility)
+### Which is pretty close (on the same order of magnitude) to that found in the literature. Yay!
+### With this information, along with a value for the elementary charge, we can also calculate the carrier concentration. 
+elemcharge <- 1.602176e-19 # in units of Coulombs
+mobilitytibble$density <- 1 / (elemcharge * mobilitytibble$Resistivity.Ohm.cm * mobilitytibble$mobility) # This has units of 1/cm^3
+### Now let's compare the 

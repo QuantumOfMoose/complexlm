@@ -4,7 +4,7 @@
 ### 19 June 2023
 
 skip <- 19 # How many rows to skip before reading data from the csv file.
-filename <- "data/12April2023_Copper_RT_vacrawdata.csv"
+filename <- "data/rawdata/12April2023_Copper_RT_vacrawdata.csv"
 CuHallData <- read.csv(filename, header = T, row.names = NULL, sep = ",", skip = skip)  # Read in the Hall effect data.
 dropcols <- grepl("Rot|V..Vrms|Vx.Noise|Theta|I..C|V..contact.1", colnames(CuHallData))
 CuHallData <- CuHallData[,!dropcols] # Drop extraneous columns.
@@ -17,7 +17,8 @@ CuHallData$RMS.Magnetic.Field..T. <- sqrt(2) * CuHallData$RMS.Magnetic.Field..T.
 names(CuHallData)[3] <- "Magnetic.Field.T"
 names(CuHallData) <- gsub("(.)\\1+", "\\1", names(CuHallData)) # Remove the repeated periods from the names.
 CuHallData$Resistivity.Ohm.cm <- rep(2.54638e-06, length(CuHallData$Contact.Arangement)) # Manualy add the resistivity value calculated by the Van Der Pauw method from DC current-voltage sweeps.
+CuHallData$thickness.cm. <- rep(100e-7, length(CuHallData$Contact.Arangement)) # Manually add the thickness of the sample in centimeters, as measured by the thickness monitor during deposition.
 
 ### That aught to be sufficient cleaning. Now we can save this dataframe as a .rda file
 
-save(CuHallData, file = "data/Copper_AC_Hall_Effect.rda")
+save(CuHallData, file = "data/CuHallData.rda")

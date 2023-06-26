@@ -120,16 +120,26 @@ complexdqlrs <- function(x, y, tol = 1E-07, chk)
 #' Linear Model Fitting for Complex or Numeric Variables
 #' 
 #' An adaptation of lm that is compatible with complex variables. If the response is not complex, it calls the standard [stats::lm()]
-#' Note: It is not capable of dealing with contrasts in the complex case. And it may not understand offsets either. 
-#' The formula interpretation is also incapable of handling algebraic expressions in formula.
-#' model.frame needs to be changed to allow complex variables in order to enable these features.
+#' Note: It is not capable of dealing with contrasts in the complex case.
+#' The formula interpretation is also unable of handle algebraic expressions in `formula`.
 #'
-#' @inherit stats::lm description details params
+#' @inherit stats::lm params
 #' 
 #' @param formula an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. 
 #' For complex variables there are restrictions on what kinds of formula can be comprehended. See [complexlm::zmodel.matrix] for details.
 #' @param x logical. If `TRUE` return the model matrix of the fit. Default is `TRUE`.
 #' @param contrasts Not implemented for complex variables. See [complexlm::zmodel.matrix] for details. Default is `NULL`
+#' 
+#' @details Like [stats::lm] the models are specified symbolically using the standard R formula notation:
+#' `response ~ terms`
+#' Meaning `response` is a linear combination of the predictor variables in `terms`. 
+#' For compatibility with complex numbers `complexlm::lm` uses [zmodel.matrix] to build the model matrix
+#' from the model formula. As such it is limited to terms consisting of predictor names connected by `+` and/or `:` operators.
+#' Anything more complicated will result in an error.
+#' 
+#' If response is a matrix, then then `lm()` fits a model to each column, and returns an object with class "mlm".
+#' 
+#' For complex input, this function calls [zlm.wfit].
 #' 
 #' @note In `complexlm`, the `x` parameter defaults to `TRUE` so that followup
 #' methods such as [predict.lm] have access to the model matrix. 
@@ -152,7 +162,7 @@ complexdqlrs <- function(x, y, tol = 1E-07, chk)
 #' \item{`terms`}{the [terms] object used.}
 #' \item{`contrasts`}{The contrasts used, as these are not supported this component will probably be `NULL`.}
 #' \item{`xlevels`}{(only where relevant) a record of the levels of the factors used in fitting.}
-#' \item{`offset`}{the offset used (missing if none were used).}\
+#' \item{`offset`}{the offset used (missing if none were used).}
 #' \item{`y`}{if requested, the response used.}
 #' \item{`x`}{the model matrix used, unless requested to not return it.}
 #' \item{`model`}{if requested, the model frame used.}
@@ -162,7 +172,7 @@ complexdqlrs <- function(x, y, tol = 1E-07, chk)
 #' \item{`qr`}{unless declined, the output of the [qr] object created in the process of fitting. Not included in null fits.}
 #' @export
 #' 
-#' @seealso [complexlm::lm.fit], [complexlm::lm.wfit], [zlm.wfit], [zmodel.matrix], [complexdqlrs]
+#' @seealso [complexlm::lm.fit], [complexlm::lm.wfit], [zlm.wfit], [zmodel.matrix], [complexdqlrs], [stats::lm]
 #'
 #' @examples
 #' set.seed(4242)
