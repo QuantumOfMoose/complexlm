@@ -233,21 +233,25 @@ rlm.complex <-
             resid <- drop(y - x %*% coef)
         }
     } else if(method == "MM") {
-        scale.est <- "MM"
-        temp <- do.call("lqs",
-                        c(list(x, y, intercept = interc, method = "S",
-                               k0 = 1.548), lqs.control))
-        coef <- temp$coefficients
-        resid <- temp$residuals
-        psi <- psi.bisquare
-        if(length(arguments <- list(...)))
-            if(match("c", names(arguments), nomatch = 0L)) {
-                c0 <- arguments$c
-                if (c0 > 1.548) formals(psi)$c <- c0
-                else
-                    warning("'c' must be at least 1.548 and has been ignored")
-            }
-        scale <- temp$scale
+        stop("'method' = 'MM' is not supported for complex numbers.
+             MM-estimation requires that quantiles be defined over the domain and co-domain of the model.
+             Please use 'method' = 'M' instead. If you require S-estimation or MM-estimation, and have a good complex quantile function you would like to use,
+             please contact the developer.")
+        # scale.est <- "MM"
+        # temp <- do.call("lqs",
+        #                 c(list(x, y, intercept = interc, method = "S",
+        #                        k0 = 1.548), lqs.control))
+        # coef <- temp$coefficients
+        # resid <- temp$residuals
+        # psi <- psi.bisquare
+        # if(length(arguments <- list(...)))
+        #     if(match("c", names(arguments), nomatch = 0L)) {
+        #         c0 <- arguments$c
+        #         if (c0 > 1.548) formals(psi)$c <- c0
+        #         else
+        #             warning("'c' must be at least 1.548 and has been ignored")
+        #     }
+        # scale <- temp$scale
     } else stop("'method' is unknown")
 
     done <- FALSE

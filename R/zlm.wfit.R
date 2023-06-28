@@ -711,6 +711,8 @@ vcov.zlm <- function (object, complete = TRUE, merge = TRUE, ...)
 #' 
 #' A very simple adaptation of [stats::anova.lm] which can handle fits of complex variables. 
 #' The only change was to take the absolute value of squared residuals, and eliminate quantile based features.
+#' Note that this function uses the variance, not the pseudo-variance. An analysis of pseudo-variance (ANOPVA) 
+#' is also possible (and maybe useful), but not yet implemented. 
 #'
 #' @inherit stats::anova.lm params details return references
 #'
@@ -741,7 +743,7 @@ anova.zlm <- function(object, ...)
   
   if(!inherits(object, "lm")) warning("calling anova.lm(<fake-lm-object>) ...")
   w <- object$weights
-  ssr <- sum(if(is.null(w)) abs(object$residuals^2) else w*abs(object$residuals^2))
+  ssr <- sum(if(is.null(w)) abs(object$residuals^2) else w*abs(object$residuals^2)) # Algebraically equivalent to Conj(residuals)*residuals, though may not be numerically equivalent.
   mss <- sum(if(is.null(w)) abs(object$fitted.values^2) else w*abs(object$fitted.values^2))
   if(ssr < 1e-10*mss)
     warning("ANOVA F-tests on an essentially perfect fit are unreliable")
