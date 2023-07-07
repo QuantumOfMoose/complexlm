@@ -37,5 +37,5 @@ F. Y. Edgeworth, XXII. On a New Method of Reducing Observations Relating to Seve
 Also see the Wikipedia article on weighted median for a very good explanation and a model algorithm.
 }
 \seealso{
-\link{median}
+\link[stats:median]{stats::median}
 }

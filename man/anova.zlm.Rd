@@ -29,6 +29,8 @@ An object of class "anova", which inherits from class "data.frame". Contains a a
 \description{
 A very simple adaptation of \link[stats:anova.lm]{stats::anova.lm} which can handle fits of complex variables.
 The only change was to take the absolute value of squared residuals, and eliminate quantile based features.
+Note that this function uses the variance, not the pseudo-variance. An analysis of pseudo-variance (ANOPVA)
+is also possible (and maybe useful), but not yet implemented.
 }
 \details{
 Specifying a single object gives a sequential analysis of variance

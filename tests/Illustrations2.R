@@ -22,9 +22,14 @@ library(complexlm)
 ### Now begin the first example problem. Consider n = m^2 points arranged in a square grid on the complex plane, centered on the origin. These are our predictor variables, x.
 m <- 5
 boundary <- m %/% 2
-x <- expand.grid(c(-boundary:boundary), c(-boundary:boundary)) # Create a 7 by 7 grid of regular points.
+x <- expand.grid(c(-boundary:boundary), c(-boundary:boundary)) # Create a 5 by 5 grid of regular points.
 x <- complex(real = x[[1]], imaginary = x[[2]]) # Make complex numbers
 nn <- length(x) # Number of elements in x
+
+### Plot our predictors as points in the complex plane. They are a simple square grid.
+ggplot(data = data.frame(x), aes(x = Re(x), y = Im(x))) +
+  geom_point(size = 2) +
+  labs(x = "Real", y = "Imaginary", title = "Complex Predictor Variable")
 
 ### Next establish the true transformation vector, call it beta. This is a length two complex vector, the 2nd element of which describes the scaling and rotation that x will undergo, the first describes the translation.
 beta <- c(complex(real = -3.5, imaginary = -4), complex(real = 7, imaginary = -4)) # Arbitrarily chosen.
@@ -41,21 +46,46 @@ y <- y.clean + err # Add the noise to the clean transformed vector to get a more
 exonedf <- data.frame(x = x, y.clean = y.clean, err = err, y = y)
 ### And now we are ready to try out the complex least squares fitting of 'complexlm'.
 fitone.clean.ols <- lm(y ~ x, exonedf)
+#print(fitone.clean.ols)
 
 ### Now that we have a fit, we can try out the fit diagnostics and summary methods included in 'complexlm'.
 ### First we will check the classes that this fit object falls into.
 class(fitone.clean.ols) # 'zlm' and 'lm'
-### Next summarize and print te summary.
+### Many S3 methods written for objects of class 'lm' also work for 'zlm' objects.
+coefficients(fitone.clean.ols)
+formula(fitone.clean.ols)
+kappa(fitone.clean.ols)
+### Others, do not.
+#summary.lm(fitone.clean.ols)
+### Next summarize and print the summary.
 summary.fitone.clean.ols <- summary(fitone.clean.ols)
 print(summary.fitone.clean.ols)
 ### Then generate an analysis of variance (ANOVA)
 anova.zlm(fitone.clean.ols)
 ### We can also calculate the standardized residuals, hat matrix or influence scores, and the Cook's distances.
-rstandard(fitone.clean.ols)
+head(rstandard(fitone.clean.ols))
 exonedf$hats.clean.ols <- zhatvalues(fitone.clean.ols)
-cooks.distance(fitone.clean.ols)
+#head(exonedf$hats.clean.ols)
+head(cooks.distance(fitone.clean.ols))
 ### These three things are used to generate the traditional diagnostic plots for linear models. We can draw them like so,
 plot(fitone.clean.ols, which = c(1,3,4,5,6))
+### The following lines generate the same plots, but save them to individual .pdf files.
+# setwd() # Change the working directory, if desired.
+# pdf("resvfit.pdf") # Draw Residuals vs. Fitted plot to this file.
+# plot(fitone.clean.ols, which = 1) # Plot Residuals vs. Fitted
+# dev.off() # Close the file / graphics device.
+# pdf("scalloc.pdf") # Draw the Scale-Location plot in this file.
+# plot(fitone.clean.ols, which = 3) # Draw the Scale-Location plot. Note that which = 2 is not available for complex input.
+# dev.off()
+# pdf("cookdist.pdf") # Draw the Cook's Distance plot here.
+# plot(fitone.clean.ols, which = 4) # Draw the Cook's Distance plot.
+# dev.off()
+# pdf("reslev.pdf") # Put the Residuals vs. Leverage plot in this file.
+# plot(fitone.clean.ols, which = 5)
+# dev.off()
+# pdf("cooklev.pdf") # Draw the Cook's Distance vs. Scaled Leverage plot in this file.
+# plot(fitone.clean.ols, which = 6) # Plot the Cook's Distance vs. Scaled Leverage.
+# dev.off()
 
 ### Now we'll make a nicer plot of the 'measured' and fitted response values. This will serve the role of the classic x-y plot with a trend line.
 ### First add the fitted response to the dataframe.

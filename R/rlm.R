@@ -623,22 +623,24 @@ psi.bisquare <- function(u, c = 4.685, deriv=0)
 #         if(!is.matrix(contrast.obj)) sqrt(sum(weights)) else sqrt(colSums(weights))
 # }
 
-#' @describeIn rlm Predict new data based on the model in object. Invokes `predict.lm`.
-#' @param object a `rlm` object; a fit from which you wish to predict new data.
-#' @param newdata new predictor data from which to predict response data. Default is NULL.
-#' @param scale this seems to be ignored. Default is NULL.
-#' @param ... further arguments to be passed to NextMethod().
-#' 
-#' @export
-predict.rzlm <- function (object, newdata = NULL, scale = NULL, ...)
-{
+## I don't think this function is actually necessary, predict.rlm() should work fine
+## Indeed it does. This function / method is now depreciated.
+# @describeIn rlm Predict new data based on the model in object. Invokes `predict.lm`.
+# @param object a `rlm` object; a fit from which you wish to predict new data.
+# @param newdata new predictor data from which to predict response data. Default is NULL.
+# @param scale this seems to be ignored. Default is NULL.
+# @param ... further arguments to be passed to NextMethod().
+# 
+# @export
+#predict.rzlm <- function (object, newdata = NULL, scale = NULL, ...)
+#{
     ## problems with using predict.lm are the scale and
     ## the QR decomp which has been done on down-weighted values.
     ## Only works if explicit weights are given during the call that produced object..?
-    object$qr <- qr(sqrt(object$weights) * object$x)
+#    object$qr <- qr(sqrt(object$weights) * object$x)
     #print('cats') # For debugging.
-    NextMethod(object, scale = object$s, ...) # So this just calls predict.lm on the object.
-}
+#    NextMethod(object, scale = object$s, ...) # So this just calls predict.lm on the object.
+#}
 
 #' Calculate Variance-Covariance Matrix and Pseudo Variance-Covariance Matrix for a Complex Fitted Model Object
 #'

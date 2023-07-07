@@ -4,7 +4,6 @@
 \alias{rlm}
 \alias{rlm.formula}
 \alias{rlm.complex}
-\alias{predict.rzlm}
 \title{Robust Fitting of Linear Models, Compatible with Complex Variables}
 \usage{
 rlm(x, ...)
@@ -42,13 +41,11 @@ rlm(x, ...)
   lqs.control = NULL,
   interc = FALSE
 )
-
-\method{predict}{rzlm}(object, newdata = NULL, scale = NULL, ...)
 }
 \arguments{
 \item{x}{numeric or complex. A matrix, dataframe, or vector containing the explanatory / independent / predictor variables.}
 
-\item{...}{further arguments to be passed to NextMethod().}
+\item{...}{additional arguments to be passed to rlm.default or to the psi function.}
 
 \item{formula}{a \link{formula} object of the form y ~ x1 + x2. Note that algebraic expressions in formula cannot currently be used with complex data.}
 
@@ -93,15 +90,20 @@ rlm(x, ...)
 \item{lqs.control}{An optional list of control values for \link{lqs}, ignored.}
 
 \item{interc}{TRUE or FALSE, default is FALSE. Used with rlm.default when fitting complex valued data. If true, a y-intercept is calculated during fitting. Otherwise, the intercept is set to zero.}
-
-\item{object}{a \code{rlm} object; a fit from which you wish to predict new data.}
-
-\item{newdata}{new predictor data from which to predict response data. Default is NULL.}
-
-\item{scale}{this seems to be ignored. Default is NULL.}
 }
 \value{
-An object of class "rzlm" or "rlm", which inherits from "lm",
+An object of class \code{c("rzlm", "zlm", "rlm", "lm")}, or for numeric data \code{c("rlm", "lm")}.
+
+Objects of class "rzlm" are lists with the same components as "zlm" objects, as well as,
+\item{\code{df.residual}}{\code{NA} For "rzlm" objects the residual degrees of freedom are always set to \code{NA} in order to avoid estimation of residual scale by "zlm" or "lm" methods.}
+\item{\code{s}}{The robust scale estimate used.}
+\item{\code{w}}{The weights used in the IWLS process.}
+\item{\code{psi}}{The psi (itterative weighting) function with parameters substituted in.}
+\item{\code{conv}}{The value of the convergence criteria at each iteration.}
+\item{\code{converged}}{Did the IWLS process converge?}
+\item{\code{wresid}}{A 'working residual', the residuals of the last re-weighted least-squares. Weighted by \code{weights} if "inv.var" weights were used. }
+
+See \link[MASS:rlm]{MASS::rlm} for a description of "rlm" objects.
 }
 \description{
 Uses robust M-estimation to fit a linear model to numeric or complex data. Based on \link[MASS:rlm]{MASS::rlm}.
@@ -121,8 +123,6 @@ in M-estimation.
 \item \code{formula}: S3 method for class 'formula'
 
 \item \code{complex}: Complex Default S3 method
-
-\item \code{rzlm}: Predict new data based on the model in object. Invokes \code{predict.lm}.
 }}
 
 \examples{

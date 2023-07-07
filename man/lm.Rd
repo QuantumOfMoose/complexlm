@@ -101,7 +101,7 @@ Objects of class "zlm" are lists with the following components.
 \item{\code{terms}}{the \link{terms} object used.}
 \item{\code{contrasts}}{The contrasts used, as these are not supported this component will probably be \code{NULL}.}
 \item{\code{xlevels}}{(only where relevant) a record of the levels of the factors used in fitting.}
-\item{\code{offset}}{the offset used (missing if none were used).}\
+\item{\code{offset}}{the offset used (missing if none were used).}
 \item{\code{y}}{if requested, the response used.}
 \item{\code{x}}{the model matrix used, unless requested to not return it.}
 \item{\code{model}}{if requested, the model frame used.}
@@ -112,59 +112,20 @@ Objects of class "zlm" are lists with the following components.
 }
 \description{
 An adaptation of lm that is compatible with complex variables. If the response is not complex, it calls the standard \code{\link[stats:lm]{stats::lm()}}
-Note: It is not capable of dealing with contrasts in the complex case. And it may not understand offsets either.
-The formula interpretation is also incapable of handling algebraic expressions in formula.
-model.frame needs to be changed to allow complex variables in order to enable these features.
+Note: It is not capable of dealing with contrasts in the complex case.
+The formula interpretation is also unable of handle algebraic expressions in \code{formula}.
 }
 \details{
-Models for \code{lm} are specified symbolically.  A typical model has
-  the form \code{response ~ terms} where \code{response} is the (numeric)
-  response vector and \code{terms} is a series of terms which specifies a
-  linear predictor for \code{response}.  A terms specification of the form
-  \code{first + second} indicates all the terms in \code{first} together
-  with all the terms in \code{second} with duplicates removed.  A
-  specification of the form \code{first:second} indicates the set of
-  terms obtained by taking the interactions of all terms in \code{first}
-  with all terms in \code{second}.  The specification \code{first*second}
-  indicates the \emph{cross} of \code{first} and \code{second}.  This is
-  the same as \code{first + second + first:second}.
+Like \link[stats:lm]{stats::lm} the models are specified symbolically using the standard R formula notation:
+\code{response ~ terms}
+Meaning \code{response} is a linear combination of the predictor variables in \code{terms}.
+For compatibility with complex numbers \code{complexlm::lm} uses \link{zmodel.matrix} to build the model matrix
+from the model formula. As such it is limited to terms consisting of predictor names connected by \code{+} and/or \code{:} operators.
+Anything more complicated will result in an error.
 
-  If the formula includes an \code{\link[stats]{offset}}, this is evaluated and
-  subtracted from the response.
+If response is a matrix, then then \code{lm()} fits a model to each column, and returns an object with class "mlm".
 
-  If \code{response} is a matrix a linear model is fitted separately by
-  least-squares to each column of the matrix.
-
-  See \code{\link[stats]{model.matrix}} for some further details.  The terms in
-  the formula will be re-ordered so that main effects come first,
-  followed by the interactions, all second-order, all third-order and so
-  on: to avoid this pass a \code{terms} object as the formula (see
-  \code{\link[stats]{aov}} and \code{demo(glm.vr)} for an example).
-
-  A formula has an implied intercept term.  To remove this use either
-  \code{y ~ x - 1} or \code{y ~ 0 + x}.  See \code{\link[stats]{formula}} for
-  more details of allowed formulae.
-
-  Non-\code{NULL} \code{weights} can be used to indicate that
-  different observations have different variances (with the values in
-  \code{weights} being inversely proportional to the variances); or
-  equivalently, when the elements of \code{weights} are positive
-  integers \eqn{w_i}, that each response \eqn{y_i} is the mean of
-  \eqn{w_i} unit-weight observations (including the case that there
-  are \eqn{w_i} observations equal to \eqn{y_i} and the data have been
-  summarized). However, in the latter case, notice that within-group
-  variation is not used.  Therefore, the sigma estimate and residual
-  degrees of freedom may be suboptimal; in the case of replication
-  weights, even wrong. Hence, standard errors and analysis of variance
-  tables should be treated with care.
-
-  \code{lm} calls the lower level functions \code{\link[stats]{lm.fit}}, etc,
-  see below, for the actual numerical computations.  For programming
-  only, you may consider doing likewise.
-
-  All of \code{weights}, \code{subset} and \code{offset} are evaluated
-  in the same way as variables in \code{formula}, that is first in
-  \code{data} and then in the environment of \code{formula}.
+For complex input, this function calls \link{zlm.wfit}.
 }
 \note{
 In \code{complexlm}, the \code{x} parameter defaults to \code{TRUE} so that followup
@@ -181,5 +142,5 @@ tframe <- data.frame(x= xx, y= slop*xx + interc + e)
 lm(y ~ x, data = tframe, weights = rep(1,n))
 }
 \seealso{
-\link{lm.fit}, \link{lm.wfit}, \link{zlm.wfit}, \link{zmodel.matrix}, \link{complexdqlrs}
+\link{lm.fit}, \link{lm.wfit}, \link{zlm.wfit}, \link{zmodel.matrix}, \link{complexdqlrs}, \link[stats:lm]{stats::lm}
 }

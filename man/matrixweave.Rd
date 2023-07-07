@@ -4,15 +4,19 @@
 \alias{matrixweave}
 \title{Combine covariance matrix and pseudo covariance matrix into a "double covariance matrix"}
 \usage{
-matrixweave(cov, pcov)
+matrixweave(cov, pcov, FUNC = Conj)
 }
 \arguments{
 \item{cov}{A square matrix, such as one describing the covariance between two complex random vectors.}
 
 \item{pcov}{A square matrix with the same size as cov. Perhaps a pseudo covariance matrix.}
+
+\item{FUNC}{A function to operate on the elements of \code{pcov}. The results of which will be a quarter of the elements of the returned matrix. Default is \code{Conj}.}
 }
 \value{
-A square matrix with dimension twice that of the input matrices. Each element is an element from one of the inputs, and its adjacent elements are from the other input.
+A square matrix with dimension twice that of the input matrices. Each element of which is an element from one of the inputs, and its nearest non-diagonal neighbors are from the other input.
+Half of the elements from \code{pcov} present in the output matrix are replaced by \code{FUNC} operated on them. Thus if two 2x2 matrices, \code{A} and \code{B} are given to \code{matrixweave()}, the elements of the result are:
+\verb{matrixweave(A,B)[i,j] = if(i+j is even) A[ceiling(i/2), ceiling(j/2)] if(i+j is odd and i > j) B[ceiling(i/2), ceiling(j/2)] if(i+j is odd and i < j) FUNC(B[ceiling(i/2),ceiling(j/2)])}
 }
 \description{
 Interleaves the elements of a \eqn{(p x p)} matrix with those of a different \eqn{(p x p)} matrix to form a \eqn{(2p x 2p)} matrix.

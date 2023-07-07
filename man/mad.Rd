@@ -18,7 +18,7 @@ mad(
 
 \item{center}{optional, numeric or complex. The center about which to calculate MAD. Defaults to median for numeric, and geo_median for complex.}
 
-\item{constant}{a constant by which to multiply the median absolute deviation from center. Default is 1.4826, which is one over the quantile of 3/4 for the normal distribution.}
+\item{constant}{a constant by which to multiply the median absolute deviation from center. Default is 1.4826, which is the inverse of the 3/4 quantile for the normal distribution.}
 
 \item{na.rm}{logical. Should NAs be removed from x before calculating.}
 
@@ -47,5 +47,5 @@ foo <- complex(real = rnorm(n), imaginary = rnorm(n))
 mad(foo)
 }
 \seealso{
-\link{median}, \link[stats:mad]{stats::mad}
+\link{median.complex}, \link[stats:mad]{stats::mad}
 }
