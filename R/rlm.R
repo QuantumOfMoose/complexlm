@@ -486,7 +486,7 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
       object$correlation <- correl
       object$pseudocorrelation <- pcorrel
       object$terms <- NA
-      class(object) <- c("summary.rzlm", "summary.rlm", "summary.zlm")
+      class(object) <- c("summary.rzlm", "summary.zlm", "summary.rlm")
       return(object)
 }
 

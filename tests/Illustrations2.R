@@ -146,8 +146,8 @@ exonedf$clout <- exonedf$x * betap[2] + betap[1]
 
 ### Let's see how well complex least squares does with these outliers.
 fitone.outl.ols <- lm(y.outl ~ x, exonedf)
-summary(fitone.outl.ols)
-plot(fitone.outl.ols, which = c(1,3,4,5,6))
+# summary(fitone.outl.ols)
+# plot(fitone.outl.ols, which = c(1,3,4,5,6))
 ### Repeat the same procedure as before to plot the response data.
 exonedf$y.fit.outl.ols <- fitted(fitone.outl.ols)
 exonedf$r.outl.ols <- residuals(fitone.outl.ols)
@@ -175,8 +175,8 @@ ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value),
 ### That didn't work very well. While the sum of the squared residuals was minimized, the fit coefficients are very far from the actual relationship between predictor and response.
 ### Now let's try the complex robust M-estimator. We'll try the Huber loss objective function, which is the default.
 ### But first we need to establish some parameters for the IWLS algorithm.
-accept = 1e-20 # Shared acceptance criterion
-iterations = 70 # Shared max iterations
+accept = 1e-16 # Shared acceptance criterion
+iterations = 90 # Shared max iterations
 fitone.outl.hub <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept)
 summary(fitone.outl.hub)
 plot(fitone.outl.hub)
