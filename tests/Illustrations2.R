@@ -178,6 +178,7 @@ ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value),
 accept = 1e-16 # Shared acceptance criterion
 iterations = 90 # Shared max iterations
 fitone.outl.hub <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept)
+print(fitone.outl.hub)
 summary(fitone.outl.hub)
 plot(fitone.outl.hub)
 ### Repeat the same procedure as before to plot the response data.
@@ -202,19 +203,21 @@ ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value),
   labs(y = "Imaginary", x = "Real", title = "Residuals of OLS Fit With Outliers") +
   scale_color_manual("Residuals", values = c('r.outl.ols' = olsalmon, 'r.outl.hub' = hubsky)) +
   coord_fixed() +
-  geom_label(x = 20, y = -10, label = ssrlab(value)) +
+ # geom_label(x = 20, y = -10, label = ssrlab(value)) +
   geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0)
 ### It's not perfect, but significantly better than what the ordinary least squares fit found. While the overall sum of squared residuals for the Huber M-estimation 
 ### is larger than that of the ols fit, the residuals due to the non-outliers are much smaller.
 
 ### Now let's try some re-descending M-estimators. First with the Hampel objective function.
-fitone.outl.ham <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept/100, psi = psi.hampel, a = 1.345)
+fitone.outl.ham <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept, psi = psi.hampel, a = 1.345)
+print(fitone.outl.ham)
 exonedf$y.fit.outl.ham <- fitted(fitone.outl.ham)
 exonedf$r.outl.ham <- residuals(fitone.outl.ham)
 exonedf$hats.outl.ham <- zhatvalues(fitone.outl.ham)
 ### Then with Tukey's bisquare
-fitone.outl.bis <- rlm(y.outl ~ x, exonedf, maxit = iterations + 90, acc = 10000 * accept, psi = psi.bisquare)
+fitone.outl.bis <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept, psi = psi.bisquare)
+print(fitone.outl.bis)
 exonedf$y.fit.outl.bis <- fitted(fitone.outl.bis)
 exonedf$r.outl.bis <- residuals(fitone.outl.bis)
 exonedf$hats.outl.bis <- zhatvalues(fitone.outl.bis)
@@ -228,7 +231,7 @@ ggplot(melt.exonedf[grepl('y|outl|y.clean|clout', melt.exonedf$variable),], aes(
   scale_color_manual(values = c('y.outl'= respring, 'y.clean'= clreen, 'y.fit.outl.ols'= olsalmon, 'y.fit.outl.hub' = hubsky, 'y.fit.outl.ham' = hampurp, 'y.fit.outl.bis' = bislate, 'clout' = brout), labels = labels) +
   #geom_line(data = melt.exonedf[melt.exonedf$variable == "y.outl" | melt.exonedf$variable == "y.fit.outl.ols",], aes(group = x, lty = "residual"), size = 0.4, color = "lightcoral") +
   #scale_linetype_manual("Residuals", values = 'dashed', guide=guide_legend(override.aes = list(size = 0.5, color = "lightcoral"))) +
-  labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated, OLS Fit, and Huber Robust Fit Values With Outliers") +
+  labs(y = "Imaginary", x = "Real", shape = "Response Values", color = "Response Values", title = "Generated, OLS, Huber Robust, Hampel Robust, and Bisquare Robust Fit Values With Outliers") +
   coord_fixed()
 ### And plot the residuals.
 rlablframe <- melt.exonedf[grepl('r.outl', melt.exonedf$variable),] %>% group_by(variable) %>% summarize(label = ssrlab(value))
@@ -242,7 +245,8 @@ ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value),
   #geom_label(data = x = 20, y = -10, aes(label = ssrlab(value))) + # Unfortunately, this doesn't work with the facets. :(
   geom_label(data = rlablframe, x = 27, y = -10, aes(label = label)) +
   geom_hline(yintercept = 0) +
-  geom_vline(xintercept = 0)
+  geom_vline(xintercept = 0) +
+  theme(legend.position = "none") # Ditch the legend, it's superfluous.
 
 ### Notice that the rlm() calls that used redescending influence functions achieved estimates of beta closer to the true value. 
 ### This is because the algorithm downweighted them into oblivion, so that they have no influence upon the final estimate. Thus they 
@@ -269,8 +273,9 @@ coefframe$variable <- c(fitnames, "true", "true.outlll")
 ggplot(coefframe, aes(color = variable)) +
   geom_point(aes(x = Re(x.Estimate), y = Im(x.Estimate))) +
   geom_ellipse(aes(x0 = Re(x.Estimate), y0 = Im(x.Estimate), a = Mod(x.Pseudo.Std..Error), b = Re(x.Std..Error)^2 / Mod(x.Pseudo.Std..Error), angle = Arg(x.Pseudo.Std..Error))) +
-  scale_color_manual(values = c('true'= clreen, 'fitone.outl.ols'= olsalmon, 'fitone.outl.hub' = hubsky, 'fitone.outl.ham' = hampurp, 'fitone.outl.bis' = bislate, 'true.outlll' = brout), labels = c('true'= "True Value", 'fitone.outl.ols'= "Least-Squares", 'fitone.outl.hub' = "M-Estimation w/ Huber Objective", 'fitone.outl.ham' = 'M-Estimation w/ Hampel Objective', 'fitone.outl.bis' = 'M-Estimation w/ Bisquare Objective', 'true.outlll' = 'Outlier Value')) +
-  labs(title = "Scale Rotation Coefficient Estimates", color = 'Regression', x = 'Real', y = 'Imaginary')
+  scale_color_manual(values = c('true'= clreen, 'fitone.outl.ols'= olsalmon, 'fitone.outl.hub' = hubsky, 'fitone.outl.ham' = hampurp, 'fitone.outl.bis' = bislate, 'true.outlll' = brout), labels = c('true'= "True Value", 'fitone.outl.ols'= "Least-Squares", 'fitone.outl.hub' = "rlm() with Huber", 'fitone.outl.ham' = 'rlm() with Hampel', 'fitone.outl.bis' = 'rlm() with Bisquare', 'true.outlll' = 'Outlier Value')) +
+  labs(title = "Scale Rotation Coefficient Estimates", color = 'Regression', x = 'Real', y = 'Imaginary') +
+  coord_equal()
 ### This plot shows that the M-estimator regressions using Tukey's bisquare objective function and Hampel's objective function produce estimates of the scale rotation coefficient that are very close to the true value,
 ### despite the presence of outliers pulling them toward the marroon dot. The bisquare regression results in a markedly lower variance though. The Huber M-estimator, on the other hand, did not fair much better than the least-squares fit.
 
@@ -278,8 +283,9 @@ ggplot(coefframe, aes(color = variable)) +
 ggplot(coefframe, aes(color = variable)) +
   geom_point(aes(x = Re(interc.Estimate), y = Im(interc.Estimate))) +
   geom_ellipse(aes(x0 = Re(interc.Estimate), y0 = Im(interc.Estimate), a = Mod(interc.Pseudo.Std..Error), b = Re(interc.Std..Error)^2 / Mod(interc.Pseudo.Std..Error), angle = Arg(interc.Pseudo.Std..Error))) +
-  scale_color_manual(values = c('true'= clreen, 'fitone.outl.ols'= olsalmon, 'fitone.outl.hub' = hubsky, 'fitone.outl.ham' = hampurp, 'fitone.outl.bis' = bislate, 'true.outlll' = brout), labels = c('true'= "True Value", 'fitone.outl.ols'= "Least-Squares", 'fitone.outl.hub' = "M-Estimation w/ Huber Objective", 'fitone.outl.ham' = 'M-Estimation w/ Hampel Objective', 'fitone.outl.bis' = 'M-Estimation w/ Bisquare Objective', 'true.outlll' = 'Outlier Value')) +
-  labs(title = "Scale Rotation Coefficient Estimates", color = 'Regression', x = 'Real', y = 'Imaginary')
+  scale_color_manual(values = c('true'= clreen, 'fitone.outl.ols'= olsalmon, 'fitone.outl.hub' = hubsky, 'fitone.outl.ham' = hampurp, 'fitone.outl.bis' = bislate, 'true.outlll' = brout), labels = c('true'= "True Value", 'fitone.outl.ols'= "Least-Squares", 'fitone.outl.hub' = "rlm() with Huber", 'fitone.outl.ham' = 'rlm() with Hampel', 'fitone.outl.bis' = 'rlm() with Bisquare', 'true.outlll' = 'Outlier Value')) +
+  labs(title = "Translation Coefficient Estimates", color = 'Regression', x = 'Real', y = 'Imaginary') +
+  coord_equal()
 ### In estimating the translation, the robust M-estimators all outperformed the least-squares estiimate by a considerable degree. The true value is well within the first standard deviation ellipse of all three of them.
 
 ###

@@ -534,7 +534,7 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
 psi.huber <- function(u, k = 1.345, deriv=0)
 {
     if(!deriv) return(pmin(1, k / abs(u)))
-    ifelse(abs(u) <= k, complex(modulus = 1, argument = Arg(u) - pi), 0)
+    ifelse(abs(u) <= k,  complex(real = 1, imaginary = -1) * complex(modulus = 1/2, argument = Arg(u)^2), 0)
 }
 
 #' @describeIn psi.huber The weight function of the hampel objective function.
@@ -542,9 +542,9 @@ psi.huber <- function(u, k = 1.345, deriv=0)
 #' @export
 psi.hampel <- function(u, a = 2, b = 4, c = 8, deriv=0)
 {
-    U <- pmin(abs(u) + 1e-50, c)
-    if(!deriv) return(as.vector(ifelse(U <= a, U, ifelse(U <= b, a, a * (c - U) / (c - b) )) / U))
-    ifelse(abs(u) <= c, ifelse(U <= a, complex(modulus = 1, argument = Arg(u) - pi), ifelse(U <= b, 0, complex(modulus = a/(c-b), argument = Arg(u)))), 0)
+  U <- pmin(abs(u) + 1e-50, c)
+  if(!deriv) return(as.vector(ifelse(U <= a, U, ifelse(U <= b, a, a * (c - U) / (c - b) )) / U))
+  ifelse(abs(u) <= c, ifelse(U <= a, complex(real = 1, imaginary = -1) * complex(modulus = a/b, argument = Arg(u)^2), ifelse(U <= b, 0, complex(real = 1, imaginary = -1) * complex(modulus = a/(2*(c-b)), argument = Arg(u)^2))), 0)
 }
 
 #' @describeIn psi.huber The weight function of Tukey's bisquare objective function.
@@ -564,7 +564,7 @@ psi.bisquare <- function(u, c = 4.685, deriv=0)
     t <- (u/c)
     #warning(t)
     #warning(abs(t))
-    ifelse(Mod(t) < 1, complex(imaginary = -1) * (-1 + Conj(t)*t)*(-1 + 5*Conj(t)*t) * complex(modulus = 1, argument = Arg(t))^2, 0)
+    ifelse(Mod(t) < 1, complex(real = 1, imaginary = -1) * (-1 + Conj(t)*t)*(-1 + 5*Conj(t)*t) * complex(modulus = 1/2, argument = Arg(t))^2, 0)
     #return('cat')
   }
 }
