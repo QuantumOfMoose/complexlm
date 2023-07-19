@@ -147,7 +147,7 @@ exonedf$clout <- exonedf$x * betap[2] + betap[1]
 ### Let's see how well complex least squares does with these outliers.
 fitone.outl.ols <- lm(y.outl ~ x, exonedf)
 # summary(fitone.outl.ols)
-# plot(fitone.outl.ols, which = c(1,3,4,5,6))
+plot(fitone.outl.ols, which = c(1,3,4,5,6))
 ### Repeat the same procedure as before to plot the response data.
 exonedf$y.fit.outl.ols <- fitted(fitone.outl.ols)
 exonedf$r.outl.ols <- residuals(fitone.outl.ols)
@@ -325,7 +325,7 @@ ggplot(Halltibble, aes(x = Re(zCurrent), y = Re(OutputV))) +
   geom_point(aes(y = Im(OutputV), color = 'imaginary')) +
   scale_color_manual(values = c('real' = "forestgreen", 'imaginary' = "coral")) +
   facet_grid(rows = vars(Contact.Arangement), cols = vars(Magnet.Field.Frequency.Hz.)) +
-  labs(x = "Current", y = "Output Voltage", color = "Voltage Component")
+  labs(x = "Current (A)", y = "Output Voltage (V)", color = "Voltage Component")
 ### Here we have organized the data into a grid based on the magnetic field frequency and contact orientation with which they were taken.
 ### The label at the top of each column gives the frequency in Hertz, and the label at the right of the rows give the contact orientation.
 ### These plots are certainly neater, but they also show that the slopes we need to extract are exceedingly small. 
@@ -348,7 +348,7 @@ fitterlm <- function(data, formula, ...) { # A function that will perform ols fi
 }
 lmHallcoeftibble <- Halltibble %>% summarize(fitterlm(OutputV ~ zCurrent, data = .))
 
-### Add a column for the average magnetic field amplitudes for I-V sweep, and columns for the resitivity and thickness.
+### Add a column for the average magnetic field amplitudes for I-V sweep, and columns for the resistivity and thickness.
 otherdf <- Halltibble %>% summarize(Magnet.Field.T = mean(Magnetic.Field.T), Resistivity.Ohm.cm = mean(Resistivity.Ohm.cm), thickness.cm. = mean(thickness.cm.))
 Hallcoeftibble <- inner_join(x = Hallcoeftibble, y = otherdf, by = c("Contact.Arangement", "Magnet.Field.Frequency.Hz."))
 lmHallcoeftibble <- inner_join(x = lmHallcoeftibble, y = otherdf, by = c("Contact.Arangement", "Magnet.Field.Frequency.Hz."))
@@ -356,12 +356,13 @@ lmHallcoeftibble <- inner_join(x = lmHallcoeftibble, y = otherdf, by = c("Contac
 ### The mobility in cm^2/(V s) can be calculated (absent phase shift correction) from the slope (zCurrent) coefficients [which are the Hall resistances] of the fits like so,
 ### mobility mu = Mod([slope coefficient]) * [thickness] / [Magnet.Field.T] * [10^-4]
 ### First filter the coefficient tibbles to remove the (intercept) rows, then add a column of mobility values.
-
 mobilitytibble <- Hallcoeftibble %>% filter(coefficient == "zCurrent") %>% mutate(mobility = (Mod(Value) * thickness.cm.) / (Magnet.Field.T * 10^-4 * Resistivity.Ohm.cm))
 lmmobilitytibble <- lmHallcoeftibble %>% filter(coefficient == "zCurrent") %>% mutate(mobility = (Mod(Estimate) * thickness.cm.) / (Magnet.Field.T * 10^-4 * Resistivity.Ohm.cm))
 summary(mobilitytibble$mobility)
 ### Which is pretty close (on the same order of magnitude) to that found in the literature. Yay!
+### Now let's look at the mobility from the least-squares fits.
+summary(lmmobilitytibble$mobility)
 ### With this information, along with a value for the elementary charge, we can also calculate the carrier concentration. 
-elemcharge <- 1.602176e-19 # in units of Coulombs
-mobilitytibble$density <- 1 / (elemcharge * mobilitytibble$Resistivity.Ohm.cm * mobilitytibble$mobility) # This has units of 1/cm^3
+#elemcharge <- 1.602176e-19 # in units of Coulombs
+#mobilitytibble$density <- 1 / (elemcharge * mobilitytibble$Resistivity.Ohm.cm * mobilitytibble$mobility) # This has units of 1/cm^3
 ### Now let's compare the 

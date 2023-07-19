@@ -26,7 +26,7 @@ calculate a vector of predicted values \code{yh}. \code{y} and \code{yh} are poi
 model using the "dropped \code{i}" vectors, we can get another point in output space, \code{yhi}. The squared Euclidean distance between \code{yh} and \code{yhi}, divided by the
 rank of the model times its mean squared error, is the \code{i}-th Cook's distance.\cr
 \deqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}\cr
-A more elegent way to calculate it, which this function uses, is with the influence scores, \code{hii}.\cr
+A more elegant way to calculate it, which this function uses, is with the influence scores, \code{hii}.\cr
 \deqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\cr
 Where \code{r_i} is the \code{i}-th residual.
 }

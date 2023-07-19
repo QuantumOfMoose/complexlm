@@ -11,6 +11,7 @@ A dataframe with 240 rows and 11 columns. Most names contain the units of the co
 CuHallData
 }
 \description{
+\loadmathjax
 This data serves as a 'real-world' example of complex valued measurements that can be analyzed by the methods contained
 in 'complexlm'. The Hall effect is a perpendicular (to the magnetic field and current) voltage that appears across an
 electrically conductive material when it is placed in an external magnetic field. It is commonly used to determine the

@@ -22,7 +22,7 @@ Similar to \link[stats:influence.measures]{stats::rstandard}, which this functio
 }
 \details{
 The standardized residuals are calculated as,\cr
-\deqn{r' = r / ( s \sqrt(1 - lever) )}\cr
+\deqn{r' = r / ( s \sqrt{1 - lever} )}\cr
 Where \eqn{r} is the residual vector and \eqn{s} is the residual standard error for "zlm" objects
 or the robust scale estimate for "rzlm" objects.
 }

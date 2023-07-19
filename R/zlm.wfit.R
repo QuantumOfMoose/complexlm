@@ -889,7 +889,7 @@ anova.zlmlist <- function (object, ..., scale = 0, test = "F")
 #' This function returns either the full hat matrix (AKA the projection matrix) of a complex "lm" or "rlm" object, or the diagonal elements of same.
 #' The later are also known as the influence scores. 
 #' It performs the same basic role as [stats::hat] and [stats::hatvalues] do for numeric fits, but is quite a bit simpler
-#' and rather less versatile. 
+#' and rather less versatile. \loadmathjax
 #' 
 #'
 #' @param model A complex linear fit object, of class "zlm" or "rzlm". An object with numeric residuals will produce a warning and NULL output.
@@ -897,9 +897,9 @@ anova.zlmlist <- function (object, ..., scale = 0, test = "F")
 #' @param ... Additional arguments. Not used.
 #' 
 #' @details For unweighted least-squares fits the hat matrix is calculated from the model matrix, \eqn{X = }`model$x`, as \cr
-#' \deqn{H = X (X^t X)^{-1} X^t}\cr
+#' \mjdeqn{H = X (X^t X)^{-1} X^t}{H = X (X^t X)^{-1} X^t}\cr
 #' For rlm or weighted least-squares fits the hat matrix is calculated as\cr
-#' \deqn{H = X (X^t W X)^{-1} X^t W}
+#' \mjdeqn{H = X (X^t W X)^{-1} X^t W}{H = X (X^t W X)^{-1} X^t W}
 #' Where \eqn{^t} represents conjugate transpose, and \eqn{W} is the identity matrix times the user provided weights and the final IWLS weights if present. \cr
 #' Note that this function requires that the model matrix be returned when calling [lm] or [rlm].\cr
 #' The diagonals will be purely real, and are converted to numeric if `full == FALSE`.
@@ -951,7 +951,7 @@ zhatvalues <- function(model, full = FALSE, ...)
 #' @param ... Other parameters. Only used if `model` is numeric; in which case they are passed to `stats::rstandard`.
 #'
 #' @details The standardized residuals are calculated as,\cr
-#' \deqn{r' = r / ( s \sqrt(1 - lever) )}\cr
+#' \deqn{r' = r / ( s \sqrt{1 - lever} )}\cr
 #' Where \eqn{r} is the residual vector and \eqn{s} is the residual standard error for "zlm" objects
 #' or the robust scale estimate for "rzlm" objects.
 #' 
@@ -1003,9 +1003,9 @@ rstandard.zlm <- function(model, lever = zhatvalues(model), ...)
 #' calculate a vector of predicted values `yh`. `y` and `yh` are points in a `n` dimensional output space. If we drop the `i`-th element of `x` and `y`, then fit another
 #' model using the "dropped `i`" vectors, we can get another point in output space, `yhi`. The squared Euclidean distance between `yh` and `yhi`, divided by the 
 #' rank of the model times its mean squared error, is the `i`-th Cook's distance.\cr
-#' \deqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}\cr
-#' A more elegent way to calculate it, which this function uses, is with the influence scores, `hii`.\cr
-#' \deqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\cr
+#' \mjdeqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}{D_i = (yh - yhi)^t (yh - yhi) / p s^2}\cr
+#' A more elegant way to calculate it, which this function uses, is with the influence scores, `hii`.\cr
+#' \mjdeqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\cr
 #' Where `r_i` is the `i`-th residual. 
 #' 
 #' @note This is a simpler function than [stats::cooks.distance], and does not understand any additional parameters not listed in this entry.
@@ -1041,7 +1041,7 @@ cooks.distance.zlm <- function(model, lever = zhatvalues(model), ...)
     p <- model$rank
     s <- if (inherits(model, "rlm")) model$s # This is the residual standard error.
       else sqrt(abs(deviance(model))/df.residual(model)) # deviance is the sum of residuals squared. The abs() gives us sum (r*r), which is numeric.
-    return(as.numeric((sum(Conj(model$residuals) * model$residuals) / (p * s^2)) * (lever / (1 - lever)^2))) # As a distance, this will be positive real.
+    return(as.numeric((Conj(model$residuals) * model$residuals) / (p * s^2)) * (lever / (1 - lever)^2)) # As a distance, this will be positive real.
   }
 }
 
