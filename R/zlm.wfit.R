@@ -1327,7 +1327,7 @@ else {
         do.plot <- FALSE
       }
     }
-    else { ## Residual vs Leverage
+    else { ## Residual vs Leverage # This plot might be cool as a 3d plot with the Cook's distance isos as surfaces of rotation, I don't know how to draw one though.
       xx <- hii
       ## omit hatvalues of 1.
       xx[xx >= 1] <- NA
@@ -1337,12 +1337,13 @@ else {
            main = main, xlab = "Leverage", ylab = ylab5, type = "n",
            ...)
       #points(xx, Im(rsp), type = 'n', pch = 5, col = "blue") # Extraneous?
-      panel(xx, Re(rsp), col.smooth = "black", ...)
-      panel(xx, Im(rsp), col = "blue", pch = 5, col.smooth = "blue", ...)
+      panel(xx, Re(rsp), col.smooth = "black", ...) # real
+      panel(xx, Im(rsp), col = "blue", pch = 5, col.smooth = "blue", ...) # imaginary
+      panel(xx, Mod(rsp), col = "purple", pch = 0, col.smooth = "purple", ...) # Modulus / magnitude
       abline(h = 0, v = 0, lty = 3, col = "gray")
       if (one.fig)
         title(sub = sub.caption, ...)
-      if(length(cook.levels)) {
+      if(length(cook.levels)) { # Draws the Cook's distance iso-lines.
         p <- x$rank # not length(coef(x))
         usr <- par("usr")
         hh <- seq.int(min(r.hat[1L], r.hat[2L]/100), usr[2L],
@@ -1352,8 +1353,8 @@ else {
           lines(hh, cl.h, lty = 2, col = 2)
           lines(hh,-cl.h, lty = 2, col = 2)
         }
-        legend("bottomleft", legend = c("Cook's distance", "Real", "Imaginary"),
-               lty = c(2,1,1), col = c("red", "black", "blue"), pch = c(NA_integer_, 1, 5) , bty = "n")
+        legend("bottomleft", legend = c("Cook's distance", "Real", "Imaginary", "Modulus"),
+               lty = c(2,1,1), col = c("red", "black", "blue", "purple"), pch = c(NA_integer_, 1, 5, 0) , bty = "n")
         xmax <- min(0.99, usr[2L])
         ymult <- sqrt(p*(1-xmax)/xmax)
         aty <- sqrt(cook.levels)*ymult
