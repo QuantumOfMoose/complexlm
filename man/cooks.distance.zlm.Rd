@@ -24,10 +24,10 @@ These serve as a measurement of how much each input data point had on the model.
 Consider a linear model relating a response vector \code{y} to a predictor vector \code{x}, both of length \code{n}. Using the model and predictor vector we can
 calculate a vector of predicted values \code{yh}. \code{y} and \code{yh} are points in a \code{n} dimensional output space. If we drop the \code{i}-th element of \code{x} and \code{y}, then fit another
 model using the "dropped \code{i}" vectors, we can get another point in output space, \code{yhi}. The squared Euclidean distance between \code{yh} and \code{yhi}, divided by the
-rank of the model times its mean squared error, is the \code{i}-th Cook's distance.\cr
-\deqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}\cr
+rank of the model (\code{p}) times its mean squared error \code{s^2}, is the \code{i}-th Cook's distance.\cr
+\mjdeqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}{D_i = (yh - yhi)^t (yh - yhi) / p s^2}\cr
 A more elegant way to calculate it, which this function uses, is with the influence scores, \code{hii}.\cr
-\deqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\cr
+\mjdeqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\cr
 Where \code{r_i} is the \code{i}-th residual.
 }
 \note{

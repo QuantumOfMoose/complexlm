@@ -1002,7 +1002,7 @@ rstandard.zlm <- function(model, lever = zhatvalues(model), ...)
 #' @details Consider a linear model relating a response vector `y` to a predictor vector `x`, both of length `n`. Using the model and predictor vector we can
 #' calculate a vector of predicted values `yh`. `y` and `yh` are points in a `n` dimensional output space. If we drop the `i`-th element of `x` and `y`, then fit another
 #' model using the "dropped `i`" vectors, we can get another point in output space, `yhi`. The squared Euclidean distance between `yh` and `yhi`, divided by the 
-#' rank of the model times its mean squared error, is the `i`-th Cook's distance.\cr
+#' rank of the model (`p`) times its mean squared error `s^2`, is the `i`-th Cook's distance.\cr
 #' \mjdeqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}{D_i = (yh - yhi)^t (yh - yhi) / p s^2}\cr
 #' A more elegant way to calculate it, which this function uses, is with the influence scores, `hii`.\cr
 #' \mjdeqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\cr

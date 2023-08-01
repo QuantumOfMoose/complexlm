@@ -38,6 +38,7 @@ beta <- c(complex(real = -3.5, imaginary = -4), complex(real = 7, imaginary = -4
 y.clean <- beta[[2]] * x + rep(beta[[1]], nn)
 ### We'd never encounter a clean, noiseless signal in the wild though, so to make this a good example we need to add some noise. 
 set.seed(4242)
+sigma <- matrix(c(3,0,0,3), 2, 2)
 err <- mvrnorm(n = nn, mu = c(0,0), Sigma = sigma / 2) # Generate realizations of a symmetrical two dimensional normal random variable.
 err <- complex(real = err[,1], imaginary = err[,2]) # Convert them to complex numbers.
 y <- y.clean + err # Add the noise to the clean transformed vector to get a more realistic vector of responses, called y.
@@ -47,6 +48,8 @@ exonedf <- data.frame(x = x, y.clean = y.clean, err = err, y = y)
 ### And now we are ready to try out the complex least squares fitting of 'complexlm'.
 fitone.clean.ols <- lm(y ~ x, exonedf)
 #print(fitone.clean.ols)
+### We can also try fitting the clean data, which should give us an estimation that perfectly matches beta. And posssibly an error or warning about a perfect fit.
+lm(y.clean ~ x, exonedf)
 
 ### Now that we have a fit, we can try out the fit diagnostics and summary methods included in 'complexlm'.
 ### First we will check the classes that this fit object falls into.
@@ -103,7 +106,7 @@ hubsky <- 'deepskyblue2'
 hampurp <- 'mediumorchid3'
 bislate <- 'slateblue2'
 
-### Then make the plot.
+### Then make the plot. We call this type of visualization a "transformation plot".
 ggplot(melt.exonedf[grepl('y', melt.exonedf$variable),], aes(x = Re(value), y = Im(value), color = as.factor(variable), shape = as.factor(variable))) +
   geom_point(size = 3) +
   scale_shape_manual(values = c('y'=19, 'y.clean'=0, 'y.fit'=18), labels = labels) +
@@ -148,6 +151,23 @@ exonedf$clout <- exonedf$x * betap[2] + betap[1]
 fitone.outl.ols <- lm(y.outl ~ x, exonedf)
 # summary(fitone.outl.ols)
 plot(fitone.outl.ols, which = c(1,3,4,5,6))
+### The following lines generate the same plots, but save them to individual .pdf files.
+# setwd() # Change the working directory, if desired.
+# pdf("resvfit_outl.pdf") # Draw Residuals vs. Fitted plot to this file.
+# plot(fitone.outl.ols, which = 1) # Plot Residuals vs. Fitted
+# dev.off() # Close the file / graphics device.
+# pdf("scalloc_outl.pdf") # Draw the Scale-Location plot in this file.
+# plot(fitone.outl.ols, which = 3) # Draw the Scale-Location plot. Note that which = 2 is not available for complex input.
+# dev.off()
+# pdf("cookdist_outl.pdf") # Draw the Cook's Distance plot here.
+# plot(fitone.outl.ols, which = 4) # Draw the Cook's Distance plot.
+# dev.off()
+# pdf("reslev_outl.pdf") # Put the Residuals vs. Leverage plot in this file.
+# plot(fitone.outl.ols, which = 5)
+# dev.off()
+# pdf("cooklev_outl.pdf") # Draw the Cook's Distance vs. Scaled Leverage plot in this file.
+# plot(fitone.outl.ols, which = 6) # Plot the Cook's Distance vs. Scaled Leverage.
+# dev.off()
 ### Repeat the same procedure as before to plot the response data.
 exonedf$y.fit.outl.ols <- fitted(fitone.outl.ols)
 exonedf$r.outl.ols <- residuals(fitone.outl.ols)
@@ -180,7 +200,7 @@ iterations = 90 # Shared max iterations
 fitone.outl.hub <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept)
 print(fitone.outl.hub)
 summary(fitone.outl.hub)
-plot(fitone.outl.hub)
+#plot(fitone.outl.hub)
 ### Repeat the same procedure as before to plot the response data.
 exonedf$y.fit.outl.hub <- fitted(fitone.outl.hub)
 exonedf$r.outl.hub <- residuals(fitone.outl.hub)
@@ -277,7 +297,7 @@ ggplot(coefframe, aes(color = variable)) +
   labs(title = "Scale Rotation Coefficient Estimates", color = 'Regression', x = 'Real', y = 'Imaginary') +
   coord_equal()
 ### This plot shows that the M-estimator regressions using Tukey's bisquare objective function and Hampel's objective function produce estimates of the scale rotation coefficient that are very close to the true value,
-### despite the presence of outliers pulling them toward the marroon dot. The bisquare regression results in a markedly lower variance though. The Huber M-estimator, on the other hand, did not fair much better than the least-squares fit.
+### despite the presence of outliers pulling them toward the marroon dot. The bisquare regression results in a slightly lower variance though. The Huber M-estimator came much closer to the true value than the least-squares fit, but was still pulled off by the outliers.
 
 ### Now we plot the translation (intercept) coefficient estimates.
 ggplot(coefframe, aes(color = variable)) +
@@ -286,7 +306,7 @@ ggplot(coefframe, aes(color = variable)) +
   scale_color_manual(values = c('true'= clreen, 'fitone.outl.ols'= olsalmon, 'fitone.outl.hub' = hubsky, 'fitone.outl.ham' = hampurp, 'fitone.outl.bis' = bislate, 'true.outlll' = brout), labels = c('true'= "True Value", 'fitone.outl.ols'= "Least-Squares", 'fitone.outl.hub' = "rlm() with Huber", 'fitone.outl.ham' = 'rlm() with Hampel', 'fitone.outl.bis' = 'rlm() with Bisquare', 'true.outlll' = 'Outlier Value')) +
   labs(title = "Translation Coefficient Estimates", color = 'Regression', x = 'Real', y = 'Imaginary') +
   coord_equal()
-### In estimating the translation, the robust M-estimators all outperformed the least-squares estiimate by a considerable degree. The true value is well within the first standard deviation ellipse of all three of them.
+### In estimating the translation, the robust M-estimators all outperformed the least-squares estimate by a considerable degree. The true value is well within the first standard deviation ellipse of all three of them.
 
 ###
 ### This concludes the first example of ordinary and robust fitting using 'complexlm'.
