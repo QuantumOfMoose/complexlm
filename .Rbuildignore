@@ -10,3 +10,4 @@
 ^.*\.PNG$
 ^.*datahelper\.R$
 ^.*rawdata$
+^.*vignettes\.no.*$

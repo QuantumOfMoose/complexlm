@@ -359,14 +359,14 @@ fitter <- function(data, formula, ...) { # A function that will perform the fits
   thissumary <- summary(thisfit)
   as_tibble(thissumary$coefficients[1:2,1:3], rownames = "coefficient")
 }
-Hallcoeftibble <- Halltibble %>% summarize(fitter(OutputV ~ zCurrent, data = .))
+Hallcoeftibble <- Halltibble %>% summarize(fitter(OutputV ~ zCurrent, data = cur_data()))
 
 fitterlm <- function(data, formula, ...) { # A function that will perform ols fits then collect the coefficients and uncertainties into a tibble.
   thisfit <- lm(formula, data, ...)
   thissumary <- summary(thisfit)
   as_tibble(thissumary$coefficients[1:2,1:3], rownames = "coefficient")
 }
-lmHallcoeftibble <- Halltibble %>% summarize(fitterlm(OutputV ~ zCurrent, data = .))
+lmHallcoeftibble <- Halltibble %>% summarize(fitterlm(OutputV ~ zCurrent, data = cur_data()))
 
 ### Add a column for the average magnetic field amplitudes for I-V sweep, and columns for the resistivity and thickness.
 otherdf <- Halltibble %>% summarize(Magnet.Field.T = mean(Magnetic.Field.T), Resistivity.Ohm.cm = mean(Resistivity.Ohm.cm), thickness.cm. = mean(thickness.cm.))
