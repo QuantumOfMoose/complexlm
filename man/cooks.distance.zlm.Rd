@@ -18,17 +18,17 @@ A numeric vector. The elements are the Cook's distances of each data point in \c
 }
 \description{
 Calculates the Cook's distances (technically a divergence, i.e. distance squared) of a complex linear model.
-These serve as a measurement of how much each input data point had on the model.
+These serve as a measurement of how much each input data point had on the model.\loadmathjax
 }
 \details{
 Consider a linear model relating a response vector \code{y} to a predictor vector \code{x}, both of length \code{n}. Using the model and predictor vector we can
 calculate a vector of predicted values \code{yh}. \code{y} and \code{yh} are points in a \code{n} dimensional output space. If we drop the \code{i}-th element of \code{x} and \code{y}, then fit another
 model using the "dropped \code{i}" vectors, we can get another point in output space, \code{yhi}. The squared Euclidean distance between \code{yh} and \code{yhi}, divided by the
 rank of the model (\code{p}) times its mean squared error \code{s^2}, is the \code{i}-th Cook's distance.\cr
-\mjdeqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}{D_i = (yh - yhi)^t (yh - yhi) / p s^2}\cr
+\mjdeqn{D_i = (yh - yhi)^t (yh - yhi) / p s^2}{D_i = (yh - yhi)^t (yh - yhi) / p s^2}\cr
 A more elegant way to calculate it, which this function uses, is with the influence scores, \code{hii}.\cr
 \mjdeqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\cr
-Where \code{r_i} is the \code{i}-th residual.
+Where \eqn{r_i} is the \eqn{i}-th residual, and \eqn{^t} is the conjugate transpose.
 }
 \note{
 This is a simpler function than \link[stats:influence.measures]{stats::cooks.distance}, and does not understand any additional parameters not listed in this entry.

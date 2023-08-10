@@ -20,7 +20,8 @@ Either a \eqn{(n x n)} complex matrix or a length \eqn{n} numeric vector.
 This function returns either the full hat matrix (AKA the projection matrix) of a complex "lm" or "rlm" object, or the diagonal elements of same.
 The later are also known as the influence scores.
 It performs the same basic role as \link[stats:influence.measures]{stats::hat} and \link[stats:influence.measures]{stats::hatvalues} do for numeric fits, but is quite a bit simpler
-and rather less versatile. \loadmathjax
+and rather less versatile.
+\loadmathjax
 }
 \details{
 For unweighted least-squares fits the hat matrix is calculated from the model matrix, \eqn{X = }\code{model$x}, as \cr

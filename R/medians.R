@@ -63,7 +63,7 @@ median.complex <- function(x, na.rm = FALSE, tol = 1e-07, maxiter = 200, ...) # 
   {
     Zxmatrix <- as.matrix(data.frame(re = Re(x), im = Im(x)))
     gmed <- try(pracma::geo_median(Zxmatrix, tol, maxiter), silent = TRUE)
-    if (class(gmed) == "try-error") {
+    if (inherits(gmed, "try-error")) {
       print("Warning: input data is likely colinear. Jitter added to eliminate colinearity.")
       ssdd <- ifelse(min(abs(Zxmatrix)) == 0, 10^-9, min(abs(Zxmatrix)) * (10^-9))
       jitter <- rnorm(length(Zxmatrix), sd = ssdd)
@@ -392,10 +392,10 @@ var <- function(x, y = NULL, na.rm = FALSE, use = "everything", pseudo = FALSE, 
 #' @param FUNC A function to operate on the elements of `pcov`. The results of which will be a quarter of the elements of the returned matrix. Default is `Conj`.
 #' 
 #' @return A square matrix with dimension twice that of the input matrices. Each element of which is an element from one of the inputs, and its nearest non-diagonal neighbors are from the other input.
-#' Half of the elements from `pcov` present in the output matrix are replaced by `FUNC` operated on them. Thus if two 2x2 matrices, `A` and `B` are given to `matrixweave()`, the elements of the result are:
-#' `matrixweave(A,B)[i,j] = if(i+j is even) A[ceiling(i/2), ceiling(j/2)]
-#'                          if(i+j is odd and i > j) B[ceiling(i/2), ceiling(j/2)]
-#'                          if(i+j is odd and i < j) FUNC(B[ceiling(i/2),ceiling(j/2)])`
+#' Half of the elements from `pcov` present in the output matrix are replaced by `FUNC` operated on them. Thus if two 2x2 matrices, `A` and `B` are given to `matrixweave()`, the elements of the result are:\cr
+#' `matrixweave(A,B)[i,j] = if(i+j is even) A[ceiling(i/2), ceiling(j/2)]`\cr
+#' `                        if(i+j is odd and i > j) B[ceiling(i/2), ceiling(j/2)]`\cr
+#' `                        if(i+j is odd and i < j) FUNC(B[ceiling(i/2),ceiling(j/2)])`
 #' @export
 #' 
 #' @references A. van den Bos, The Multivariate Complex Normal Distribution-a Generalization, IEEE Trans. Inform. Theory 41, 537 (1995).

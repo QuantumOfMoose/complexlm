@@ -1,6 +1,6 @@
 Package: complexlm
 Version: 1.1
-Date: 2023-05-31
+Date: 2023-08-08
 Depends: R (>= 3.5.0), MASS
 Imports: grDevices, pracma, graphics, stats, mathjaxr
 Suggests: dplyr, ggforce, ggplot2, reshape2, methods, utils
@@ -36,6 +36,7 @@ Maintainer: William Ryan <wryan1@binghamton.edu>
 Repository: github
 Date/Publication: 2021-05-03 09:03:50 UTC
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
 RdMacros: mathjaxr
+RoxygenNote: 7.1.2
+Encoding: UTF-8
 

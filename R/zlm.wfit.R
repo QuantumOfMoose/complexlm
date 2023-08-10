@@ -889,9 +889,9 @@ anova.zlmlist <- function (object, ..., scale = 0, test = "F")
 #' This function returns either the full hat matrix (AKA the projection matrix) of a complex "lm" or "rlm" object, or the diagonal elements of same.
 #' The later are also known as the influence scores. 
 #' It performs the same basic role as [stats::hat] and [stats::hatvalues] do for numeric fits, but is quite a bit simpler
-#' and rather less versatile. \loadmathjax
+#' and rather less versatile. 
+#' \loadmathjax
 #' 
-#'
 #' @param model A complex linear fit object, of class "zlm" or "rzlm". An object with numeric residuals will produce a warning and NULL output.
 #' @param full Logical. If TRUE, return the entire hat matrix. If FALSE, return a vector of the diagonal elements of the hat matrix. These are the influence scores. Default is FALSE.
 #' @param ... Additional arguments. Not used.
@@ -993,7 +993,7 @@ rstandard.zlm <- function(model, lever = zhatvalues(model), ...)
 #' Cook's Distance for Complex Linear Models
 #' 
 #' Calculates the Cook's distances (technically a divergence, i.e. distance squared) of a complex linear model. 
-#' These serve as a measurement of how much each input data point had on the model.
+#' These serve as a measurement of how much each input data point had on the model.\loadmathjax
 #'
 #' @param model An object of class "lm" or "rlm". Can be complex or numeric.
 #' @param lever A list of leverage scores with the same length as `model$residuals`. By default [zhatvalues] is called on `model`.
@@ -1003,10 +1003,10 @@ rstandard.zlm <- function(model, lever = zhatvalues(model), ...)
 #' calculate a vector of predicted values `yh`. `y` and `yh` are points in a `n` dimensional output space. If we drop the `i`-th element of `x` and `y`, then fit another
 #' model using the "dropped `i`" vectors, we can get another point in output space, `yhi`. The squared Euclidean distance between `yh` and `yhi`, divided by the 
 #' rank of the model (`p`) times its mean squared error `s^2`, is the `i`-th Cook's distance.\cr
-#' \mjdeqn{D_i = (yh - yhi)^\dagger (yh - yhi) / p s^2}{D_i = (yh - yhi)^t (yh - yhi) / p s^2}\cr
+#' \mjdeqn{D_i = (yh - yhi)^t (yh - yhi) / p s^2}{D_i = (yh - yhi)^t (yh - yhi) / p s^2}\cr
 #' A more elegant way to calculate it, which this function uses, is with the influence scores, `hii`.\cr
 #' \mjdeqn{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}{D_i = |r_i|^2 / p s^2 hii / (1 - hii)}\cr
-#' Where `r_i` is the `i`-th residual. 
+#' Where \eqn{r_i} is the \eqn{i}-th residual, and \eqn{^t} is the conjugate transpose.
 #' 
 #' @note This is a simpler function than [stats::cooks.distance], and does not understand any additional parameters not listed in this entry.
 #' 

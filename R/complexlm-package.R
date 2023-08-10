@@ -13,7 +13,6 @@ NULL
 
 #' AC (Complex) Hall effect data measured from a thin-film copper sample.
 #' 
-#' \loadmathjax
 #' This data serves as a 'real-world' example of complex valued measurements that can be analyzed by the methods contained 
 #' in 'complexlm'. The Hall effect is a perpendicular (to the magnetic field and current) voltage that appears across an
 #' electrically conductive material when it is placed in an external magnetic field. It is commonly used to determine the 
