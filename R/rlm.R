@@ -436,10 +436,11 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
         pS <- sum((wresid*w)*(wresid*w))/rdf # See above definition of pS.
         psiprime <- object$psi(wresid/s, deriv=1) # The derivative of the influence function.
         mn <- mean(psiprime)
-        pvarpsi <- sum((psiprime - mn)^2)/(n-1)
-        kappa <- 1 + p*complexlm::var(psiprime)/(n*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think. 
+        #pvarpsi <- sum((psiprime - mn)^2)/(n-1)
+        kappa <- 1 + p*(n-1)*complexlm::var(psiprime)/(n^2*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think. 
         #print(var(psiprime))
-        pkappa <- 1 + p*pvarpsi/(n*mn^2)
+        #pkappa <- 1 + p*pvarpsi/(n*mn^2)
+        pkappa <- 1 + p*(n-1)*complexlm::var(psiprime, pseudo = TRUE)/(n^2*mn^2)
         stddev <- sqrt(S)*(kappa/abs(mn)) ## Would it be useful to do something similar with pseudo-variance? Probably.
         pstddev <- sqrt(pS)*(pkappa/mn) # The 'pseudo standard deviation', analogous with the pseudo-variance. Might be useful, might be meaningless.
       }
@@ -469,7 +470,7 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
       dimnames(coef) <- list(cnames, c("Value", "Std. Error", "Pseudo Std. Error", "t value"))
       #print(rinv)
       coef[, 2] <- rowlen %o% stddev # Fill the 2nd column of the coef array. These should be real numbers. Isn't stddev a single number? What is the point of the outer product? It transposes the vector into a column while multiplying all elements by stddev.
-      coef[, 3] <- rowlen %o% pstddev # The 'pseudo - standard error', these things need better names...
+      coef[, 3] <- prowlen %o% pstddev # The 'pseudo - standard error', these things need better names...
       coef[, 4] <- coef[, 1]/coef[, 2]
       object <- object[c("call", "na.action")]
       object$residuals <- res
