@@ -678,6 +678,7 @@ print.summary.zlm <-
           " not defined because of singularities)\n", sep = "")
     else cat("\nCoefficients:\n")
     print(format(round(x$coefficients, digits = digits)), quote = FALSE, ...)
+    ### Are the t value and p value actually meaningful for complex data? As they stand, probably not.
     cat("\nResidual standard error:", format(signif(x$sigma, digits)),
         "on", rdf, "degrees of freedom\n")
     if(nzchar(mess <- naprint(x$na.action))) cat("  (", mess, ")\n", sep="")
