@@ -188,9 +188,9 @@ lm <- function(formula, data, subset, weights, na.action,
                 qr = TRUE, singular.ok = TRUE, contrasts = NULL,
                 offset, ...)
 {
-  trms <- terms(formula)
-  respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
   cl <- match.call()
+  trms <- terms(x = formula, data = data)
+  respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
   if (is.complex(data[[1,respname]]) == FALSE) # Now compatible with tibble input
   {
     cl[[1]] <- stats::lm
@@ -342,6 +342,7 @@ lm.wfit <- function(x, y, w, offset = NULL, method = "qr", tol = 1e-7,
 zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))), offset = NULL, method = "qr", tol = 1e-07, 
           singular.ok = TRUE, ...) 
 {
+  #print(paste("length of weights is ", length(w))) # Used for debugging.
   if (is.null(n <- nrow(x))) 
     stop("'x' must be a matrix")
   if (n == 0) 
@@ -360,21 +361,22 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
                      method), domain = NA)
   chkDots(...)
   x.asgn <- attr(x, "assign")
-  zero.weights <- any(w == 0)
+  #print(w)
+  zero.weights <- any(w == 0) # Wait a minute... This could get in the way of redescending M-estimators!
   if (zero.weights) {
     save.r <- y
     save.f <- y
     save.w <- w
     ok <- w != 0
     nok <- !ok
-    w <- w[ok]
+    w <- w[ok] ## Here we drop all the weights that equal zero!! Ok, but we should drop the corresponding x and y elements too.
     x0 <- x[!ok, , drop = FALSE]
     x <- x[ok, , drop = FALSE]
     n <- nrow(x)
     y0 <- if (ny > 1L) 
       y[!ok, , drop = FALSE]
     else y[!ok]
-    y <- if (ny > 1L) 
+  y <- if (ny > 1L) 
       y[ok, , drop = FALSE]
     else y[ok]
   }
@@ -391,6 +393,10 @@ zlm.wfit <- function (x, y, w = rep(1L, ifelse(is.vector(x), length(x), nrow(x))
   #print(wts) # Used for debugging.
   #print(typeof(wts)) # Used for debugging.
   #print(typeof(x)) # Used for debugging.
+  #print(nrow(x)) # debugging. x is a matrix, of course.
+  #print(length(wts))
+  #print(x)
+  #print(wts)
   z <- complexdqlrs(x * wts, y * wts, tol, FALSE)
   if (!singular.ok && z$rank < p) 
     stop("singular fit encountered")
@@ -728,7 +734,7 @@ vcov.zlm <- function (object, complete = TRUE, merge = TRUE, ...)
     {
       #bigcovar <- diag(rep(diag(varcovar), each = 2)) # Start by making a square diagonal matrix with two adjacent diagonal elements for each variance.
       n <- attributes(varcovar)$dim[1] # The size of the square covariance matrix.
-      print(attributes(varcovar))
+      #print(attributes(varcovar)) # Used for debugging
       bigcovar <- matrix(0, ncol = 2*n, nrow = 2*n) #Start by making an empty matrix with dimensions twice those of the small covariance matrix.
       bigcovar[,seq(1, 2*n, 2)] <- matrix(as.vector(rbind(as.vector(varcovar), as.vector(Conj(pseudovarcovar)))), nrow = 2*n) # Fill the odd indexed columns of bigcovar with the entries from varcovar interleaved with the entries from pseudovarcovar conjugated.
       bigcovar[,seq(2, 2*n, 2)] <- matrix(as.vector(rbind(as.vector(pseudovarcovar), as.vector(varcovar))), nrow = 2*n) # Fill the even indexed columns of bigcovar with the entries from varcovar interleaved with the entries from pseudovarcovar, this time the later first.

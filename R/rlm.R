@@ -81,10 +81,10 @@ rlm.formula <-
              wt.method = c("inv.var", "case"),
              model = TRUE, x.ret = TRUE, y.ret = FALSE, contrasts = NULL)
 {
-    trms <- terms(formula)
+    trms <- terms(x = formula, data = data)
     respname <- as.character(attr(trms, "variables")[[attr(trms, "response") + 1]])
     cl <- match.call()
-    if (is.complex(data[[1,respname]]) == FALSE) # Now compatible with tibble input.
+    if (is.complex(data[[respname]]) == FALSE) # Now compatible with tibble input.
     {
       cl[[1]] <- MASS::rlm
       eval(cl, parent.frame())
@@ -298,6 +298,7 @@ rlm.complex <-
             }
         }
         w <- psi(resid/scale)
+        #print(length(w)) #debug
         if(!is.null(wt)) w <- w * weights
         temp <- zlm.wfit(x, y, w, method="qr")
         coef <- temp$coefficients
@@ -437,10 +438,10 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
         psiprime <- object$psi(wresid/s, deriv=1) # The derivative of the influence function.
         mn <- mean(psiprime)
         #pvarpsi <- sum((psiprime - mn)^2)/(n-1)
-        kappa <- 1 + p*(n-1)*complexlm::var(psiprime)/(n^2*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think. 
+        kappa <- 1 + p*(n-1)*var(psiprime)/(n^2*as.numeric(Conj(mn)*mn)) # This has something to do with propagation of uncertainty, I think. 
         #print(var(psiprime))
         #pkappa <- 1 + p*pvarpsi/(n*mn^2)
-        pkappa <- 1 + p*(n-1)*complexlm::var(psiprime, pseudo = TRUE)/(n^2*mn^2)
+        pkappa <- 1 + p*(n-1)*var(psiprime, pseudo = TRUE)/(n^2*mn^2)
         stddev <- sqrt(S)*(kappa/abs(mn)) ## Would it be useful to do something similar with pseudo-variance? Probably.
         pstddev <- sqrt(pS)*(pkappa/mn) # The 'pseudo standard deviation', analogous with the pseudo-variance. Might be useful, might be meaningless.
       }
@@ -536,7 +537,8 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
 psi.huber <- function(u, k = 1.345, deriv=0)
 {
     if(!deriv) return(pmin(1, k / abs(u)))
-    ifelse(abs(u) <= k, complex(modulus = 1, argument = 0), 0)
+    dhub <- ifelse(abs(u) <= k, complex(modulus = 1, argument = 0), 0)
+    return(as.vector(dhub)) # Just in case this comes out as a column vector as well.
 }
 
 #' @describeIn psi.huber The weight function of the hampel objective function.
@@ -545,8 +547,12 @@ psi.huber <- function(u, k = 1.345, deriv=0)
 psi.hampel <- function(u, a = 2, b = 4, c = 8, deriv=0)
 {
   U <- pmin(abs(u) + 1e-50, c)
-  if(!deriv) return(as.vector(ifelse(U <= a, 2 * U * a / b, ifelse(U <= b, a, a * (c - U) / (c - b) )) / U)) # Strange way to write this equation...
-  ifelse(abs(u) <= c, ifelse(U <= a, complex(real = 1, imaginary = -1) * complex(modulus = a/b, argument = Arg(u)*2), ifelse(U <= b, 0, complex(real = 1, imaginary = -1) * complex(modulus = a/(2*(c-b)), argument = Arg(u)*2))), 0)
+  ham <- ifelse(U <= a, 2 * a / b, ifelse(U <= b, a / U, ifelse(U <= c, (a / (b - c)) * (1 - c / U))))
+  #print(ham)
+  if(!deriv) return(as.vector(ham)) # It seems that ham often ends up being a column matrix...
+  #if(!deriv) return(as.vector(ifelse(U <= a, 2 * U * a / b, ifelse(U <= b, a, a * (c - U) / (c - b) )) / U)) # Strange way to write this equation...
+  dham <- ifelse(abs(u) <= c, ifelse(U <= a, 2 * a / b, ifelse(U <= b, 0, a / (b - c))), 0)
+  return(as.vector(dham)) # dham also tends to be a column matrix...
 }
 
 #' @describeIn psi.huber The weight function of Tukey's bisquare objective function.
@@ -676,8 +682,8 @@ psi.bisquare <- function(u, c = 4.685, deriv=0)
 vcov.rzlm <- function(object, merge = TRUE, ...)
 {
     so <- summary(object, corr = FALSE)
-    print(dim(so$stddev^2))
-    print(dim(so$cov.unscaled))
+    #print(dim(so$stddev^2)) #Debugging help
+    #print(dim(so$cov.unscaled)) #For debugging
     varcovar <- so$stddev^2 * so$cov.unscaled
     pseudovarcovar <- so$pstddev^2 * so$pcov.unscaled
     if (merge == TRUE)

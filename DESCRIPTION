@@ -2,8 +2,8 @@ Package: complexlm
 Version: 1.1
 Date: 2023-08-08
 Depends: R (>= 3.5.0), MASS
-Imports: grDevices, pracma, graphics, stats, mathjaxr
-Suggests: dplyr, ggforce, ggplot2, reshape2, methods, utils
+Imports: grDevices, pracma, graphics, stats, mathjaxr, methods
+Suggests: dplyr, ggforce, ggplot2, reshape2, utils
 Authors@R: c(person("William", "Ryan", role = c("aut", "cre", "cph"), email = "wryan1@binghamton.edu"),
 	     person("Bruce", "White", role = "ths"),
        person("Brian", "Ripley", role = c("ctb", "cph"),

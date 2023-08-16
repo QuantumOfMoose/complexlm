@@ -230,7 +230,7 @@ ggplot(melt.exonedf[grepl('r.outl', melt.exonedf$variable),], aes(x = Re(value),
 ### is larger than that of the ols fit, the residuals due to the non-outliers are much smaller.
 
 ### Now let's try some re-descending M-estimators. First with the Hampel objective function.
-fitone.outl.ham <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept, psi = psi.hampel, a = 1.345)
+fitone.outl.ham <- rlm(y.outl ~ x, exonedf, maxit = iterations, acc = accept, psi = psi.hampel, a = 1.345, b = 2 * 1.345, c = 4 * 1.345)#
 print(fitone.outl.ham)
 exonedf$y.fit.outl.ham <- fitted(fitone.outl.ham)
 exonedf$r.outl.ham <- residuals(fitone.outl.ham)

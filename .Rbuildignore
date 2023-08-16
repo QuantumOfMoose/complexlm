@@ -11,3 +11,4 @@
 ^.*datahelper\.R$
 ^.*rawdata$
 ^.*vignettes\.no.*$
+^.*notINDEX$

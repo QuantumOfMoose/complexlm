@@ -362,17 +362,28 @@ cor <- function(x, y = NULL, na.rm = FALSE, use = "everything", method = "pearso
 #' @export
 var <- function(x, y = NULL, na.rm = FALSE, use = "everything", pseudo = FALSE, ...)
 {
+  #print(x)
   matdf <- is.matrix(x) || is.data.frame(x) # Is x a matrix or dataframe?
   cll <- match.call()
+  #print(cll)
+  args <- as.list(cll)[-1]
+  #print(args)
   if (matdf) {
-    cll[[1]] <- stats::cov
-    if (is.numeric(x[[1]])) eval(cll, parent.frame())
+    #cll[[1]] <- stats::cov
+    #print(cll)
+    cargs <- args[formalArgs(stats::cov)]
+    #print(cargs)
+    if (is.numeric(x[[1]])) do.call(what = stats::cov, args = cargs[lapply(cargs, length) > 0], envir = parent.frame())
   }
-  cll[[1]] <- stats::var
-  if (is.numeric(x)) eval(cll, parent.frame())
+  #cll[[1]] <- stats::var
+  #print(cll)
+  vargs <- args[formalArgs(stats::var)]
+  #print(vargs)
+  #print(lapply(vargs,length))
+  if (is.numeric(x)) do.call(what = stats::var, args = vargs[lapply(vargs, length) > 0], envir = parent.frame())
   else
   {
-    cll <- match.call()
+    #cll <- match.call()
     cll[[1]] <- cov
     vard <- eval(cll, parent.frame())
     if (!is.null(y)) return(vard)
