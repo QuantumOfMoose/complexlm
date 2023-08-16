@@ -414,7 +414,7 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
         rdf <- sum(wts) - p ## 'residual degrees of freedom'
         w <- object$psi(wresid/s)
         S <- sum(as.numeric(wts * (wresid*w)*Conj(wresid*w)))/rdf # The estimated variance of the residuals is analogous to the area of a circle around the estimated parameters, so it is a real number.
-        pS <- sum(wts * (wresid*w)*(wresid*w))/rdf # The estimated pseudo-variance is a complex number that describes the anisotropy of the distribution or set.
+        pS <- sum(wts * (wresid*w)*(wresid*w))/rdf # The estimated pseudo-variance is a complex number that describes the anisotropy of the distribution or set. wresid*w is the influence function
         # Distributions that are less circularly symmetric and more bilaterally symmetric have higher pseudovariance.
         # The direction of the pseudovariance indicates the orientation of the anisotropy; bilateral symmetry axis angle from 
         # the +real axis = pseudovariance angle divided by two. In other words, pseudovariance is the covariance between real and imaginary.
@@ -460,7 +460,8 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
       if(correlation) {
         correl <- rinv * array(1/rowlen, c(p, p))
         correl <- correl %*% Conj(t(correl))
-        pcorrel <- correl %*% t(correl)
+        pcorrel <- rinv * array(1/prowlen, c(p, p))
+        pcorrel <- pcorrel %*% t(pcorrel)
       } else {
         correl <- NULL
         pcorrel <- NULL
@@ -535,7 +536,7 @@ summary.rzlm <- function(object, method = c("XtX", "XtWX"),
 psi.huber <- function(u, k = 1.345, deriv=0)
 {
     if(!deriv) return(pmin(1, k / abs(u)))
-    ifelse(abs(u) <= k,  complex(real = 1, imaginary = -1) * complex(modulus = 1/2, argument = Arg(u)*2), 0)
+    ifelse(abs(u) <= k, complex(modulus = 1, argument = 0), 0)
 }
 
 #' @describeIn psi.huber The weight function of the hampel objective function.
@@ -544,7 +545,7 @@ psi.huber <- function(u, k = 1.345, deriv=0)
 psi.hampel <- function(u, a = 2, b = 4, c = 8, deriv=0)
 {
   U <- pmin(abs(u) + 1e-50, c)
-  if(!deriv) return(as.vector(ifelse(U <= a, U, ifelse(U <= b, a, a * (c - U) / (c - b) )) / U))
+  if(!deriv) return(as.vector(ifelse(U <= a, 2 * U * a / b, ifelse(U <= b, a, a * (c - U) / (c - b) )) / U)) # Strange way to write this equation...
   ifelse(abs(u) <= c, ifelse(U <= a, complex(real = 1, imaginary = -1) * complex(modulus = a/b, argument = Arg(u)*2), ifelse(U <= b, 0, complex(real = 1, imaginary = -1) * complex(modulus = a/(2*(c-b)), argument = Arg(u)*2))), 0)
 }
 
@@ -565,7 +566,7 @@ psi.bisquare <- function(u, c = 4.685, deriv=0)
     t <- (u/c)
     #warning(t)
     #warning(abs(t))
-    ifelse(Mod(t) < 1, complex(real = 1, imaginary = -1) * (-1 + Conj(t)*t)*(-1 + 5*Conj(t)*t) * complex(modulus = 1/2, argument = Arg(t)*2), 0)
+    ifelse(Mod(t) < 1, (1 - Conj(t)*t) * ( (1 - Conj(t) * t) * complex(modulus = 1, argument = 2 * Arg(t)) - 4 * t^2), 0)
     #return('cat')
   }
 }
