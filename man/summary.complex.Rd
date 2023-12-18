@@ -14,12 +14,11 @@
 \item{digits}{integer specifying the number of digits to include in the summary values.}
 }
 \value{
-A complex vector containing in order the length, median, mean, variance, and pseudo variance of the object.
-The length element will be a positive integer, despite being in the complex mode.
+A list containing the length of the object, and a complex named vector containing in the median, mean, variance, and pseudo variance of the object; in that order.
 }
 \description{
 The base summary method for complex objects only reports their length and that they are complex..
-This improved method returns the mean, median, variance, and pseudo variance of the given complex object.
+This improved method returns the length, as well as the mean, median, variance, and pseudo variance of the given complex object.
 }
 \examples{
 set.seed(4242)

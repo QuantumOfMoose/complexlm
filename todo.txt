@@ -2,6 +2,12 @@
 
 Confidence intervals: make a function for calculating them from complex lm and rlm objects. Like the confint function from the stats package.
 
+It seems that there is a problem with ANOVA?
+
+DONE Apparently the output of summary.complex() is unclear. Try to fix it.
+
+Modify print methods to explicitly state that the data is complex.
+
 SKIP generalized linear model
 
 SKIP weighted median for complex data
@@ -14,7 +20,7 @@ DONE. incorporate the directional nature of the derivatives of the influence fun
 
 SKIP come up with better names for the "pseudo-" variances, covariances, and standard errors. Maybe "complex-" ? Or "relation-" ?
 
-Done Remove uneeded code from MASS.c, rename.
+DONE Remove uneeded code from MASS.c, rename.
 
 SKIP pseudo MAD?
 
@@ -33,4 +39,5 @@ DONE make a complex version of Mahalanobis distance function.
 
 DONE add complex compatible cov, cor, and cov2cor functions.
 
-clean up example file.
+DONE clean up example file.
+
