@@ -62,11 +62,11 @@ versions of variance, covariance, or correlation.
 }
 \section{Functions}{
 \itemize{
-\item \code{cor}: Correlation coefficient of complex variables.
+\item \code{cor()}: Correlation coefficient of complex variables.
 
-\item \code{var}: S3 Variance or Pseudo Variance of Complex Variables, a synonym for \link{cov}.
+\item \code{var()}: S3 Variance or Pseudo Variance of Complex Variables, a synonym for \link{cov}.
+
 }}
-
 \examples{
 set.seed(4242)
 n <- 9

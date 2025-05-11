@@ -42,11 +42,11 @@ Note that they do not return the derivative of the weight function, as might be 
 }
 \section{Functions}{
 \itemize{
-\item \code{psi.hampel}: The weight function of the hampel objective function.
+\item \code{psi.hampel()}: The weight function of the hampel objective function.
 
-\item \code{psi.bisquare}: The weight function of Tukey's bisquare objective function.
+\item \code{psi.bisquare()}: The weight function of Tukey's bisquare objective function.
+
 }}
-
 \examples{
 set.seed(4242)
 z <- complex(real = rnorm(3), imaginary = rnorm(3))

@@ -34,9 +34,9 @@ While not as compact as two separate smaller matrices, the double covariance mat
 }
 \section{Functions}{
 \itemize{
-\item \code{.vcov.aliased.complex}: auxiliary function for dealing with singular model fits. See \link[stats:vcov]{stats::vcov}.
-}}
+\item \code{.vcov.aliased.complex()}: auxiliary function for dealing with singular model fits. See \link[stats:vcov]{stats::vcov}.
 
+}}
 \examples{
 set.seed(4242)
 n <- 8

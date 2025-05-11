@@ -57,9 +57,9 @@ Specifying a single object gives a sequential analysis of variance
 }
 \section{Functions}{
 \itemize{
-\item \code{anova.zlmlist}: s3 method for class 'zlmlist'
-}}
+\item \code{anova(zlmlist)}: s3 method for class 'zlmlist'
 
+}}
 \examples{
 set.seed(4242)
 n <- 8

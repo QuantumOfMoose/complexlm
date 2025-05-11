@@ -129,6 +129,9 @@ complexdqlrs <- function(x, y, tol = 1E-07, chk)
 #' For complex variables there are restrictions on what kinds of formula can be comprehended. See [complexlm::zmodel.matrix] for details.
 #' @param x logical. If `TRUE` return the model matrix of the fit. Default is `TRUE`.
 #' @param contrasts Not implemented for complex variables. See [complexlm::zmodel.matrix] for details. Default is `NULL`
+#' @param model logical. If `TRUE` return the model frame of the fit. Default is `TRUE`.
+#' @param y logical. Returns the response vector if `TRUE`. Defaults to `FALSE`.
+#' @param qr logical. If `TRUE`, return the qr decomposition of the fit. Default is `TRUE`.
 #' 
 #' @details Like [stats::lm] the models are specified symbolically using the standard R formula notation:
 #' `response ~ terms`

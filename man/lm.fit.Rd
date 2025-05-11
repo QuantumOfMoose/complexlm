@@ -55,7 +55,7 @@ a \code{\link{list}} with components (for \code{lm.fit} and \code{lm.wfit})
   \item{coefficients}{\code{p} vector}
   \item{residuals}{\code{n} vector or matrix}
   \item{fitted.values}{\code{n} vector or matrix}
-  \item{effects}{\code{n} vector of orthogonal single-df
+  \item{effects}{\code{n} vector of orthogonal single-\abbr{df}
     effects.  The first \code{rank} of them correspond to non-aliased
     coefficients, and are named accordingly.}
   \item{weights}{\code{n} vector --- \emph{only} for the \code{*wfit*}
@@ -79,9 +79,9 @@ These functions are unlikely to be needed by end users, as they are called by \c
 }
 \section{Functions}{
 \itemize{
-\item \code{lm.wfit}: wrapper for weighted linear fitting function.
-}}
+\item \code{lm.wfit()}: wrapper for weighted linear fitting function.
 
+}}
 \examples{
 set.seed(4242)
 n <- 6

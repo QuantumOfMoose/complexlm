@@ -146,7 +146,7 @@ rlm.formula <-
 #' @param maxit maximum number of IWLS iterations.
 #' @param acc the accuracy for the stopping criterion.
 #' @param test.vec the stopping criterion is based on changes in this vector.
-#' @param lqs.control An optional list of control values for [lqs], ignored.
+#' @param lqs.control An optional list of control values for lqs. Ignored if x or y are complex.
 #' @param interc TRUE or FALSE, default is FALSE. Used with rlm.default when fitting complex valued data. If true, a y-intercept is calculated during fitting. Otherwise, the intercept is set to zero.
 #'
 #' @export

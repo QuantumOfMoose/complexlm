@@ -61,11 +61,11 @@ This is a complex number that quantifies the covariance between the real and ima
 (presumed complex normal) probability distribution of the residuals in the complex plane. The argument of this number gives the direction of the semi-major axis of an iso-probability-density ellipse
 centered on the mean, while its modulus is the length of the semi-major axis. The variance, meanwhile, gives the area of this ellipse, divided by pi. Together they fully describe it.
 }
-\section{Functions}{
+\section{Methods (by generic)}{
 \itemize{
-\item \code{print.summary.zlm}: S3 method for class 'summary.zlm'
-}}
+\item \code{print(summary.zlm)}: S3 method for class 'summary.zlm'
 
+}}
 \note{
 \code{print.summary.zlm} calls \code{print.summary.rzlm}
 

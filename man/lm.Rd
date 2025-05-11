@@ -32,7 +32,10 @@ For complex variables there are restrictions on what kinds of formula can be com
     typically the environment from which \code{lm} is called.}
 
 \item{subset}{an optional vector specifying a subset of observations
-    to be used in the fitting process.}
+    to be used in the fitting process.  (See additional details about how
+    this argument interacts with data-dependent bases in the
+    \sQuote{Details} section of the \code{\link[stats]{model.frame}}
+    documentation.)}
 
 \item{weights}{an optional vector of weights to be used in the fitting
     process.  Should be \code{NULL} or a numeric vector.
@@ -51,22 +54,13 @@ For complex variables there are restrictions on what kinds of formula can be com
     \code{method = "qr"} is supported; \code{method = "model.frame"} returns
     the model frame (the same as with \code{model = TRUE}, see below).}
 
-\item{model}{logicals.  If \code{TRUE} the corresponding
-    components of the fit (the model frame, the model matrix, the
-    response, the QR decomposition) are returned.
-  }
+\item{model}{logical. If \code{TRUE} return the model frame of the fit. Default is \code{TRUE}.}
 
 \item{x}{logical. If \code{TRUE} return the model matrix of the fit. Default is \code{TRUE}.}
 
-\item{y}{logicals.  If \code{TRUE} the corresponding
-    components of the fit (the model frame, the model matrix, the
-    response, the QR decomposition) are returned.
-  }
+\item{y}{logical. Returns the response vector if \code{TRUE}. Defaults to \code{FALSE}.}
 
-\item{qr}{logicals.  If \code{TRUE} the corresponding
-    components of the fit (the model frame, the model matrix, the
-    response, the QR decomposition) are returned.
-  }
+\item{qr}{logical. If \code{TRUE}, return the qr decomposition of the fit. Default is \code{TRUE}.}
 
 \item{singular.ok}{logical. If \code{FALSE} (the default in S but
     not in \R) a singular fit is an error.}
@@ -80,7 +74,7 @@ For complex variables there are restrictions on what kinds of formula can be com
     included in the formula instead or as well, and if more than one are
     specified their sum is used.  See \code{\link[stats]{model.offset}}.}
 
-\item{...}{additional arguments to be passed to the low level
+\item{...}{For \code{lm()}: additional arguments to be passed to the low level
     regression fitting functions (see below).}
 }
 \value{

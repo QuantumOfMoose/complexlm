@@ -37,7 +37,7 @@ a \code{\link{list}} with components (for \code{lm.fit} and \code{lm.wfit})
   \item{coefficients}{\code{p} vector}
   \item{residuals}{\code{n} vector or matrix}
   \item{fitted.values}{\code{n} vector or matrix}
-  \item{effects}{\code{n} vector of orthogonal single-df
+  \item{effects}{\code{n} vector of orthogonal single-\abbr{df}
     effects.  The first \code{rank} of them correspond to non-aliased
     coefficients, and are named accordingly.}
   \item{weights}{\code{n} vector --- \emph{only} for the \code{*wfit*}

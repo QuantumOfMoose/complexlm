@@ -9,8 +9,8 @@
   which = c(1, 3, 5),
   caption = list("Residuals vs Fitted", "Scale-Location", "Cook's distance",
     "Residuals vs Leverage", expression("Cook's dist vs Leverage  " * h[ii]/(1 - h[ii]))),
-  panel = if (add.smooth) function(x, y, ...) panel.smooth(x, y, iter = iter.smooth,
-    ...) else points,
+  panel = if (add.smooth) function(x, y, ...) panel.smooth(x, y, iter = iter.smooth, ...)
+    else points,
   sub.caption = NULL,
   main = "",
   ask = prod(par("mfcol")) < length(which) && dev.interactive(),
@@ -34,7 +34,8 @@
 \item{caption}{captions to appear above the plots;
     \code{\link{character}} vector or \code{\link{list}} of valid
     graphics annotations, see \code{\link{as.graphicsAnnot}}, of length
-    6, the j-th entry corresponding to \code{which[j]}.  Can be set to
+    6, the j-th entry corresponding to \code{which[j]}, see also the
+    default vector in \sQuote{Usage}.  Can be set to
     \code{""} or \code{NA} to suppress all captions.
   }
 
@@ -76,7 +77,7 @@
     distribution can be highly skewed.}
 
 \item{label.pos}{positioning of labels, for the left half and right
-    half of the graph respectively, for plots 1-3.}
+    half of the graph respectively, for plots 1-3, 5, 6.}
 
 \item{cex.caption}{controls the size of \code{caption}.}
 

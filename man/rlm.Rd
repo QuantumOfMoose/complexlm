@@ -87,7 +87,7 @@ rlm(x, ...)
 
 \item{test.vec}{the stopping criterion is based on changes in this vector.}
 
-\item{lqs.control}{An optional list of control values for \link{lqs}, ignored.}
+\item{lqs.control}{An optional list of control values for lqs. Ignored if x or y are complex.}
 
 \item{interc}{TRUE or FALSE, default is FALSE. Used with rlm.default when fitting complex valued data. If true, a y-intercept is calculated during fitting. Otherwise, the intercept is set to zero.}
 }
@@ -120,11 +120,11 @@ in M-estimation.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{formula}: S3 method for class 'formula'
+\item \code{rlm(formula)}: S3 method for class 'formula'
 
-\item \code{complex}: Complex Default S3 method
+\item \code{rlm(complex)}: Complex Default S3 method
+
 }}
-
 \examples{
 set.seed(4242)
 n <- 8

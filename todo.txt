@@ -41,3 +41,5 @@ DONE add complex compatible cov, cor, and cov2cor functions.
 
 DONE clean up example file.
 
+Repair package so that it passes new CRAN tests.
+

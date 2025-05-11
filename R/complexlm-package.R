@@ -29,20 +29,20 @@ NULL
 #' 
 #' The variables included in the dataframe are as follows:
 #' 
-#' \itemize{
-#'    \item{Temperature.K.}{The temperature of the sample during this measurement. Units of Kelvin.}
-#'    \item{Magnet.Field.Frequency.Hz.}{The frequency of the oscillating magnetic field used for this measurement. Units are Hertz.}
-#'    \item{Magnetic.Field.T.}{The amplitude of the magnetic field during this measurement. Units of Tesla.}
-#'    \item{Contact.Arrangement}{This measurement involves four electrical contacts (current in and out, and voltage hi and lo), placed at the corners. 
+#' \describe{
+#'    \item{Temperature.K.}{ The temperature of the sample during this measurement. Units of Kelvin.}
+#'    \item{Magnet.Field.Frequency.Hz.}{ The frequency of the oscillating magnetic field used for this measurement. Units are Hertz.}
+#'    \item{Magnetic.Field.T.}{ The amplitude of the magnetic field during this measurement. Units of Tesla.}
+#'    \item{Contact.Arrangement}{ This measurement involves four electrical contacts (current in and out, and voltage hi and lo), placed at the corners. 
 #'          Corresponding contacts must be opposite each other, so there are two possible arrangements: "D" and "F".}
-#'    \item{Current.Set.A.}{The desired current to be sent through the sample for this measurement. There was an error in recording beyond the 8th row. Units of Amperes.}
-#'    \item{Current.In.meas.A.}{The current measured leaving the sourcemeter, towards the sample. Units of Amperes.}
-#'    \item{Current.Out.meas.A.}{The current measured exiting the sample. Units of Amperes.}
-#'    \item{Source.V.V.}{The voltage generated across the sample in order to produce the desired current. Units of Volts.}
-#'    \item{OutputV}{The complex voltage measured across the sample. Ideally proportional to the current and magnetic field. Units of Volts.}
-#'    \item{Current.leak}{The difference between the input and output currents. Units of Amperes.}
-#'    \item{Resistivity.Ohm.cm}{The resistivity of the sample as calculated by the Van Der Pauw method from previous DC current-voltage sweeps. Units of Ohm*centimeter.}
-#'    \item{thickness.cm.}{The thickness of the copper film in centimeters.}
+#'    \item{Current.Set.A.}{ The desired current to be sent through the sample for this measurement. There was an error in recording beyond the 8th row. Units of Amperes.}
+#'    \item{Current.In.meas.A.}{ The current measured leaving the sourcemeter, towards the sample. Units of Amperes.}
+#'    \item{Current.Out.meas.A.}{ The current measured exiting the sample. Units of Amperes.}
+#'    \item{Source.V.V.}{ The voltage generated across the sample in order to produce the desired current. Units of Volts.}
+#'    \item{OutputV}{ The complex voltage measured across the sample. Ideally proportional to the current and magnetic field. Units of Volts.}
+#'    \item{Current.leak}{ The difference between the input and output currents. Units of Amperes.}
+#'    \item{Resistivity.Ohm.cm}{ The resistivity of the sample as calculated by the Van Der Pauw method from previous DC current-voltage sweeps. Units of Ohm*centimeter.}
+#'    \item{thickness.cm.}{ The thickness of the copper film in centimeters.}
 #' }
 #' 
 #' @keywords datasets
